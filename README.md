@@ -5,7 +5,7 @@ Built on [Rhizoma](https://github.com/dabinkiim/Rhizoma), the growing type syste
 
 **Website:** https://sativus-gourd.github.io/rhizoma-smoke/
 
-Type into the tool and watch the letters grow, let growth rise or fall through the text, replay any growth
+Type into the SG Rhizoma Engine and watch the letters grow, let growth rise or fall through the text, replay any growth
 from its seed, save it as SVG or video, and download the fonts. Leave the page open and it keeps growing.
 
 ## The SG Rhizoma Family
