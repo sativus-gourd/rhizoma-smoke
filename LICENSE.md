@@ -12,3 +12,6 @@ SIL Open Font License 1.1, see docs/downloads/OFL.txt.
 Latin glyphs derive from IM Fell English Roman, Copyright (c) 2007 Igino Marini,
 with Reserved Font Name "IM FELL English Roman". Hangul glyphs derive from Song Myung,
 Copyright 2018 The Song Myung Project Authors.
+
+## Not covered by these licences
+The Sativus Gourd name, signature and logo, the atelier artwork shown on the site (including the 담배 피는 여자 / Women Who Smoke lockup and the Kafka on Waterloo Shore page) and the site's written text are © 2026 Sativus Gourd and their respective owners. All rights reserved. They are not open source and may not be reused without permission.
