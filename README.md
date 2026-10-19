@@ -6,20 +6,20 @@ Built on [Rhizoma](https://github.com/dabinkiim/Rhizoma), the growing type syste
 **Website:** https://sativus-gourd.github.io/rhizoma-smoke/
 
 Type into the tool and watch the letters grow, let growth rise or fall through the text, replay any growth
-from its seed, save it as SVG or video, and download the fonts.
+from its seed, save it as SVG or video, and download the fonts. Leave the page open and it keeps growing.
 
 ## The SG Rhizoma Family
 - Core: SG Smoke, SG Root, SG Feather, SG Rhizoma V2
 - Experimental: SG Smoke Plume, SG Smoke Flame, SG Drag, SG Tangle
-- Variable: SG Smoke Variable, with a Growth axis from the bare letter (0) to the full smoke (100)
+- Variable: every core face again, as SG Smoke Variable, SG Root Variable, SG Feather Variable and SG Rhizoma V2 Variable, with a Growth axis from the bare letter (0) to the full growth (100)
 
 ## Fonts
 Free fonts in `docs/downloads/`. Each carries 212 Latin characters from IM Fell English, five ligatures
-and 2,897 kerning pairs. All but SG Tangle and SG Smoke Variable also carry Hangul: the 2,350 syllables of KS X 1001 and 51 jamo,
-grown from Song Myung. SG Rhizoma V2 is grown with Dabin Kim's Rhizoma at its default settings.
+and 2,897 kerning pairs. All but SG Tangle also carry Hangul: the 2,350 syllables of KS X 1001 and 51 jamo,
+grown from Song Myung. SG Rhizoma V2 and SG Rhizoma V2 Variable are grown with Dabin Kim's Rhizoma at its default settings.
 
 ## What Rhizoma Smoke adds to Rhizoma
-Hangul, seeds that bring any growth back, growth that rises or falls letter by letter, a variable font with a
+Hangul, seeds that bring any growth back, growth that rises or falls letter by letter, variable fonts with a
 Growth axis, roots that start on the outline, roots that join across letters and lines, drift, taper, turbulence and a current, roots drawn as smooth curves, multi-line setting,
 fonts that set as running text, and video recording.
 
