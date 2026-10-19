@@ -26,5 +26,7 @@ fonts that set as running text, and video recording.
 - Fonts: SIL Open Font License 1.1. Latin from IM Fell English Roman by Igino Marini (Reserved Font Name
   "IM FELL English Roman"), Hangul from Song Myung by the Song Myung Project Authors.
 - Interface fonts: Libre Caslon Text and Libre Franklin (OFL). Libraries: opentype.js, Paper.js, JSZip (MIT).
+- Not covered: the Sativus Gourd name, signature and logo, the atelier artwork and the site's text are
+  © 2026 Sativus Gourd and their respective owners. All rights reserved.
 
 See LICENSE.md.
