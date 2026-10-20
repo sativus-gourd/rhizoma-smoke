@@ -2383,7 +2383,8 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     // on as the circle reaches it, at the width it ends with, so the growth leaves the R without a jump
     function reveal(now) {
       if (S.r0 == null) S.r0 = now;
-      const u = Math.min(1, (now - S.r0) / 2600), e = 1 - Math.pow(1 - u, 2.2), r = e * S.rmax;
+      // about 70 CSS pixels a second at its fastest, easing in and out, so the R grows out at a pace the growth after it keeps
+      const dur = Math.min(9000, Math.max(4500, S.rmax / S.k / 70 * 1000)), u = Math.min(1, (now - S.r0) / dur), e = u * u * (3 - 2 * u), r = e * S.rmax;
       rv.forEach(c => c.setAttribute('r', r.toFixed(0)));
       for (const p of S.wait) if (!p.on && p.d <= r) { p.on = true; const w0 = Math.max(0.4, p.w / S.k); S.alive.push(root(p.x, p.y, p.a, w0, Math.min(w0, small ? 0.9 : 1.2), { life: 1200 + S.rng() * 1800, parent: -1 })); }
       S.reveal = u;
