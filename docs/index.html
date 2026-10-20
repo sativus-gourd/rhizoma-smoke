@@ -2005,25 +2005,34 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       return best;
     }
     function path(w) { const p = document.createElementNS(NS, 'path'); p.setAttribute('stroke-width', w.toFixed(2)); svg.appendChild(p); return p; }
-    function root(x, y, a, w, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, a0: a, w, step: STEP, age: 0, life: 400, turn: 0.42, pull: 0, sink: 0, level: 0, kind: 'root', alive: true, join: false, n: 0, dirty: true, done: [] }, o); t.el = path(w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
+    function root(x, y, a, w, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, a0: a, w, w0: w, w1: w, ramp: 0, step: STEP, age: 0, life: 400, turn: 0.42, pull: 0, sink: 0, level: 0, kind: 'root', alive: true, join: false, n: 0, dirty: true, done: [] }, o); t.el = path(w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
     function step(t) {
       const r = S.rng; let a = t.a + (r() - 0.5) * t.turn * Math.min(1, (t.age + 1) / 12);   // it leaves the tip it grew from before it wanders
       const pull = t.pull * Math.max(0, 1 - t.age / 140);
       if (pull) a += dang(-Math.PI / 2, a) * pull;                      // the smoke's upward pull lets go
       if (t.sink && t.age > 140) a += dang(Math.PI / 2, a) * t.sink;    // and the root settles down into the page
       if (t.level) a += dang(t.a0, a) * t.level;                        // a stem keeps spreading sideways
-      const q = near(t.x, t.y, 16, t);
+      const k = t.step / STEP;                                           // a finer root (a phone's title) reaches as far in steps
+      const q = near(t.x, t.y, 16 * k, t);
       if (q) a += dang(Math.atan2(q[1] - t.y, q[0] - t.x), a) * 0.3;    // and turn towards a root they come near
       t.a = a; t.nx = t.x + Math.cos(a) * t.step; t.ny = t.y + Math.sin(a) * t.step;
-      const j = near(t.nx, t.ny, 4.5, t);
+      const j = near(t.nx, t.ny, 4.5 * k, t);
       if (j) { t.nx = j[0]; t.ny = j[1]; t.join = true; }
     }
+    // a root that goes on from a title root starts at that root's width at its tip and eases to a page hairline over its first
+    // stretch, drawn in short pieces meanwhile, so nothing shows where the title ends and the page growth begins
+    const widthAt = t => { const u = Math.min(1, t.age / t.ramp); return t.w0 + (t.w1 - t.w0) * u * u * (3 - 2 * u); };
     function freeze(t) { t.el.setAttribute('d', t.d); t.done.push(t.el); t.el = path(t.w); t.d = 'M' + t.x.toFixed(1) + ' ' + t.y.toFixed(1); t.n = 0; }
     // a root that has stopped becomes one path again, so the page holds one element per root
     function die(t) {
       t.alive = false;
-      if (t.done.length) { let d = ''; for (const e of t.done) { d += e.getAttribute('d'); e.remove(); } t.el.setAttribute('d', d + t.d); t.done = []; }
-      else t.el.setAttribute('d', t.d);
+      t.el.setAttribute('d', t.d);
+      const els = t.done.concat(t.el); t.done = [];
+      for (let i = 0; i < els.length;) {                                // pieces of one width become one path; a ramp keeps its steps
+        let j = i, d = els[i].getAttribute('d'); const sw = els[i].getAttribute('stroke-width');
+        while (j + 1 < els.length && els[j + 1].getAttribute('stroke-width') === sw) { j++; d += els[j].getAttribute('d'); els[j].remove(); }
+        els[i].setAttribute('d', d); i = j + 1;
+      }
     }
     function joint(x, y, w) { const c = document.createElementNS(NS, 'circle'); c.setAttribute('cx', x.toFixed(1)); c.setAttribute('cy', y.toFixed(1)); c.setAttribute('r', (w * 0.95).toFixed(2)); svg.appendChild(c); }
     function commit(t) {
@@ -2031,13 +2040,14 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       t.x = t.nx; t.y = t.ny; t.age++; gridAdd(t.x, t.y, t.id);
       if (t.join) { joint(t.x, t.y, t.w); die(t); return; }
       if (t.age >= t.life || S.segs >= HARD || t.x < -60 || t.x > S.W + 60 || t.y > S.H + 60 || t.y < -40) { die(t); return; }   // roots that reach an edge run off the page
-      if (t.n >= CHUNK) freeze(t);
+      if (t.ramp && t.age <= t.ramp + 3) { if (t.n >= 3) { t.w = widthAt(t); freeze(t); } } else if (t.n >= CHUNK) freeze(t);
       const free = S.segs < HARD && S.alive.length + S.born.length < room();
       if (t.kind === 'stem') {                                           // a rhizome puts down a root at a node now and then
         if (free && S.rng() < 0.012) S.born.push(root(t.x, t.y, Math.PI / 2 + (S.rng() - 0.5) * 1.2, Math.max(small ? MINW : 0.7, t.w * 0.7), { parent: t.id, life: 60 + S.rng() * 170, turn: 0.5, sink: 0.03 }));
       } else if (free && S.rng() < 0.0065) {                             // a branch, now and then
         const side = S.rng() < 0.5 ? -1 : 1;
-        S.born.push(root(t.x, t.y, t.a + side * (0.45 + S.rng() * 0.6), Math.max(MINW, t.w * 0.82), { parent: t.id, life: 160 + S.rng() * 420, turn: t.turn, sink: t.sink, step: t.step }));
+        const bw = Math.max(MINW, t.w1 * 0.82), b0 = Math.min(bw, t.w);
+        S.born.push(root(t.x, t.y, t.a + side * (0.45 + S.rng() * 0.6), b0, { parent: t.id, life: 160 + S.rng() * 420, turn: t.turn, sink: t.sink, step: t.step, w1: bw, ramp: b0 < bw ? Math.round((small ? 50 : 120) / t.step) : 0 }));
       }
       step(t);
     }
@@ -2087,11 +2097,14 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
         const sm = smoothed(R), n = sm.length, id = -(++k); if (n < 2) continue;
         for (let i = 0; i < n; i += 2) gridAdd(ox + (sm[i].x + it.x) * v.s, oy + (sm[i].y + it.y) * v.s, id);
         if (n < 10 || S.rng() >= 0.3) continue;
-        const a = sm[n - 1], b = sm[Math.max(0, n - 4)], kk = leaves(R, sm, it);
+        const a = sm[n - 1], b = sm[n - 2], kk = leaves(R, sm, it);       // it goes on the way its last drawn step points
         // a root goes on at the width and step it ended with, so where the title is drawn small (a phone) it goes on as finely
-        const wpx = Math.min(1.7, Math.max(small ? MINW : 0.8, widthVis(it.o || sc.o, R, n - 1, n) * swell(n - 1, kk) * v.s, envOf(R, it, sc.o, n - 1) * v.s));
+        const own = widthVis(it.o || sc.o, R, n - 1, n) * swell(n - 1, kk), wv = Math.max(own, envOf(R, it, sc.o, n - 1));
+        const w0 = Math.max(2, Math.round(wv / 3) * 3) * v.s;            // the width the title draws its tip at (drawOriginal)
+        // then its own width (a tip that carried a branch hands that width on to the branch), at least a page hairline
+        const w1 = Math.min(1.7, Math.max(small ? MINW : 0.8, Math.max(2, Math.round(own / 3) * 3) * v.s));
         const spx = small ? Math.min(STEP, Math.max(0.7, Math.hypot(a.x - sm[n - 2].x, a.y - sm[n - 2].y) * v.s)) : STEP;
-        S.alive.push(root(ox + (a.x + it.x) * v.s, oy + (a.y + it.y) * v.s, Math.atan2(a.y - b.y, a.x - b.x), wpx, { parent: id, life: 500 + S.rng() * 900, pull: 0.06, sink: 0.012, step: spx }));
+        S.alive.push(root(ox + (a.x + it.x) * v.s, oy + (a.y + it.y) * v.s, Math.atan2(a.y - b.y, a.x - b.x), w0, { parent: id, life: 500 + S.rng() * 900, pull: 0.06, sink: 0.012, step: spx, w1, ramp: w0 === w1 ? 0 : Math.round((w0 < w1 ? (small ? 50 : 120) : 8 * spx) / spx) }));
       }
       if (ticks) { while (S.ticks < ticks && (S.alive.length || S.li < S.log.length)) tick(); for (const t of S.alive) t.dirty = true; }
       S.replay = false; last = 0; acc = 0;
