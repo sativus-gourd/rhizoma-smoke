@@ -9,9 +9,9 @@ Type into the SG Rhizoma Engine and watch the letters grow, let growth rise or f
 from its seed, save it as SVG or video, and download the fonts. Leave the page open and it keeps growing.
 
 ## The SG Rhizoma Family
-- Core: SG Smoke, SG Root, SG Feather, SG Rhizoma V2
-- Experimental: SG Smoke Plume, SG Smoke Flame, SG Drag, SG Tangle
-- Variable: every core face again, as SG Smoke Variable, SG Root Variable, SG Feather Variable and SG Rhizoma V2 Variable, with a Growth axis from the bare letter (0) to the full growth (100)
+- Core: SG Smoke, SG Drag, SG Flame, SG Rhizoma V2
+- Experimental: SG Root, SG Tangle
+- Variable: every core face again, as SG Smoke Variable, SG Drag Variable, SG Flame Variable and SG Rhizoma V2 Variable, and SG Root Variable among the experiments, with a Growth axis from the bare letter (0) to the full growth (100)
 
 ## Fonts
 Free fonts in `docs/downloads/`. Each carries 212 Latin characters from IM Fell English, five ligatures
@@ -20,7 +20,7 @@ grown from Song Myung. SG Rhizoma V2 and SG Rhizoma V2 Variable are grown with D
 
 ## What Rhizoma Smoke adds to Rhizoma
 Hangul, seeds that bring any growth back, growth that rises or falls letter by letter, variable fonts with a
-Growth axis, roots that start on the outline, roots that join across letters and lines, drift, taper, turbulence and a current, roots drawn as smooth curves, multi-line setting,
+Growth axis, growth fitted to each face, roots that start on the outline and leave their stroke cleanly, roots that join across letters and lines, drift, taper, turbulence, and a current that curls, roots drawn as smooth curves, multi-line setting,
 fonts that set as running text, and video recording.
 
 ## Credits and licences
