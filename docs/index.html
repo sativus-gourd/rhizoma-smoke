@@ -293,7 +293,10 @@ figure.anatwrap { position: relative; }
 .family h2 { font-weight: 400; font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.4rem); line-height: 1.1; margin: 0 0 .5rem; text-wrap: balance; }
 .famsub { color: var(--muted); margin: 0; max-width: var(--col); }
 .family .grouphead.first { margin-top: 1.75rem; }
-.card { position: relative; perspective: 1600px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .2s var(--ease); }
+.card { position: relative; perspective: 1600px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .2s var(--ease); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* growths drawn on canvas are pictures of the page, never something to select, drag or save by a long press */
+canvas { -webkit-user-select: none; user-select: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
+details > summary { -webkit-user-select: none; user-select: none; }
 .card:hover { transform: translateY(-2px); transition-duration: .12s; }
 .cin { display: grid; height: 100%; transform-style: preserve-3d; transition: transform .75s cubic-bezier(.2, .75, .25, 1); }
 .card.turned .cin { transform: rotateY(180deg); }
@@ -1529,7 +1532,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     ctx.fillStyle = ink;
     const burn = [];
     for (const R of scene.roots) {
-      const n = step == null ? R.segs.length : Math.min(R.segs.length, step - R.birth + 1);
+      const n = step == null ? R.segs.length : scene.clock ? scene.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);   // clock: a page's own pacing
       if (n < 2) continue;
       if (R.burn) { burn.push([R, n]); continue; }
       const pts = outline(o, R, n); if (!pts) continue;
@@ -1864,12 +1867,12 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   // a parent is drawn at least as wide as each branch it carries, up to the step the branch leaves it, then eases back to
   // its own width over ENV_EASE steps; branches keep their own width. So no thick root sprouts from a thin one, and no
   // branch thins to a thread (a root system is a set of pipes). Growth is unchanged; the parent is the root whose step
-  // the branch starts on, and while the scene grows a branch only counts once it is born.
+  // the branch starts on, and while the scene grows a branch only counts once it shows.
   const ENV_EASE = 8;
   function ownW(o, R, i, it) { const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K, n = R.segs.length, t = o.taper ? 1 - o.taper * (i / Math.max(n - 1, 1)) : 1; return base * R.thick * Math.max(t, 0.02) * swell(i, leaves(R, smoothed(R), it)); }
   function envAt(R, i, step) {
     let w = 0; if (!R._env) return 0;
-    for (const e of R._env) { if (step != null && e.b > step) continue; const d = i - e.k, u = d / ENV_EASE, f = d <= 0 ? 1 : d >= ENV_EASE ? 0 : 1 - u * u * (3 - 2 * u); if (e.r * f > w) w = e.r * f; }
+    for (const e of R._env) { if (step != null && (e.c._show != null ? e.c._show : e.b) > step) continue; const d = i - e.k, u = d / ENV_EASE, f = d <= 0 ? 1 : d >= ENV_EASE ? 0 : 1 - u * u * (3 - 2 * u); if (e.r * f > w) w = e.r * f; }
     return w;
   }
   function fitItem(it, o) {
@@ -1878,7 +1881,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     for (const R of it.roots) { R._env = []; R.segs.forEach((p, j) => { if (j) { const kk = key(p); if (!at.has(kk)) at.set(kk, [R, j]); } }); }
     for (const R of it.roots.slice().sort((a, b) => b.birth - a.birth)) {   // a branch before its parent, so carried widths add up the tree
       const m = R.birth > 0 && !R.trunk && at.get(key(R.segs[0])); if (!m || m[0] === R) continue;
-      m[0]._env.push({ k: m[1], r: Math.max(ownW(o, R, 0, it), envAt(R, 0)), b: R.birth });
+      m[0]._env.push({ k: m[1], r: Math.max(ownW(o, R, 0, it), envAt(R, 0)), b: R.birth, c: R });
     }
   }
   function envOf(R, it, o, i, step) { if (!it._fitted) fitItem(it, o); return envAt(R, i, step); }
@@ -1916,7 +1919,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     for (const it of scene.items) {
       for (const R of it.roots) {
         if (pick && !pick(R)) continue;
-        const n = step == null ? R.segs.length : Math.min(R.segs.length, step - R.birth + 1);
+        const n = step == null ? R.segs.length : scene.clock ? scene.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);
         if (n < 2) continue;
         const s = smoothed(R), k = leaves(R, s, it);
         for (let i = 1; i < n; i++) {
@@ -2022,7 +2025,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     ctx.strokeStyle = ink; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const R of sc.roots) {
       if (pick && !pick(R)) continue;
-      const n = step == null ? R.segs.length : Math.min(R.segs.length, step - R.birth + 1);
+      const n = step == null ? R.segs.length : sc.clock ? sc.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);
       if (n < 2) continue;
       ctx.beginPath(); ctx.moveTo(R.segs[0].x, R.segs[0].y);
       for (let i = 1; i < n; i++) ctx.lineTo(R.segs[i].x, R.segs[i].y);
@@ -2042,11 +2045,90 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   }
   function grow(text, face, seed, growth, opts) {
     if (growth && GSCALE[face]) growth = Object.assign({}, growth, { scale: GSCALE[face] });
-    if (face === 'SMOKE') return makeSceneOriginal(text, seed, growth);
-    if (face === 'RHIZOMA') return growRhizoma(text, seed, null, growth);
+    if (face === 'SMOKE') return paced(makeSceneOriginal(text, seed, growth), seed, face);
+    if (face === 'RHIZOMA') return paced(growRhizoma(text, seed, null, growth), seed, face);
     const sc = S2.grow(FONTS, text, Object.assign({}, opts || PRESETS[face], { seed }, growth ? { growth } : {}));
     sc.kind = 'v2';
     sc.b = { x0: sc.b.x0 - 60, y0: sc.b.y0 - 60, x1: sc.b.x1 + 60, y1: sc.b.y1 + 60 };
+    return paced(sc, seed, face);
+  }
+  // how every growth on the page plays: each root on a clock of its own, the rule How a Letter Grows plays by. A trunk starts
+  // a moment early or late, a branch the moment its parent's tip reaches the point it grows from, and each root grows at a
+  // pace of its own (0.6 to 1.45 times the mean, from the seed) along a growth curve: it comes out of its start, grows, and
+  // settles as it reaches its length. The curve is symmetric, so a root is as much drawn while it grows as at one speed: a
+  // frame costs what it did (How a Letter Grows is drawn as SVG and can afford a longer settle). The whole growth is then
+  // laid over the timing it always had: at every moment as much root has grown as before, so the start is no quicker and the
+  // end no longer, while each root keeps its own speed inside that. Playback only: every shape, font and file is the
+  // engine's, unchanged.
+  const PACE = [0.6, 1.45], EZ = [0.42, 0, 0.58, 1], EN = 1024, WS = 16;
+  const bzq = (s, p, q) => 3 * (1 - s) * (1 - s) * s * p + 3 * (1 - s) * s * s * q + s * s * s;
+  function bezier(x, a, b) { let lo = 0, hi = 1; for (let i = 0; i < 24; i++) { const m = (lo + hi) / 2; if (bzq(m, EZ[a], EZ[a + 2]) < x) lo = m; else hi = m; } return bzq((lo + hi) / 2, EZ[b], EZ[b + 2]); }
+  const EASE = Float32Array.from({ length: EN + 1 }, (_, i) => bezier(i / EN, 0, 1));
+  function easeAt(x) { if (x <= 0) return 0; if (x >= 1) return 1; const f = x * EN, i = f | 0; return EASE[i] + (EASE[i + 1] - EASE[i]) * (f - i); }
+  const easeInv = q => q <= 0 ? 0 : q >= 1 ? 1 : bezier(q, 1, 0);
+  // the growths that go on live (the page's roots, the R's spread) keep the rule tip by tip: each root grows at a pace of
+  // its own, from its seed and number, averaging the pace they had, and slows over its last stretch before it stops
+  const tipPace = (seed, id) => (PACE[0] + (PACE[1] - PACE[0]) * ((S1.hash2(seed >>> 0, id + 0x5EED) >>> 0) / 4294967296)) * 2 / (PACE[0] + PACE[1]);
+  const tipRate = t => t.pace * Math.min(1, 0.3 + 0.7 * (t.life - t.age) / 30);
+  function tipTick(list, commit, keep) { for (const t of list) { t.prog += tipRate(t); while (t.alive && t.prog >= 1) { t.prog -= 1; commit(t); } if (t.alive) keep.push(t); } }
+  const tipAt = (t, f) => Math.min(1, t.prog + tipRate(t) * f);
+  function paced(sc, seed, face) {
+    sc.face = face;
+    const roots = sc.kind === 'smoke' ? sc.items.flatMap(it => it.roots) : sc.roots;
+    if (!roots.length) return sc;
+    // a branch's parent: the engine names it; otherwise it is the root, in the same letter, with a step where the branch starts
+    const T = new Map(), base = S1.hash2(seed >>> 0, 0x9ACE), group = new Map(), maps = new Map();
+    const key = p => (Math.round(p.x * 64) + 1048576) * 2097152 + Math.round(p.y * 64) + 1048576;
+    if (sc.kind === 'smoke') sc.items.forEach(it => it.roots.forEach(R => group.set(R, it.roots))); else roots.forEach(R => group.set(R, roots));
+    const parentOf = R => { const g = group.get(R); let at = maps.get(g);
+      if (!at) { maps.set(g, at = new Map()); for (const Q of g) for (let j = 1; j < Q.segs.length; j++) { const k = key(Q.segs[j]); if (!at.has(k)) at.set(k, [Q, j]); } }
+      const m = at.get(key(R.segs[0])); return m && m[0] !== R ? m : null; };
+    const total = Math.max(1, ...roots.map(R => R.birth + R.segs.length)); let end = 1, sum = 0;
+    roots.map((R, i) => [R, i]).sort((a, b) => a[0].birth - b[0].birth).forEach(([R, i]) => {
+      const h = (S1.hash2(base, i + 1) >>> 0) / 4294967296, h2 = (S1.hash2(base, i + 77771) >>> 0) / 4294967296;
+      const len = Math.max(1, R.segs.length - 1), dur = len / (PACE[0] + (PACE[1] - PACE[0]) * h);
+      let P = R.parent || null, j = R.at;
+      if (!P && R.birth > 0 && !R.trunk && sc.kind !== 'v2') { const m = parentOf(R); if (m) [P, j] = m; }   // the engine names every branch's parent
+      const pt = P && T.get(P);
+      const t0 = pt ? pt.t0 + pt.dur * easeInv(j / Math.max(1, P.segs.length - 1)) : R.birth + h2 * 0.06 * total;
+      T.set(R, { t0, dur, len }); end = Math.max(end, t0 + dur); sum += len;
+    });
+    // the timing it always had: how much of the growth (by length) stood at each step, one step a tick, and the same on
+    // the roots' own clocks; W maps a step to the moment on their clocks when as much had grown
+    const G = 256, old = new Float64Array(G + 1), own = new Float64Array(G + 1), W = new Float64Array(G + 1), N = roots.length;
+    const RB = new Float64Array(N), RL = new Float64Array(N), R0 = new Float64Array(N), RD = new Float64Array(N);
+    roots.forEach((R, i) => { const c = T.get(R); RB[i] = R.birth; RL[i] = c.len; R0[i] = c.t0; RD[i] = c.dur; });
+    for (let i = 0; i < N; i++) {                                    // each root adds to the steps it grows through, and all of itself after
+      const b = RB[i], l = RL[i], t0 = R0[i], d = RD[i];
+      for (let k = Math.max(0, Math.floor(b / total * G)); k <= G; k++) { const s = k / G * total - b; if (s <= 0) continue; if (s >= l) { for (; k <= G; k++) old[k] += l; break; } old[k] += s; }
+      for (let k = Math.max(0, Math.floor(t0 / end * G)); k <= G; k++) { const x = (k / G * end - t0) / d; if (x <= 0) continue; if (x >= 1) { for (; k <= G; k++) own[k] += l; break; } own[k] += l * easeAt(x); }
+    }
+    for (let k = 0; k <= G; k++) { old[k] /= sum; own[k] /= sum; }
+    for (let k = 0, i = 0; k <= G; k++) {
+      const q = Math.min(old[k], own[G]); while (i < G && own[i + 1] < q) i++;
+      const d = own[i + 1] - own[i]; W[k] = k === G ? end : (i + (d > 0 ? Math.min(1, Math.max(0, (q - own[i]) / d)) : 0)) / G * end;
+    }
+    for (let k = 1; k <= G; k++) if (W[k] < W[k - 1]) W[k] = W[k - 1];
+    // and smoothed, so that when a root starts or stops nothing else lurches with it: speeds change over a few frames
+    { const r = Math.ceil(WS * 3), g = Array.from({ length: 2 * r + 1 }, (_, m) => Math.exp(-((m - r) ** 2) / (2 * WS * WS))), gs = g.reduce((x, y) => x + y, 0);
+      const at = k => k < 0 ? 2 * W[0] - W[-k] : k > G ? 2 * W[G] - W[2 * G - k] : W[k], S = new Float64Array(G + 1);
+      for (let k = 0; k <= G; k++) { let v = 0; for (let m = -r; m <= r; m++) v += g[m + r] * at(k + m); S[k] = v / gs; }
+      W.set(S); }
+    const warp = s => { if (s <= 0) return W[0]; const f = s / total * G; if (f >= G) return end; const k = f | 0; return W[k] + (W[k + 1] - W[k]) * (f - k); };
+    sc.warp = warp;
+    sc.clock = (R, step) => { const c = T.get(R); return c ? 1 + Math.floor(c.len * easeAt((warp(step) - c.t0) / c.dur) + 1e-9) : Math.min(R.segs.length, step - R.birth + 1); };
+    const stepAt = t => { let lo = 0, hi = G; while (lo < hi) { const m = (lo + hi) >> 1; if (W[m] >= t - 1e-9) hi = m; else lo = m + 1; }
+      if (lo > 0 && W[lo] > W[lo - 1]) return Math.min(total, (lo - 1 + (t - W[lo - 1]) / (W[lo] - W[lo - 1])) / G * total); return Math.min(total, lo / G * total); };
+    // the step each root is whole (from then on it is drawn from the finished bitmap), and the step it first shows (SG Smoke
+    // widens a parent to carry a branch from that step); both found on the clock itself, so they agree with it to the step
+    const ends = new Map();
+    for (const [R, c] of T) {
+      let e = Math.ceil(stepAt(c.t0 + c.dur)); while (e < total && sc.clock(R, e) < R.segs.length) e++; while (e > 0 && sc.clock(R, e - 1) >= R.segs.length) e--; ends.set(R, e);
+      if (sc.kind !== 'smoke') continue;
+      let s = Math.max(0, Math.ceil(stepAt(c.t0 + c.dur * easeInv(1 / c.len))) - 1); while (s < total && sc.clock(R, s) < 2) s++; while (s > 0 && sc.clock(R, s - 1) >= 2) s--; R._show = s;
+    }
+    sc.clockEnd = R => ends.has(R) ? ends.get(R) : R.birth + R.segs.length - 1;
+    if (window.__rsProbe) window.__rsProbe(sc, roots);             // the build checks listen here; nothing on the live page does
     return sc;
   }
   function fit(w, h, sc, emMax, pad) {
@@ -2061,7 +2143,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   function drawPart(ctx, sc, step, col, pick, letters) {
     if (sc.kind === 'smoke') drawOriginal(ctx, sc, step, col.ink, pick, letters);
     else if (sc.kind === 'rhizoma') drawRhizoma(ctx, sc, step, col.ink, pick, letters);
-    else S2.draw(ctx, pick ? { o: sc.o, insts: letters ? sc.insts : [], roots: sc.roots.filter(pick) } : sc, step, col.ink, col.ground);
+    else S2.draw(ctx, pick ? { o: sc.o, insts: letters ? sc.insts : [], roots: sc.roots.filter(pick), clock: sc.clock } : sc, step, col.ink, col.ground);
   }
   function paint(ctx, w, h, dpr, sc, step, col, emMax, pad, clear, cache) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -2075,7 +2157,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       cache.cv.width = W; cache.cv.height = H; cache.sc = sc; cache.key = key; cache.done = new Set();
       const c = cache.cv.getContext('2d'); c.setTransform(...T); drawPart(c, sc, null, col, () => false, true);
     }
-    const fresh = roots.filter(R => !cache.done.has(R) && R.birth + R.segs.length - 1 <= step);
+    const fresh = roots.filter(R => !cache.done.has(R) && (sc.clockEnd ? sc.clockEnd(R) : R.birth + R.segs.length - 1) <= step);
     if (fresh.length) { const c = cache.cv.getContext('2d'); c.setTransform(...T); const f = new Set(fresh); drawPart(c, sc, null, col, R => f.has(R), false); fresh.forEach(R => cache.done.add(R)); }
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(cache.cv, 0, 0);
     ctx.setTransform(...T); drawPart(ctx, sc, step, col, R => !cache.done.has(R), false);
@@ -2182,7 +2264,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       return best;
     }
     function path(w) { const p = document.createElementNS(NS, 'path'); p.setAttribute('stroke-width', w.toFixed(2)); svg.appendChild(p); return p; }
-    function root(x, y, a, w, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, a0: a, w, w0: w, w1: w, ramp: 0, step: STEP, age: 0, life: 400, turn: 0.42, pull: 0, sink: 0, level: 0, kind: 'root', alive: true, join: false, n: 0, dirty: true, done: [] }, o); t.el = path(w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
+    function root(x, y, a, w, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, a0: a, w, w0: w, w1: w, ramp: 0, step: STEP, age: 0, life: 400, turn: 0.42, pull: 0, sink: 0, level: 0, kind: 'root', alive: true, join: false, n: 0, dirty: true, done: [], prog: 0 }, o); t.pace = tipPace(S.seed, t.id); t.el = path(w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
     function step(t) {
       const r = S.rng; let a = t.a + (r() - 0.5) * t.turn * Math.min(1, (t.age + 1) / 12);   // it leaves the tip it grew from before it wanders
       const pull = t.pull * Math.max(0, 1 - t.age / 140);
@@ -2243,13 +2325,13 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       if (S.replay) { while (S.li < S.log.length && S.log[S.li].tick === S.ticks) spawn(S.log[S.li++].yf); }
       else if (S.ticks >= S.spawnAt && S.segs < HARD && S.alive.length < room()) spawn(null);
       const list = S.alive; S.alive = [];
-      for (const t of list) { commit(t); if (t.alive) S.alive.push(t); }
+      tipTick(list, commit, S.alive);
       if (S.born.length) { S.alive.push(...S.born); S.born = []; }
     }
     function heads(f) {
       const top = window.scrollY - 80, bot = window.scrollY + window.innerHeight + 80;
       for (const t of S.alive) {
-        if (t.y > top && t.y < bot) t.el.setAttribute('d', t.d + 'L' + (t.x + (t.nx - t.x) * f).toFixed(1) + ' ' + (t.y + (t.ny - t.y) * f).toFixed(1));
+        if (t.y > top && t.y < bot) { const u = tipAt(t, f); t.el.setAttribute('d', t.d + 'L' + (t.x + (t.nx - t.x) * u).toFixed(1) + ' ' + (t.y + (t.ny - t.y) * u).toFixed(1)); }
         else if (t.dirty) t.el.setAttribute('d', t.d);
         t.dirty = false;
       }
@@ -2266,7 +2348,8 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     function begin(sc, log, ticks) {
       while (svg.firstChild) svg.firstChild.remove();
       if (!svg.isConnected) document.body.prepend(svg);
-      S = { rng: S1.mulberry32(S1.hash2(sc.o.seed, 7703)), grid: new Map(), alive: [], born: [], next: 1, segs: 0, ticks: 0, log: log || [], li: 0, replay: !!log, spawnAt: 20 };
+      S = { seed: sc.o.seed, rng: S1.mulberry32(S1.hash2(sc.o.seed, 7703)), grid: new Map(), alive: [], born: [], next: 1, segs: 0, ticks: 0, log: log || [], li: 0, replay: !!log, spawnAt: 20 };
+      if (window.__rsTips) window.__rsTips('page', () => S);       // the build checks listen here; nothing on the live page does
       size(); wAt = window.innerWidth;
       const r = titleCv.getBoundingClientRect(), w = titleCv.clientWidth, h = titleCv.clientHeight, v = fit(w, h, sc, 230, 8);
       const ox = r.left + window.scrollX + v.tx, oy = r.top + window.scrollY + v.ty;
@@ -2345,7 +2428,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       return best;
     }
     function path(w) { const p = document.createElementNS(NS, 'path'); p.setAttribute('stroke-width', w.toFixed(2)); p.setAttribute('vector-effect', 'non-scaling-stroke'); g.appendChild(p); return p; }
-    function root(x, y, a, w0, w1, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, w: w0, w0, w1, age: 0, life: 900, turn: 0.4, n: 0, done: [], alive: true, met: null, join: null, cool: 0 }, o); t.el = path(t.w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
+    function root(x, y, a, w0, w1, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, w: w0, w0, w1, age: 0, life: 900, turn: 0.4, n: 0, done: [], alive: true, met: null, join: null, cool: 0, prog: 0 }, o); t.pace = tipPace(S.seed, t.id); t.el = path(t.w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
     const RAMP = 40;                                                     // steps over which a root eases from the R's width to a hairline
     function step(t) {
       const k = S.k, st = 1.8 * k;
@@ -2386,7 +2469,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     }
     function tick() {
       const list = S.alive; S.alive = []; S.n = list.length;            // tips growing this tick, for the room left
-      for (const t of list) { commit(t); if (t.alive) S.alive.push(t); }
+      tipTick(list, commit, S.alive);
       if (S.born.length) { S.alive.push(...S.born); S.born = []; }
       if (S.reveal >= 1 && S.alive.length < Math.min(6, roomNow()) && S.segs < HARD && S.pool.length) {   // keep a few tips growing: start one from a point already grown
         const p = S.pool[Math.floor(S.rng() * S.pool.length)];
@@ -2394,7 +2477,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       }
       if (S.segs % 7 === 0 && S.alive.length) { const t = S.alive[Math.floor(S.rng() * S.alive.length)]; S.pool.push([t.x, t.y, t.id]); if (S.pool.length > 400) S.pool.splice(0, 200); }
     }
-    function heads(f) { for (const t of S.alive) t.el.setAttribute('d', t.d + 'L' + (t.x + (t.nx - t.x) * f).toFixed(1) + ' ' + (t.y + (t.ny - t.y) * f).toFixed(1)); }
+    function heads(f) { for (const t of S.alive) { const u = tipAt(t, f); t.el.setAttribute('d', t.d + 'L' + (t.x + (t.nx - t.x) * u).toFixed(1) + ' ' + (t.y + (t.ny - t.y) * u).toFixed(1)); } }
     // the R's roots grow out along their own paths, from the little growth it showed to all of it, easing in and out; each
     // root tip starts to grow on as its root is fully out, at the width it ends with, so the growth leaves the R without a jump
     function reveal(now) {
@@ -2419,8 +2502,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       fig.classList.add('spread');
       ov = document.createElementNS(NS, 'svg'); ov.setAttribute('class', 'anat-grow'); ov.setAttribute('aria-hidden', 'true'); ov.setAttribute('focusable', 'false');
       g = document.createElementNS(NS, 'g'); ov.appendChild(g); wrap.appendChild(ov);
-      S = { rng: S1.mulberry32(S1.hash2(39, 2718)), grid: new Map(), alive: [], born: [], pool: [], next: 1, segs: 0, n: 0, k: 1, box: null, reveal: 0, r0: null,
+      S = { seed: 39, rng: S1.mulberry32(S1.hash2(39, 2718)), grid: new Map(), alive: [], born: [], pool: [], next: 1, segs: 0, n: 0, k: 1, box: null, reveal: 0, r0: null,
         wait: tips.map(([x, y, a, w, k]) => ({ x, y, a, w, k, on: false })) };
+      if (window.__rsTips) window.__rsTips('spread', () => S);
       place();
       ro = new ResizeObserver(() => { if (ov && S) place(); }); ro.observe(document.body);
       vis.observe(ov);
@@ -2476,7 +2560,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     const right = sc.gb.x1 * v.s + v.tx;
     sig.style.setProperty('--sig-r', Math.max(0, Math.round(w - right)) + 'px');
   }
-  const title = player(titleCv, 230, 8, true, placeSig, 0.75);   // the title blossoms a little slower than the rest: roots take their time
+  const title = player(titleCv, 230, 8, true, placeSig, 0.7);    // the title blossoms a little slower than the rest: roots take their time
   function inkColours() { const cs = getComputedStyle(document.documentElement); const ink = cs.getPropertyValue('--ink').trim(), ground = cs.getPropertyValue('--ground').trim(); return { ink, ground }; }
 
   // ---------- tool
