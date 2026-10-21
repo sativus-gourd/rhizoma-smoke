@@ -1412,12 +1412,12 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
 
   function widthAt(o, R, i, n) {
     const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * K;
-    const s = i / Math.max(n - 1, 1);
+    const s = Math.min(1, i / Math.max(n - 1, 1));                     // n can be part way through a step (outline)
     const t = o.taper ? 1 - o.taper * Math.pow(s, o.taperPow) : 1;
     return Math.max(o.minWidth, base * R.thick * Math.max(t, 0.02));
   }
   function charWidth(o, R, i, n) {
-    const base = o.char && o.char.weightUnits || 24; const s = i / Math.max(n - 1, 1);
+    const base = o.char && o.char.weightUnits || 24; const s = Math.min(1, i / Math.max(n - 1, 1));
     return Math.max(4, base * R.thick * (1 - 0.6 * s));
   }
 
@@ -1476,7 +1476,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   // the width outline() gives step i of n, before the minimum width and the branch fit
   function rawWidth(o, R, i, n, s) {
     const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * K;
-    const sN = i / Math.max(n - 1, 1), t = o.taper ? 1 - o.taper * Math.pow(sN, o.taperPow) : 1, k = exitIndex(o, R, s);
+    const sN = Math.min(1, i / Math.max(n - 1, 1)), t = o.taper ? 1 - o.taper * Math.pow(sN, o.taperPow) : 1, k = exitIndex(o, R, s);
     const f = k < 0 ? 1 : (i < k ? 1 + o.fillet.amp : 1 + o.fillet.amp * Math.exp(-(i - k) / o.fillet.tau));
     return base * R.thick * Math.max(t, 0.02) * f;
   }
@@ -1497,18 +1497,22 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   }
   function startWidth(o, C) { const sC = pathOf(o, C); return Math.max(rawWidth(o, C, 0, sC.length, sC), carryAt(o, C, 0)); }
   function outline(o, R, nVis) {
-    const s = pathOf(o, R), n = Math.min(s.length, nVis == null ? s.length : nVis + (R._pre || 0));   // _pre: points drawn before the first step
-    if (n < 2) return null;
-    const k = exitIndex(o, R, s), carries = !!(o.branchFit && R._kids && R._kids.some(C => !C.burn && C.at + (R._pre || 0) <= n - 1));
+    const s0 = pathOf(o, R), nf = Math.min(s0.length, nVis == null ? s0.length : nVis + (R._pre || 0));   // _pre: points drawn before the first step
+    if (!(nf > 1)) return null;
+    // nVis may be part way through a step (a page playing a growth smoothly): the last point then sits that far along its
+    // step, and widths run over the length shown. A whole nVis draws exactly as before.
+    const n = Math.ceil(nf - 1e-9); let s = s0;
+    if (n - nf > 1e-9) { const a = s0[n - 2], b = s0[n - 1], f = 1 - (n - nf); s = s0.slice(0, n); s[n - 1] = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }; }
+    const k = exitIndex(o, R, s0), carries = !!(o.branchFit && R._kids && R._kids.some(C => !C.burn && C.at + (R._pre || 0) <= nf - 1));
     const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * K;
-    const wf = R.burn ? charWidth : (k < 0 && !carries ? widthAt : (o2, R2, i, m) => Math.max(o2.minWidth, rawWidth(o2, R2, i, m, s), carries ? carryAt(o2, R2, i, n) : 0));
+    const wf = R.burn ? charWidth : (k < 0 && !carries ? widthAt : (o2, R2, i, m) => Math.max(o2.minWidth, rawWidth(o2, R2, i, m, s0), carries ? carryAt(o2, R2, i, nf) : 0));
     const L = [], Rr = [];
     let lim = null; const hs = [];
     if (o.bend) {                                   // the radius of turning at each step, the tightest of its neighbours
       const rad = [];
       for (let i = 0; i < n; i++) {
         if (i === 0 || i === n - 1) { rad.push(Infinity); continue; }
-        const ax = s[i].x - s[i - 1].x, ay = s[i].y - s[i - 1].y, bx = s[i + 1].x - s[i].x, by = s[i + 1].y - s[i].y;
+        const ax = s0[i].x - s0[i - 1].x, ay = s0[i].y - s0[i - 1].y, bx = s0[i + 1].x - s0[i].x, by = s0[i + 1].y - s0[i].y;   // the steps as grown
         const la = Math.hypot(ax, ay), lb = Math.hypot(bx, by), ang = Math.abs(Math.atan2(ax * by - ay * bx, ax * bx + ay * by));
         rad.push(ang > 1e-4 ? (la + lb) / 2 / ang : Infinity);
       }
@@ -1517,7 +1521,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     for (let i = 0; i < n; i++) {
       const p0 = s[Math.max(0, i - 1)], p1 = s[Math.min(n - 1, i + 1)];
       let dx = p1.x - p0.x, dy = p1.y - p0.y; const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
-      let h = wf(o, R, i, n) / 2; if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); hs.push(h);
+      let h = wf(o, R, i, nf) / 2; if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); hs.push(h);
       L.push([s[i].x - dy * h, s[i].y + dx * h]); Rr.push([s[i].x + dy * h, s[i].y - dx * h]);
     }
     const cap = (p, q, h) => { const ang = Math.atan2(p.y - q.y, p.x - q.x) - Math.PI / 2, out = []; for (let k = 1; k < 8; k++) { const a = ang + Math.PI * k / 8; out.push([p.x + Math.cos(a) * h, p.y + Math.sin(a) * h]); } return out; };
@@ -1533,7 +1537,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     const burn = [];
     for (const R of scene.roots) {
       const n = step == null ? R.segs.length : scene.clock ? scene.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);   // clock: a page's own pacing
-      if (n < 2) continue;
+      if (!(n > 1)) continue;
       if (R.burn) { burn.push([R, n]); continue; }
       const pts = outline(o, R, n); if (!pts) continue;
       ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill();
@@ -1832,7 +1836,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   }
   function widthVis(o, R, i, n) {
     const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K;
-    const t = o.taper ? 1 - o.taper * (i / Math.max(n - 1, 1)) : 1;
+    const t = o.taper ? 1 - o.taper * Math.min(1, i / Math.max(n - 1, 1)) : 1;   // n can be part way through a step
     return Math.max(o.minWidth, base * R.thick * Math.max(t, 0.02));
   }
   // SG Smoke is drawn smoothed: each root follows its steps after three passes of a 1-2-1 filter (the ends stay where
@@ -1919,15 +1923,15 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     for (const it of scene.items) {
       for (const R of it.roots) {
         if (pick && !pick(R)) continue;
-        const n = step == null ? R.segs.length : scene.clock ? scene.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);
-        if (n < 2) continue;
-        const s = smoothed(R), k = leaves(R, s, it);
+        const nf = step == null ? R.segs.length : scene.clock ? scene.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);
+        if (!(nf > 1)) continue;
+        const s = smoothed(R), k = leaves(R, s, it), n = Math.ceil(nf - 1e-9);   // the last step drawn may be part way
         for (let i = 1; i < n; i++) {
-          const wv = Math.max(widthVis(it.o || scene.o, R, i, n) * swell(i, k), envOf(R, it, scene.o, i, step));
+          const wv = Math.max(widthVis(it.o || scene.o, R, i, nf) * swell(i, k), envOf(R, it, scene.o, i, step));
           const key = Math.max(2, Math.round(wv / 3) * 3);
           let p = buckets.get(key); if (!p) { p = new Path2D(); buckets.set(key, p); }
-          const a = s[i - 1], c = s[i];
-          p.moveTo(a.x + it.x, a.y + it.y); p.lineTo(c.x + it.x, c.y + it.y);
+          const a = s[i - 1], c = s[i], f = i === n - 1 && n - nf > 1e-9 ? 1 - (n - nf) : 1;
+          p.moveTo(a.x + it.x, a.y + it.y); p.lineTo(a.x + (c.x - a.x) * f + it.x, a.y + (c.y - a.y) * f + it.y);
         }
       }
     }
@@ -2025,10 +2029,11 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     ctx.strokeStyle = ink; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const R of sc.roots) {
       if (pick && !pick(R)) continue;
-      const n = step == null ? R.segs.length : sc.clock ? sc.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);
-      if (n < 2) continue;
+      const nf = step == null ? R.segs.length : sc.clock ? sc.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);
+      if (!(nf > 1)) continue;
+      const n = Math.ceil(nf - 1e-9), f = n - nf > 1e-9 ? 1 - (n - nf) : 1;   // the last step drawn may be part way
       ctx.beginPath(); ctx.moveTo(R.segs[0].x, R.segs[0].y);
-      for (let i = 1; i < n; i++) ctx.lineTo(R.segs[i].x, R.segs[i].y);
+      for (let i = 1; i < n; i++) { const a = R.segs[i - 1], c = R.segs[i], u = i === n - 1 ? f : 1; ctx.lineTo(a.x + (c.x - a.x) * u, a.y + (c.y - a.y) * u); }
       ctx.lineWidth = sc.o.weightUnits * R.thick; ctx.stroke();
     }
   }
@@ -2067,11 +2072,10 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   function easeAt(x) { if (x <= 0) return 0; if (x >= 1) return 1; const f = x * EN, i = f | 0; return EASE[i] + (EASE[i + 1] - EASE[i]) * (f - i); }
   const easeInv = q => q <= 0 ? 0 : q >= 1 ? 1 : bezier(q, 1, 0);
   // the growths that go on live (the page's roots, the R's spread) keep the rule tip by tip: each root grows at a pace of
-  // its own, from its seed and number, averaging the pace they had, and slows over its last stretch before it stops
+  // its own, from its seed and number, averaging the pace they had, and slows over its last stretch before it stops. Every
+  // tip still takes one step a tick and glides along it; a faster root takes longer steps, so no tip ever waits or jumps
   const tipPace = (seed, id) => (PACE[0] + (PACE[1] - PACE[0]) * ((S1.hash2(seed >>> 0, id + 0x5EED) >>> 0) / 4294967296)) * 2 / (PACE[0] + PACE[1]);
-  const tipRate = t => t.pace * Math.min(1, 0.3 + 0.7 * (t.life - t.age) / 30);
-  function tipTick(list, commit, keep) { for (const t of list) { t.prog += tipRate(t); while (t.alive && t.prog >= 1) { t.prog -= 1; commit(t); } if (t.alive) keep.push(t); } }
-  const tipAt = (t, f) => Math.min(1, t.prog + tipRate(t) * f);
+  const tipRate = t => t.pace * Math.min(1, 0.3 + 0.7 * Math.max(0, t.life - t.age) / 30);
   function paced(sc, seed, face) {
     sc.face = face;
     const roots = sc.kind === 'smoke' ? sc.items.flatMap(it => it.roots) : sc.roots;
@@ -2116,16 +2120,18 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       W.set(S); }
     const warp = s => { if (s <= 0) return W[0]; const f = s / total * G; if (f >= G) return end; const k = f | 0; return W[k] + (W[k + 1] - W[k]) * (f - k); };
     sc.warp = warp;
-    sc.clock = (R, step) => { const c = T.get(R); return c ? 1 + Math.floor(c.len * easeAt((warp(step) - c.t0) / c.dur) + 1e-9) : Math.min(R.segs.length, step - R.birth + 1); };
+    // how many of a root's points show at a step, counting the one its tip is on the way to as a fraction, so a tip moves on
+    // every frame however slowly it grows (whole steps would stand and jump)
+    sc.clock = (R, step) => { const c = T.get(R); return c ? 1 + c.len * easeAt((warp(step) - c.t0) / c.dur) : Math.min(R.segs.length, step - R.birth + 1); };
     const stepAt = t => { let lo = 0, hi = G; while (lo < hi) { const m = (lo + hi) >> 1; if (W[m] >= t - 1e-9) hi = m; else lo = m + 1; }
       if (lo > 0 && W[lo] > W[lo - 1]) return Math.min(total, (lo - 1 + (t - W[lo - 1]) / (W[lo] - W[lo - 1])) / G * total); return Math.min(total, lo / G * total); };
     // the step each root is whole (from then on it is drawn from the finished bitmap), and the step it first shows (SG Smoke
     // widens a parent to carry a branch from that step); both found on the clock itself, so they agree with it to the step
     const ends = new Map();
     for (const [R, c] of T) {
-      let e = Math.ceil(stepAt(c.t0 + c.dur)); while (e < total && sc.clock(R, e) < R.segs.length) e++; while (e > 0 && sc.clock(R, e - 1) >= R.segs.length) e--; ends.set(R, e);
+      let e = Math.ceil(stepAt(c.t0 + c.dur)); while (e < total && sc.clock(R, e) < R.segs.length - 1e-9) e++; while (e > 0 && sc.clock(R, e - 1) >= R.segs.length - 1e-9) e--; ends.set(R, e);
       if (sc.kind !== 'smoke') continue;
-      let s = Math.max(0, Math.ceil(stepAt(c.t0 + c.dur * easeInv(1 / c.len))) - 1); while (s < total && sc.clock(R, s) < 2) s++; while (s > 0 && sc.clock(R, s - 1) >= 2) s--; R._show = s;
+      let s = Math.max(0, Math.floor(stepAt(c.t0)) - 1); while (s < total && !(sc.clock(R, s) > 1 + 1e-9)) s++; while (s > 0 && sc.clock(R, s - 1) > 1 + 1e-9) s--; R._show = s;
     }
     sc.clockEnd = R => ends.has(R) ? ends.get(R) : R.birth + R.segs.length - 1;
     if (window.__rsProbe) window.__rsProbe(sc, roots);             // the build checks listen here; nothing on the live page does
@@ -2183,13 +2189,16 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   function player(cv, emMax, pad, transparent, after, pace = 1) {
     let sc = null, col = null, step = 0, pos = 0, raf = 0, done = null; const cache = {};
     const finish = () => { if (raf) { raf = 0; growing--; } const f = done; done = null; if (f) f(); };
-    // two steps a frame, slower for a short growth (SG Flame's 한 is done in about thirty), so any growth takes about a second
-    let odd = false; function frame() { pos += Math.max(0.5, Math.min(2, sc.total / 60)) * pace; step = Math.min(sc.total, Math.floor(pos)); odd = !odd; if (odd && step < sc.total && performance.now() - scrollAt < 200) { raf = requestAnimationFrame(frame); return; } const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent, cache); if (step < sc.total) raf = requestAnimationFrame(frame); else finish(); }
+    // two steps a sixtieth of a second, slower for a short growth (SG Flame's 한 is done in about thirty), so any growth takes
+    // about a second. Timed by the clock, not by frames: as long on a 120 Hz screen as on a 60 Hz one, and a dropped frame
+    // is caught up (up to two frames' worth) so the roots keep their speed. Steps are not rounded: tips move every frame.
+    let odd = false, lastT = 0; function frame(now) { const dt = lastT ? Math.min(34, Math.max(0, now - lastT)) : 1000 / 60; lastT = now;
+      pos += Math.max(0.5, Math.min(2, sc.total / 60)) * pace * dt / (1000 / 60); step = Math.min(sc.total, pos); odd = !odd; if (odd && step < sc.total && performance.now() - scrollAt < 200) { raf = requestAnimationFrame(frame); return; } const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent, cache); if (step < sc.total) raf = requestAnimationFrame(frame); else finish(); }
     return {
       play(s, c, fin) {
         sc = s; col = c; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } done = fin || null; if (after) after();
         if (reduce) { step = s.total; const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent); finish(); return; }
-        step = 0; pos = 0; cache.sc = null; growing++; raf = requestAnimationFrame(frame);
+        step = 0; pos = 0; lastT = 0; cache.sc = null; growing++; raf = requestAnimationFrame(frame);
       },
       redraw() { if (sc && !raf) { const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent); } if (after) after(); },
       stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } },
@@ -2264,7 +2273,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       return best;
     }
     function path(w) { const p = document.createElementNS(NS, 'path'); p.setAttribute('stroke-width', w.toFixed(2)); svg.appendChild(p); return p; }
-    function root(x, y, a, w, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, a0: a, w, w0: w, w1: w, ramp: 0, step: STEP, age: 0, life: 400, turn: 0.42, pull: 0, sink: 0, level: 0, kind: 'root', alive: true, join: false, n: 0, dirty: true, done: [], prog: 0 }, o); t.pace = tipPace(S.seed, t.id); t.el = path(w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
+    function root(x, y, a, w, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, a0: a, w, w0: w, w1: w, ramp: 0, step: STEP, age: 0, life: 400, turn: 0.42, pull: 0, sink: 0, level: 0, kind: 'root', alive: true, join: false, n: 0, dirty: true, done: [] }, o); t.pace = tipPace(S.seed, t.id); t.el = path(w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
     function step(t) {
       const r = S.rng; let a = t.a + (r() - 0.5) * t.turn * Math.min(1, (t.age + 1) / 12);   // it leaves the tip it grew from before it wanders
       const pull = t.pull * Math.max(0, 1 - t.age / 140);
@@ -2274,7 +2283,8 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       const k = t.step / STEP;                                           // a finer root (a phone's title) reaches as far in steps
       const q = t.cool > 0 ? null : near(t.x, t.y, 16 * k, t);
       if (q) a += dang(Math.atan2(q[1] - t.y, q[0] - t.x), a) * 0.3;    // and turn towards a root they come near
-      t.a = a; t.nx = t.x + Math.cos(a) * t.step; t.ny = t.y + Math.sin(a) * t.step;
+      const st = t.step * tipRate(t);                                   // its own pace: a longer or shorter step in the same tick
+      t.a = a; t.nx = t.x + Math.cos(a) * st; t.ny = t.y + Math.sin(a) * st;
       const j = t.cool > 0 ? null : near(t.nx, t.ny, 4.5 * k, t);
       if (j) { t.nx = j[0]; t.ny = j[1]; t.join = j[2]; }
     }
@@ -2325,13 +2335,13 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       if (S.replay) { while (S.li < S.log.length && S.log[S.li].tick === S.ticks) spawn(S.log[S.li++].yf); }
       else if (S.ticks >= S.spawnAt && S.segs < HARD && S.alive.length < room()) spawn(null);
       const list = S.alive; S.alive = [];
-      tipTick(list, commit, S.alive);
+      for (const t of list) { commit(t); if (t.alive) S.alive.push(t); }
       if (S.born.length) { S.alive.push(...S.born); S.born = []; }
     }
     function heads(f) {
       const top = window.scrollY - 80, bot = window.scrollY + window.innerHeight + 80;
       for (const t of S.alive) {
-        if (t.y > top && t.y < bot) { const u = tipAt(t, f); t.el.setAttribute('d', t.d + 'L' + (t.x + (t.nx - t.x) * u).toFixed(1) + ' ' + (t.y + (t.ny - t.y) * u).toFixed(1)); }
+        if (t.y > top && t.y < bot) t.el.setAttribute('d', t.d + 'L' + (t.x + (t.nx - t.x) * f).toFixed(1) + ' ' + (t.y + (t.ny - t.y) * f).toFixed(1));
         else if (t.dirty) t.el.setAttribute('d', t.d);
         t.dirty = false;
       }
@@ -2428,10 +2438,10 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       return best;
     }
     function path(w) { const p = document.createElementNS(NS, 'path'); p.setAttribute('stroke-width', w.toFixed(2)); p.setAttribute('vector-effect', 'non-scaling-stroke'); g.appendChild(p); return p; }
-    function root(x, y, a, w0, w1, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, w: w0, w0, w1, age: 0, life: 900, turn: 0.4, n: 0, done: [], alive: true, met: null, join: null, cool: 0, prog: 0 }, o); t.pace = tipPace(S.seed, t.id); t.el = path(t.w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
+    function root(x, y, a, w0, w1, o) { const t = Object.assign({ id: S.next++, parent: null, x, y, a, w: w0, w0, w1, age: 0, life: 900, turn: 0.4, n: 0, done: [], alive: true, met: null, join: null, cool: 0 }, o); t.pace = tipPace(S.seed, t.id); t.el = path(t.w); t.d = 'M' + x.toFixed(1) + ' ' + y.toFixed(1); step(t); return t; }
     const RAMP = 40;                                                     // steps over which a root eases from the R's width to a hairline
     function step(t) {
-      const k = S.k, st = 1.8 * k;
+      const k = S.k, st = 1.8 * k * tipRate(t);                        // its own pace: a longer or shorter step in the same tick
       let a = t.a + (S.rng() - 0.5) * t.turn * Math.min(1, (t.age + 1) / 10);
       const q = t.cool > 0 ? null : near(t.x, t.y, 16 * k, t);
       if (q && t.age > 40) a += dang(Math.atan2(q[1] - t.y, q[0] - t.x), a) * 0.3;
@@ -2469,7 +2479,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     }
     function tick() {
       const list = S.alive; S.alive = []; S.n = list.length;            // tips growing this tick, for the room left
-      tipTick(list, commit, S.alive);
+      for (const t of list) { commit(t); if (t.alive) S.alive.push(t); }
       if (S.born.length) { S.alive.push(...S.born); S.born = []; }
       if (S.reveal >= 1 && S.alive.length < Math.min(6, roomNow()) && S.segs < HARD && S.pool.length) {   // keep a few tips growing: start one from a point already grown
         const p = S.pool[Math.floor(S.rng() * S.pool.length)];
@@ -2477,7 +2487,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       }
       if (S.segs % 7 === 0 && S.alive.length) { const t = S.alive[Math.floor(S.rng() * S.alive.length)]; S.pool.push([t.x, t.y, t.id]); if (S.pool.length > 400) S.pool.splice(0, 200); }
     }
-    function heads(f) { for (const t of S.alive) { const u = tipAt(t, f); t.el.setAttribute('d', t.d + 'L' + (t.x + (t.nx - t.x) * u).toFixed(1) + ' ' + (t.y + (t.ny - t.y) * u).toFixed(1)); } }
+    function heads(f) { for (const t of S.alive) t.el.setAttribute('d', t.d + 'L' + (t.x + (t.nx - t.x) * f).toFixed(1) + ' ' + (t.y + (t.ny - t.y) * f).toFixed(1)); }
     // the R's roots grow out along their own paths, from the little growth it showed to all of it, easing in and out; each
     // root tip starts to grow on as its root is fully out, at the width it ends with, so the growth leaves the R without a jump
     function reveal(now) {
@@ -2718,12 +2728,13 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     el.appendChild(cv); el.classList.add('growing');
     const ctx = cv.getContext('2d'), per = Math.max(2, Math.ceil(sc.total / 45)), bold = boldCtx(ctx, 0.6 / s);
     const h = { el, cv, raf: 0 }; hovs.set(el, h);
-    let step = reduce ? sc.total : 0;
+    let step = reduce ? sc.total : 0, t0 = 0;
     const view = () => ctx.setTransform(s * dpr, 0, 0, s * dpr, (tx - L) * dpr, (ty - T) * dpr);
-    (function frame() {
+    (function frame(now) {
+      if (now && !reduce) { if (!t0) t0 = now; step = Math.min(sc.total, (now - t0) / (1000 / 60) * per); }   // timed by the clock, as the player is
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
       view(); drawScene(bold, sc, step, col, ground);
-      if (step < sc.total && hovs.get(el) === h) { step += per; h.raf = requestAnimationFrame(frame); }
+      if (step < sc.total && hovs.get(el) === h) h.raf = requestAnimationFrame(frame);
     })();
   }
   function hoverGrow(el, face, text) {
