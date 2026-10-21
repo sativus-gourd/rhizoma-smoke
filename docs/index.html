@@ -270,7 +270,7 @@ blockquote cite em { font-style: italic; }
 .anat .wf, .anat .full { display: none; }
 .anat.arm .wf, .anat.arm .full { display: inline; }
 .anat.arm .cw, .anat.arm .one { display: none; }
-.anat.arm { overflow: visible; }
+.anat.arm { overflow: visible; position: relative; z-index: -1; }   /* the R's roots run out of the figure, behind the page like every growth: cards and panels below sit on top of them */
 .anat.arm .ap1 .ink, .anat.arm .dot, .anat.arm .sprout { opacity: 0; }
 .anat.arm .normal, .anat.arm .walk { stroke-dasharray: 1 2; stroke-dashoffset: 1; }   /* the gap is twice the path, so nothing shows before it grows */
 .anat.arm .dot { transform-box: fill-box; transform-origin: center; transform: scale(0); }
