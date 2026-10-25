@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SG Rhizoma Engine: embed</title>
+<style>
+  :root { --ink: #181A1B; --ground: #EBE6D7; --muted: #4A4640; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #EBE6D7; --ground: #181A1B; --muted: #B3AC9E; } }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 17px/1.6 Georgia, serif; }
+  main { max-width: 52rem; margin: 0 auto; padding: 3rem 1.25rem 6rem; }
+  .g { font-size: clamp(2.4rem, 7vw, 4.5rem); line-height: 1.2; margin: 5rem 0 1rem; font-weight: 400; }
+  .s { font-size: clamp(1.8rem, 5vw, 3rem); margin: 4rem 0 .5rem; font-weight: 400; }
+  pre { background: rgba(127,127,127,.12); padding: 1rem; overflow-x: auto; font-size: 14px; border-radius: 8px; }
+  small { color: var(--muted); }
+</style></head>
+<body><main>
+<p><small>SG Rhizoma Engine, embedded. Each heading below is ordinary text, grown when it comes into view. Click one to grow it again.</small></p>
+<h1 class="g" data-sg-rhizoma="smoke" data-replay>Cultivate your garden</h1>
+<h2 class="s" data-sg-rhizoma="roses" data-replay>Roses</h2>
+<h2 class="s" data-sg-rhizoma="drag" data-replay>Drag</h2>
+<h2 class="s" data-sg-rhizoma="v2" data-replay>Rhizoma</h2>
+<h2 class="s" data-sg-rhizoma="flame" data-replay>Flame</h2>
+<h2 class="s" data-sg-rhizoma="tangle" data-replay>Tangle</h2>
+<h2 class="s" data-sg-rhizoma="smoke" data-growth="2-18" data-replay>rising growth</h2>
+<h2 class="s" data-sg-rhizoma="smoke" data-replay>담배 피는 여자</h2>
+<pre>&lt;script src="https://sativus-gourd.github.io/rhizoma-smoke/embed/sg-rhizoma.js" defer&gt;&lt;/script&gt;
+&lt;h1 data-sg-rhizoma="smoke" data-seed="12" data-growth="2-18"&gt;Cultivate your garden&lt;/h1&gt;</pre>
+<p><small>Built on Rhizoma by Dabin Kim, CC BY-SA 4.0. Fonts: SIL Open Font License 1.1.</small></p>
+</main>
+<script src="sg-rhizoma.js" defer></script>
+</body></html>
