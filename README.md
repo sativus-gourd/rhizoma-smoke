@@ -11,9 +11,9 @@ finest last. Let growth rise or fall through a text, bring any growth back from 
 download the fonts. Leave the page open and it keeps growing.
 
 ## The SG Rhizoma Typeface Family
-- Core: SG Smoke, SG Roses, SG Drag, SG Rhizoma V2
-- Experimental: SG Flame, SG Tangle
-- Variable: every core face again, as SG Smoke Variable, SG Drag Variable, SG Roses Variable and SG Rhizoma V2 Variable, and SG Flame Variable among the experiments, with a Growth axis from the bare letter (0) to the full growth (100)
+- Core: SG Smoke, SG Roses, SG Rhizoma V2
+- Experimental: SG Drag, SG Flame, SG Tangle
+- Variable: every core face again, as SG Smoke Variable, SG Roses Variable and SG Rhizoma V2 Variable, and SG Drag Variable and SG Flame Variable among the experiments, with a Growth axis from the bare letter (0) to the full growth (100)
 
 ## Fonts
 Free fonts in `docs/downloads/`, to install, and in `docs/webfonts/`, for the web. Each carries 212 Latin characters from

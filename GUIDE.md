@@ -28,7 +28,7 @@ The heading grows when a fifth of it comes into view, once.
 
 | Attribute | Does | Default |
 |---|---|---|
-| `data-sg-rhizoma` | the face: `smoke`, `roses`, `drag`, `v2`, `flame` or `tangle` | `smoke` |
+| `data-sg-rhizoma` | the face: `smoke`, `roses`, `v2`, `drag`, `flame` or `tangle` | `smoke` |
 | `data-seed` | the seed; the same seed grows the same shape every time | the face's font seed |
 | `data-growth` | `10`, or a rise or fall through the text such as `2-18`, from 0 to 20 | `10` |
 | `data-colour` | the ink | the heading's colour |
@@ -53,7 +53,7 @@ The heading grows when a fifth of it comes into view, once.
 
 `SGRhizoma.grow(element, options)` grows at once and returns `{ replay, stop, redraw, remove, ready }`. The options are the attributes without `data-`: `face`, `seed`, `growth`, `colour`, `scale`, plus `text` to grow a text other than the element's own.
 
-**Weight on the visitor's device.** The growth is computed and drawn in the visitor's browser. At growth 10 a heading is light on a phone. At growth 20, SG Roses and SG Rhizoma V2 grow over a thousand roots and play at around 20 frames a second on a mid-range phone; keep those for one hero word on a page. Visitors who ask for reduced motion see the finished growth at once.
+**Weight on the visitor's device.** The growth is computed and drawn in the visitor's browser. At growth 10 a heading is light on a phone. At growth 20, SG Roses and SG Rhizoma V2 grow over a thousand roots and play at 15 to 20 frames a second in our test at a quarter of desktop speed, a stand-in for a mid-range phone; keep those for one hero word on a page, and try it on the phones your visitors use. Visitors who ask for reduced motion see the finished growth at once.
 
 **Hosting it yourself.** Copy `docs/embed/sg-rhizoma.js` with `docs/fonts/im-fell-english.woff` and `docs/fonts/song-myung-korean.woff`, keeping the folders, or point the script at your fonts:
 
@@ -62,6 +62,8 @@ SGRhizoma.config({ base: '/assets/sg-rhizoma/' });   // the folder that holds fo
 ```
 
 Hangul loads Song Myung only when a heading needs it.
+
+The script reads the fonts with opentype.js. When the page does not have it already, the script loads version 1.3.4 from cdn.jsdelivr.net. To keep every request on your own host, load your copy of opentype.js before the script.
 
 ---
 
@@ -75,8 +77,8 @@ Every face as WOFF2, split into Latin and Hangul, so a page loads only the scrip
 
 | Family | Growth axis |
 |---|---|
-| `SG Rhizoma Smoke`, `SG Rhizoma Roses`, `SG Rhizoma Drag`, `SG Rhizoma V2`, `SG Rhizoma Flame`, `SG Rhizoma Tangle` | none: the growth as grown |
-| `SG Rhizoma Smoke Variable`, `SG Rhizoma Roses Variable`, `SG Rhizoma Drag Variable`, `SG Rhizoma V2 Variable`, `SG Rhizoma Flame Variable` | `GRWT`, 0 to 100 |
+| `SG Rhizoma Smoke`, `SG Rhizoma Roses`, `SG Rhizoma V2`, `SG Rhizoma Drag`, `SG Rhizoma Flame`, `SG Rhizoma Tangle` | none: the growth as grown |
+| `SG Rhizoma Smoke Variable`, `SG Rhizoma Roses Variable`, `SG Rhizoma V2 Variable`, `SG Rhizoma Drag Variable`, `SG Rhizoma Flame Variable` | `GRWT`, 0 to 100 |
 
 A variable face shows its full growth (100) until told otherwise. Set the axis with `font-variation-settings`:
 

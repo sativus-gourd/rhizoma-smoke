@@ -1,4 +1,4 @@
-/*! SG Rhizoma Engine (embed) v19.14, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v19.15, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
@@ -6,7 +6,7 @@
  *
  *  Use: <script src="https://sativus-gourd.github.io/rhizoma-smoke/embed/sg-rhizoma.js" defer></script>
  *       <h1 data-sg-rhizoma="smoke">Cultivate your garden</h1>
- *  Options as attributes: data-sg-rhizoma (smoke, roses, drag, v2, flame, tangle), data-seed, data-growth ("10" or "2-18"),
+ *  Options as attributes: data-sg-rhizoma (smoke, roses, v2, drag, flame, tangle), data-seed, data-growth ("10" or "2-18"),
  *  data-colour, data-scale, data-replay (click to grow again). Or in script: SGRhizoma.grow(element, { face, seed, growth }).
  */
 /* Rhizoma Lab
@@ -1637,8 +1637,8 @@
     els.forEach(el => { el._sgr = true; io.observe(el); });
   }
   window.SGRhizoma = {
-    version: '19.14',
-    faces: ['smoke', 'roses', 'drag', 'v2', 'flame', 'tangle'],
+    version: '19.15',
+    faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow(el, o) { const a = growEl(typeof el === 'string' ? document.querySelector(el) : el, o || {}); a.replay(); return a; },
     config(c) { if (c && c.base) base = new URL(c.base, location.href).href; return { base }; },
     scan: auto,
