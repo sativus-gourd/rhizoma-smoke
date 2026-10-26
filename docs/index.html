@@ -2393,7 +2393,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     function size() { S.W = document.documentElement.clientWidth; S.H = document.body.offsetHeight; svg.setAttribute('width', S.W); svg.setAttribute('height', S.H); }
     function gridAdd(x, y, id) { const k = Math.floor(x / CELL) * 100003 + Math.floor(y / CELL); let c = S.grid.get(k); if (!c) S.grid.set(k, c = []); c.push(x, y, id); }
     // the nearest point of another root within r (not the root's own, nor its parent while it is still leaving it)
-    function near(x, y, r, t) {
+    // f (optional): [x, y, cos, sin, least] keeps only points that lie ahead of the tip: the angle from the tip's heading to the point is
+    // inside the cone (least is its cosine), so a root never turns back on itself for a root it has already passed
+    function near(x, y, r, t, f) {
       if (t.age < 60) return null;                                       // a new root grows away first: no small loops between tips that sit close together
       let best = null, bd = r * r;
       const x0 = Math.floor((x - r) / CELL), x1 = Math.floor((x + r) / CELL), y0 = Math.floor((y - r) / CELL), y1 = Math.floor((y + r) / CELL);
@@ -2402,7 +2404,10 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
         for (let i = 0; i < c.length; i += 3) {
           const id = c[i + 2]; if (id === t.id || (id === t.parent && t.age < 90) || id === t.met) continue;
           const d = (c[i] - x) * (c[i] - x) + (c[i + 1] - y) * (c[i + 1] - y);
-          if (d < bd) { bd = d; best = [c[i], c[i + 1], id]; }
+          if (d < bd) {
+            if (f) { const vx = c[i] - f[0], vy = c[i + 1] - f[1], L = Math.hypot(vx, vy); if (L > 1e-6 && vx * f[2] + vy * f[3] < f[4] * L) continue; }
+            bd = d; best = [c[i], c[i + 1], id];
+          }
         }
       }
       return best;
@@ -2416,12 +2421,12 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       if (t.sink && t.age > 140) a += dang(Math.PI / 2, a) * t.sink;    // and the root settles down into the page
       if (t.level) a += dang(t.a0, a) * t.level;                        // a stem keeps spreading sideways
       const k = t.step / STEP;                                           // a finer root (a phone's title) reaches as far in steps
-      const q = t.cool > 0 ? null : near(t.x, t.y, 16 * k, t);
+      const q = t.cool > 0 ? null : near(t.x, t.y, 16 * k, t, [t.x, t.y, Math.cos(a), Math.sin(a), -0.17]);   // a root ahead or alongside, not one it has passed
       if (q) a += dang(Math.atan2(q[1] - t.y, q[0] - t.x), a) * 0.3;    // and turn towards a root they come near
       const st = t.step * tipRate(t);                                   // its own pace: a longer or shorter step in the same tick
       t.a = a; t.nx = t.x + Math.cos(a) * st; t.ny = t.y + Math.sin(a) * st;
-      const j = t.cool > 0 ? null : near(t.nx, t.ny, 4.5 * k, t);
-      if (j) { t.nx = j[0]; t.ny = j[1]; t.join = j[2]; }
+      const j = t.cool > 0 ? null : near(t.nx, t.ny, 4.5 * k, t, [t.x, t.y, Math.cos(a), Math.sin(a), 0.64]);   // it joins a root only within 50 degrees of its heading
+      if (j) { const dx = j[0] - t.x, dy = j[1] - t.y; t.nx = j[0]; t.ny = j[1]; t.join = j[2]; if (dx * dx + dy * dy > 0.09) t.a = Math.atan2(dy, dx); }   // and goes on the way it arrived
     }
     // a root that goes on from a title root starts at that root's width at its tip and eases to a page hairline over its first
     // stretch, drawn in short pieces meanwhile, so nothing shows where the title ends and the page growth begins
@@ -2563,12 +2568,20 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       S.box = { x0: -f.left / sc, x1: (W - f.left) / sc, y0: (top - f.top) / sc, y1: (bot - f.top) / sc };
     }
     function gridAdd(x, y, id) { const k = Math.floor(x / CELL) * 100003 + Math.floor(y / CELL); let c = S.grid.get(k); if (!c) S.grid.set(k, c = []); c.push(x, y, id); }
-    function near(x, y, r, t) {
+    // f (optional): [x, y, cos, sin, least], as in the page growth: only points ahead of the tip count
+    function near(x, y, r, t, f) {
       let best = null, bd = r * r;
       const x0 = Math.floor((x - r) / CELL), x1 = Math.floor((x + r) / CELL), y0 = Math.floor((y - r) / CELL), y1 = Math.floor((y + r) / CELL);
       for (let cx = x0; cx <= x1; cx++) for (let cy = y0; cy <= y1; cy++) {
         const c = S.grid.get(cx * 100003 + cy); if (!c) continue;
-        for (let i = 0; i < c.length; i += 3) { const id = c[i + 2]; if (id === t.id || id === t.parent || id === t.met) continue; const d = (c[i] - x) * (c[i] - x) + (c[i + 1] - y) * (c[i + 1] - y); if (d < bd) { bd = d; best = [c[i], c[i + 1], id]; } }
+        for (let i = 0; i < c.length; i += 3) {
+          const id = c[i + 2]; if (id === t.id || id === t.parent || id === t.met) continue;
+          const d = (c[i] - x) * (c[i] - x) + (c[i + 1] - y) * (c[i + 1] - y);
+          if (d < bd) {
+            if (f) { const vx = c[i] - f[0], vy = c[i + 1] - f[1], L = Math.hypot(vx, vy); if (L > 1e-6 && vx * f[2] + vy * f[3] < f[4] * L) continue; }
+            bd = d; best = [c[i], c[i + 1], id];
+          }
+        }
       }
       return best;
     }
@@ -2578,11 +2591,11 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     function step(t) {
       const k = S.k, st = 1.8 * k * tipRate(t);                        // its own pace: a longer or shorter step in the same tick
       let a = t.a + (S.rng() - 0.5) * t.turn * Math.min(1, (t.age + 1) / 10);
-      const q = t.cool > 0 ? null : near(t.x, t.y, 16 * k, t);
+      const q = t.cool > 0 ? null : near(t.x, t.y, 16 * k, t, [t.x, t.y, Math.cos(a), Math.sin(a), -0.17]);
       if (q && t.age > 40) a += dang(Math.atan2(q[1] - t.y, q[0] - t.x), a) * 0.3;
       t.a = a; t.nx = t.x + Math.cos(a) * st; t.ny = t.y + Math.sin(a) * st;
-      const j = t.cool > 0 || t.age < 40 ? null : near(t.nx, t.ny, 4.5 * k, t);
-      if (j) { t.nx = j[0]; t.ny = j[1]; t.join = j[2]; }
+      const j = t.cool > 0 || t.age < 40 ? null : near(t.nx, t.ny, 4.5 * k, t, [t.x, t.y, Math.cos(a), Math.sin(a), 0.64]);
+      if (j) { const dx = j[0] - t.x, dy = j[1] - t.y; t.nx = j[0]; t.ny = j[1]; t.join = j[2]; if (dx * dx + dy * dy > 0.09 * k * k) t.a = Math.atan2(dy, dx); }
     }
     function freeze(t) { t.el.setAttribute('d', t.d); t.done.push(t.el); t.el = path(t.w); t.d = 'M' + t.x.toFixed(1) + ' ' + t.y.toFixed(1); t.n = 0; }
     function die(t) {                                                   // a root that stops becomes as few paths as its widths allow
