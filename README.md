@@ -40,6 +40,7 @@ The heading grows when it first comes into view, with the same engine and motion
 | `data-growth` | `10`, or a rise or fall through the text such as `2-18` (0 to 20) | `10` |
 | `data-colour` | the ink | the heading's colour |
 | `data-scale` | the grown word's size against the heading's | `1` |
+| `data-weight` | line weight: a number from 0.5 to 2, or `fine`, `earthy` or `heavy` | `earthy` (the face's own: SG Smoke 1.5, SG Roses 1.25, the others 1) |
 | `data-replay` | a click grows it again | off |
 
 From a script: `SGRhizoma.grow(element, { face: 'drag', seed: 33, growth: '2-18' })` returns `{ replay, stop, redraw, remove }`.

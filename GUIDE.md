@@ -33,9 +33,12 @@ The heading grows when a fifth of it comes into view, once.
 | `data-growth` | `10`, or a rise or fall through the text such as `2-18`, from 0 to 20 | `10` |
 | `data-colour` | the ink | the heading's colour |
 | `data-scale` | the grown word's size against the heading's | `1` |
+| `data-weight` | the line weight: `0.5` to `2`, or `fine`, `earthy` or `heavy` | `earthy`: the face's own |
 | `data-replay` | a click grows it again | off |
 
 **Finding a seed.** Type your text into the SG Rhizoma Engine on the site, press Randomise until a growth holds, and copy the number from the Seed field. The same text, face, growth and seed grow the same shape in the embed.
+
+**Line weight.** The width of every root is a multiplier, as in the original Rhizoma's Line Weight slider. A face grows with the weight that suits it: SG Smoke at 1.5 (its roots rise above the word), SG Roses at 1.25 (its roots lie over the word, and heavier begins to fill the letters), and SG Rhizoma V2, Drag, Flame and Tangle at 1, which is V2's original setting. `fine` and `heavy` are the face's lighter and heavier presets (SG Smoke 1 and 2, SG Roses 1 and 1.5, the others 0.75 and 1.5). The weight changes only how wide the roots are: the same seed grows the same shape at any weight, so you can set it after you have found a seed. At high growth the roots fill the space round the letters, so SG Smoke's own weight eases from 1.5 (growth 12 and below) to 1.4 at growth 14, 1.35 at 16 and 1.3 from 18; SG Roses holds 1.25. These limits come from 5,832 test renders: nine scenes in ten stay clear of the point where roots begin to fill the letters. Growths made before v19.17 were drawn at 1: use `data-weight="1"` to match them.
 
 **Room.** Roots reach past the text, above and below, and at high growth well beyond it. Give the heading padding: about half its font size above and below at growth 10, and more for SG Roses and SG Rhizoma V2 above 15, where the growth spreads to several times the height of the word.
 
@@ -51,9 +54,9 @@ The heading grows when a fifth of it comes into view, once.
 </script>
 ```
 
-`SGRhizoma.grow(element, options)` grows at once and returns `{ replay, stop, redraw, remove, ready }`. The options are the attributes without `data-`: `face`, `seed`, `growth`, `colour`, `scale`, plus `text` to grow a text other than the element's own.
+`SGRhizoma.grow(element, options)` grows at once and returns `{ replay, stop, redraw, setWeight, remove, ready }`. The options are the attributes without `data-`: `face`, `seed`, `growth`, `colour`, `scale`, `weight`, plus `text` to grow a text other than the element's own.
 
-**Weight on the visitor's device.** The growth is computed and drawn in the visitor's browser. At growth 10 a heading is light on a phone. At growth 20, SG Roses and SG Rhizoma V2 grow over a thousand roots and play at 15 to 20 frames a second in our test at a quarter of desktop speed, a stand-in for a mid-range phone; keep those for one hero word on a page, and try it on the phones your visitors use. Visitors who ask for reduced motion see the finished growth at once.
+**Cost on the visitor's device.** The growth is computed and drawn in the visitor's browser. At growth 10 a heading is light on a phone. At growth 20, SG Roses and SG Rhizoma V2 grow over a thousand roots and play at 15 to 20 frames a second in our test at a quarter of desktop speed, a stand-in for a mid-range phone; keep those for one hero word on a page, and try it on the phones your visitors use. Visitors who ask for reduced motion see the finished growth at once.
 
 **Hosting it yourself.** Copy `docs/embed/sg-rhizoma.js` with `docs/fonts/im-fell-english.woff` and `docs/fonts/song-myung-korean.woff`, keeping the folders, or point the script at your fonts:
 
@@ -142,7 +145,7 @@ In a font, every occurrence of a character carries the same growth, so the two o
 
 The SG Rhizoma Engine at the top of the site records what it plays.
 
-1. Type the text, choose the face, the colour, the growth and the seed. Press Replay until the growth is the one you want.
+1. Type the text, choose the face, the colour, the growth, the line weight and the seed. Press Replay until the growth is the one you want.
 2. Press **Record**. The engine plays the growth from the first root to the last on a canvas of its own and saves the file.
 
 | | |
@@ -167,6 +170,8 @@ Under the engine's canvas:
 - **Copy layered SVG**: roots and letters as separate shapes, in two groups, `GROWTH` and `GLYPH`. Paste into Illustrator or Figma to recolour roots and letters apart, or to move a root.
 - **Copy united SVG**: roots and letters as one shape, for a cutter, a stamp, a mask or a single fill.
 - **Save SVG**: the united shape as a file.
+
+The line weight is part of the picture, so it goes into the file name and the SVG's group name (`rhizoma-smoke_SG-Roses_seed202_growth12-12_weight1.25.svg`): with the text, the face, the growth and the seed, it finds the same growth again.
 
 Recent versions of After Effects import SVG as shape layers. The roots are filled outlines, so the SVG holds the finished growth: use it for stills, prints and masks, and a recording or the variable fonts for motion.
 

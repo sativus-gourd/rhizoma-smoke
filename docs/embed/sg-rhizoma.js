@@ -1,4 +1,4 @@
-/*! SG Rhizoma Engine (embed) v19.15, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v19.17, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
@@ -7,7 +7,8 @@
  *  Use: <script src="https://sativus-gourd.github.io/rhizoma-smoke/embed/sg-rhizoma.js" defer></script>
  *       <h1 data-sg-rhizoma="smoke">Cultivate your garden</h1>
  *  Options as attributes: data-sg-rhizoma (smoke, roses, v2, drag, flame, tangle), data-seed, data-growth ("10" or "2-18"),
- *  data-colour, data-scale, data-replay (click to grow again). Or in script: SGRhizoma.grow(element, { face, seed, growth }).
+ *  data-colour, data-scale, data-weight (line weight: 0.5 to 2, or fine, earthy, heavy), data-replay (click to grow again).
+ *  Or in script: SGRhizoma.grow(element, { face, seed, growth, weight }), and setWeight(1.25) on what it returns.
  */
 /* Rhizoma Lab
    An adaptation of Rhizoma Engine v.01 by Dabin Kim, licensed CC BY-SA 4.0.
@@ -292,6 +293,7 @@
   const DEFAULTS = {
     stage: 10, weight: 4.0, weightUnits: null, length: 1.5, chaos: 0.8, branch: 0.007,
     seed: 1, taper: 0, taperPow: 1, minWidth: 0,
+    lineWeight: 1,         // a multiplier on every root's drawn width (outline, draw, SVG); growth never reads it, so a seed grows the same shape at any weight
     seedFrom: 'fill',      // 'fill' (original), 'edge' (outline, leaves along the normal) or 'both'
     edgeSpacing: 30,       // units between outline samples
     edgeBoost: 1,          // sprout chance multiplier for outline samples
@@ -767,6 +769,7 @@
     const n = Math.ceil(nf - 1e-9); let s = s0;
     if (n - nf > 1e-9) { const a = s0[n - 2], b = s0[n - 1], f = 1 - (n - nf); s = s0.slice(0, n); s[n - 1] = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }; }
     const k = exitIndex(o, R, s0), carries = !!(o.branchFit && R._kids && R._kids.some(C => !C.burn && C.at + (R._pre || 0) <= nf - 1));
+    const lw = R.burn || o.lineWeight == null ? 1 : o.lineWeight;
     const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * K;
     const wf = R.burn ? charWidth : (k < 0 && !carries ? widthAt : (o2, R2, i, m) => Math.max(o2.minWidth, rawWidth(o2, R2, i, m, s0), carries ? carryAt(o2, R2, i, nf) : 0));
     const L = [], Rr = [];
@@ -779,7 +782,7 @@
     for (let i = 0; i < n; i++) {
       const p0 = s[Math.max(0, i - 1)], p1 = s[Math.min(n - 1, i + 1)];
       let dx = p1.x - p0.x, dy = p1.y - p0.y; const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
-      let h = wf(o, R, i, nf) / 2; if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); hs.push(h);
+      let h = wf(o, R, i, nf) / 2; if (lw !== 1) h = Math.max(h * lw, o.minWidth / 2); if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); hs.push(h);
       L.push([s[i].x - dy * h, s[i].y + dx * h]); Rr.push([s[i].x + dy * h, s[i].y - dx * h]);
     }
     const cap = (p, q, h) => { const ang = Math.atan2(p.y - q.y, p.x - q.x) - Math.PI / 2, out = []; for (let k = 1; k < 8; k++) { const a = ang + Math.PI * k / 8; out.push([p.x + Math.cos(a) * h, p.y + Math.sin(a) * h]); } return out; };
@@ -1116,6 +1119,11 @@
   // branch thins to a thread (a root system is a set of pipes). Growth is unchanged; the parent is the root whose step
   // the branch starts on, and while the scene grows a branch only counts once it shows.
   const ENV_EASE = 8;
+  // Line weight: a multiplier on the drawn width of every root (1 is the v19.16 look). Applied when drawing and exporting, never
+  // when growing, so one seed grows one shape at any weight. A scene carries its face's own weight (sc.lw); a view may set
+  // its own through the colour it draws with (col.lw), as the tool's slider does.
+  const lwOf = (sc, col) => col && col.lw != null ? col.lw : sc && sc.lw != null ? sc.lw : 1;
+  const withLW = (sc, lw, fn) => { const o = sc.o, was = o.lineWeight; o.lineWeight = lw; try { return fn(); } finally { o.lineWeight = was; } };
   function ownW(o, R, i, it) { const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K, n = R.segs.length, t = o.taper ? 1 - o.taper * (i / Math.max(n - 1, 1)) : 1; return base * R.thick * Math.max(t, 0.02) * swell(i, leaves(R, smoothed(R), it)); }
   function envAt(R, i, step) {
     let w = 0; if (!R._env) return 0;
@@ -1133,12 +1141,12 @@
   }
   function envOf(R, it, o, i, step) { if (!it._fitted) fitItem(it, o); return envAt(R, i, step); }
   // the lab's outline() on the smoothed path, with the swell; the root sits at (it.x, it.y)
-  function smokeOutline(o, R, it, nVis) {
+  function smokeOutline(o, R, it, nVis, lw = 1) {
     o = it.o || o;
     const s = smoothed(R), n = nVis == null ? s.length : Math.min(s.length, nVis);
     if (n < 2) return null;
     const k = leaves(R, s, it), base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K;
-    envOf(R, it, o, 0); const w = i => { const t = o.taper ? 1 - o.taper * (i / Math.max(n - 1, 1)) : 1; return Math.max(o.minWidth, base * R.thick * Math.max(t, 0.02) * swell(i, k), envAt(R, i)); };
+    envOf(R, it, o, 0); const w = i => { const t = o.taper ? 1 - o.taper * (i / Math.max(n - 1, 1)) : 1; return Math.max(o.minWidth, lw * Math.max(base * R.thick * Math.max(t, 0.02) * swell(i, k), envAt(R, i))); };
     const P = s.slice(0, n).map(q => ({ x: q.x + it.x, y: q.y + it.y })), L = [], Rr = [];
     for (let i = 0; i < n; i++) {
       const p0 = P[Math.max(0, i - 1)], p1 = P[Math.min(n - 1, i + 1)];
@@ -1150,18 +1158,18 @@
     return [...Rr, ...cap(P[n - 1], P[n - 2], w(n - 1) / 2, -Math.PI / 2), ...L.reverse(), ...cap(P[0], P[1], w(0) / 2, -Math.PI / 2)];
   }
   // glyph and roots as one shape, as the lab's glyphShape() does
-  function smokeUnion(o, it, simplify) {
+  function smokeUnion(o, it, simplify, lw = 1) {
     if (!paper.project) { const c = document.createElement('canvas'); c.width = 10; c.height = 10; paper.setup(c); }
     const simp = simplify || ((path, tol) => S2.simplified(path, tol));
     let shape = new paper.CompoundPath({ pathData: it.path.toPathData(2), insert: false });
     if (!it.roots.length) return shape;   // a letter without roots stays exactly as drawn
     const roots = new paper.CompoundPath({ insert: false });
-    for (const R of it.roots) { const pts = smokeOutline(o, R, it); if (!pts) continue; let p = new paper.Path({ segments: pts, closed: true, insert: false }); if (o.simplify) p = simp(p, o.simplify); roots.addChild(p); }
+    for (const R of it.roots) { const pts = smokeOutline(o, R, it, null, lw); if (!pts) continue; let p = new paper.Path({ segments: pts, closed: true, insert: false }); if (o.simplify) p = simp(p, o.simplify); roots.addChild(p); }
     if (roots.children.length) shape = shape.unite(roots, { insert: false });
     if (o.simplify) shape = simp(shape, o.simplify);
     return shape;
   }
-  function drawOriginal(ctx, scene, step, ink, pick, letters = true) {
+  function drawOriginal(ctx, scene, step, ink, pick, letters = true, lw = 1) {
     const buckets = new Map();
     for (const it of scene.items) {
       for (const R of it.roots) {
@@ -1171,7 +1179,7 @@
         const s = smoothed(R), k = leaves(R, s, it), n = Math.ceil(nf - 1e-9);   // the last step drawn may be part way
         for (let i = 1; i < n; i++) {
           const wv = Math.max(widthVis(it.o || scene.o, R, i, nf) * swell(i, k), envOf(R, it, scene.o, i, step));
-          const key = Math.max(2, Math.round(wv / 3) * 3);
+          const key = Math.max(2, Math.round(wv / 3) * 3) * lw;
           let p = buckets.get(key); if (!p) { p = new Path2D(); buckets.set(key, p); }
           const a = s[i - 1], c = s[i], f = i === n - 1 && n - nf > 1e-9 ? 1 - (n - nf) : 1;
           p.moveTo(a.x + it.x, a.y + it.y); p.lineTo(a.x + (c.x - a.x) * f + it.x, a.y + (c.y - a.y) * f + it.y);
@@ -1186,22 +1194,22 @@
     const vb = [b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0].map(v => v.toFixed(1)).join(' ');
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + vb + '" width="' + ((b.x1 - b.x0) / 4).toFixed(0) + '" height="' + ((b.y1 - b.y0) / 4).toFixed(0) + '">' + inner + '</svg>';
   }
-  function svgLayersOriginal(sc, ink) {
+  function svgLayersOriginal(sc, ink, lw = 1) {
     const g = [], r = [];
     for (const it of sc.items) {
       g.push('<path d="' + it.path.toPathData(1) + '"/>');
       for (const R of it.roots) {
-        const pts = smokeOutline(sc.o, R, it);
+        const pts = smokeOutline(sc.o, R, it, null, lw);
         if (pts) r.push('<path d="M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z"/>');
       }
     }
     const name = 'RHIZOMA_' + sc.presetName + '_seed' + sc.o.seed;
     return svgWrap(sc.b, '<g id="' + name + '"><g id="GROWTH" fill="' + ink + '">' + r.join('') + '</g><g id="GLYPH" fill="' + ink + '">' + g.join('') + '</g></g>');
   }
-  function svgUnitedOriginal(sc, ink) {
+  function svgUnitedOriginal(sc, ink, lw = 1) {
     if (typeof paper === 'undefined') throw new Error('paper');
     const name = 'RHIZOMA_' + sc.presetName + '_seed' + sc.o.seed + '_united';
-    return svgWrap(sc.b, '<g id="' + name + '" fill="' + ink + '">' + sc.items.map(it => '<path d="' + smokeUnion(sc.o, it).pathData + '"/>').join('') + '</g>');
+    return svgWrap(sc.b, '<g id="' + name + '" fill="' + ink + '">' + sc.items.map(it => '<path d="' + smokeUnion(sc.o, it, null, lw).pathData + '"/>').join('') + '</g>');
   }
 
   // SG Rhizoma V2: Dabin Kim's growth code (script.js in Rhizoma Engine v.01) at her default settings.
@@ -1268,23 +1276,23 @@
     return finish({ kind: 'rhizoma', o, insts, roots, joints: [] });
   }
   // one V2 root from point k to nf points shown (the last may be part way along its step)
-  function v2Stroke(ctx, sc, R, k, nf) {
+  function v2Stroke(ctx, sc, R, k, nf, lw = 1) {
     const n = Math.ceil(nf - 1e-9), f = n - nf > 1e-9 ? 1 - (n - nf) : 1, m = f < 1 ? n - 2 : n - 1;   // m: the last point drawn whole
     if (m <= k && f >= 1) return;
     const S = R.segs;
     ctx.beginPath(); ctx.moveTo(S[k].x, S[k].y);
     for (let i = k + 1; i <= m; i++) ctx.lineTo(S[i].x, S[i].y);
     if (f < 1) { const a = S[n - 2], c = S[n - 1]; ctx.lineTo(a.x + (c.x - a.x) * f, a.y + (c.y - a.y) * f); }
-    ctx.lineWidth = sc.o.weightUnits * R.thick; ctx.stroke();
+    ctx.lineWidth = sc.o.weightUnits * R.thick * lw; ctx.stroke();
   }
   const v2Shown = (sc, R, step) => step == null ? R.segs.length : sc.clock ? sc.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);
-  function drawRhizoma(ctx, sc, step, ink, pick, letters = true, fromOf = null) {
+  function drawRhizoma(ctx, sc, step, ink, pick, letters = true, fromOf = null, lw = 1) {
     if (letters) for (const it of sc.insts) { const p = it.info.glyph.getPath(it.x, it.y, 1000); p.fill = ink; p.stroke = null; p.draw(ctx); }
     ctx.strokeStyle = ink; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const R of sc.roots) {
       if (pick && !pick(R)) continue;
       const nf = v2Shown(sc, R, step);
-      if (nf > 1 + 1e-6) v2Stroke(ctx, sc, R, fromOf ? fromOf(R) : 0, nf);
+      if (nf > 1 + 1e-6) v2Stroke(ctx, sc, R, fromOf ? fromOf(R) : 0, nf, lw);
     }
   }
   // a V2 root keeps one width end to end, so what has grown never changes: while a growth plays, each root's grown length
@@ -1318,7 +1326,23 @@
     sc.b = b; sc.total = total; sc.nRoots = sc.roots.length;
     return sc;
   }
+  // each face's own line weight, the multiplier its scenes carry (sc.lw): one value for the title, the cards, the labels and the
+  // tool's start, so a face looks the same wherever it grows. 1 is the v19.16 look.
+  // Tested on 27 Oct across the six faces, five texts (Latin and Hangul), three seeds, growth 2 to 20 and the rising and falling
+  // ranges, at weights 0.75 to 2: SG Smoke carries x1.5 (its roots rise above the word), SG Roses x1.25 (its roots lie over the word;
+  // x1.5 begins to fill the letters), SG Rhizoma V2 stays at Dabin Kim's own default (x1), and Drag, Flame and Tangle stay at x1
+  // until they leave Experimental. LW_CEIL is where, by growth, the roots begin to fill the letters (a rise of 0.08 in the
+  // share of the space round the letters that roots cover). It is fitted to the tenth-percentile scene of 5,832 test renders (six faces, six
+  // texts, three seeds, growths 2 to 20 and both sweeps), so nine scenes in ten stay inside it. A face's weight never goes past it, and the slider shows it.
+  const FACE_LW = { SMOKE: 1.5, ROOT: 1.25, RHIZOMA: 1, DRAG: 1, FLAME: 1, TANGLE: 1 };
+  const LW_CEIL = {"SMOKE": [2.0, 2.0, 2.0, 1.85, 1.7, 1.55, 1.4, 1.35, 1.3, 1.3], "ROOT": [2.0, 2.0, 2.0, 1.95, 1.85, 1.5, 1.35, 1.25, 1.25, 1.25], "RHIZOMA": [2.0, 2.0, 1.85, 1.65, 1.45, 1.35, 1.25, 1.2, 1.2, 1.2], "DRAG": [1.95, 1.45, 1.35, 1.35, 1.35, 1.3, 1.3, 1.3, 1.3, 1.25], "FLAME": [2.0, 2.0, 2.0, 1.95, 1.9, 1.65, 1.55, 1.4, 1.4, 1.35], "TANGLE": [1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25, 1.25]};   // by growth 2, 4 ... 20
+  const LW_PRE = { SMOKE: { fine: 1, heavy: 2 }, ROOT: { fine: 1, heavy: 1.5 }, RHIZOMA: { fine: 0.75, heavy: 1.5 }, ANY: { fine: 0.75, heavy: 1.5 } };
+  function ceilAt(face, g) { const t = LW_CEIL[face]; if (!t) return 2; const x = Math.max(0, Math.min(9, (g - 2) / 2)), i = Math.floor(x), a = t[i], b = t[Math.min(9, i + 1)]; return a + (b - a) * (x - i); }
+  function weightDefault(face, g) { const d = FACE_LW[face]; return d == null ? 1 : Math.min(d, Math.max(1, ceilAt(face, g))); }
   function grow(text, face, seed, growth, opts) {
+    const sc = grow0(text, face, seed, growth, opts); sc.face = face; sc.lw = weightDefault(face, growth ? Math.max(growth.from, growth.to) : 10); return sc;
+  }
+  function grow0(text, face, seed, growth, opts) {
     if (growth && GSCALE[face]) growth = Object.assign({}, growth, { scale: GSCALE[face] });
     if (face === 'SMOKE') return paced(makeSceneOriginal(text, seed, growth), seed, face);
     if (face === 'RHIZOMA') return paced(growRhizoma(text, seed, null, growth), seed, face);
@@ -1449,28 +1473,29 @@
   // the same; a frame late in a big growth costs a fraction of what it did, so scrolling past a growing figure stays smooth.
   function allRoots(sc) { return sc.kind === 'smoke' ? sc.items.flatMap(it => it.roots) : sc.roots; }
   function drawPart(ctx, sc, step, col, pick, letters) {
-    if (sc.kind === 'smoke') drawOriginal(ctx, sc, step, col.ink, pick, letters);
-    else if (sc.kind === 'rhizoma') drawRhizoma(ctx, sc, step, col.ink, pick, letters);
-    else S2.draw(ctx, pick ? { o: sc.o, insts: letters ? sc.insts : [], roots: sc.roots.filter(pick), clock: sc.clock } : sc, step, col.ink, col.ground);
+    const lw = lwOf(sc, col);
+    if (sc.kind === 'smoke') drawOriginal(ctx, sc, step, col.ink, pick, letters, lw);
+    else if (sc.kind === 'rhizoma') drawRhizoma(ctx, sc, step, col.ink, pick, letters, null, lw);
+    else withLW(sc, lw, () => S2.draw(ctx, pick ? { o: sc.o, insts: letters ? sc.insts : [], roots: sc.roots.filter(pick), clock: sc.clock } : sc, step, col.ink, col.ground));
   }
   // a dot on every tip still growing, in the scene's tipColour (05's side-by-side), as wide as its root: the eye follows how
   // tips move, and sees which roots are still growing, the heavy ones or the fine ones
-  function tipDots(ctx, sc, step, rCss, s) {
+  function tipDots(ctx, sc, step, rCss, s, lw = 1) {
     if (!sc.tipColour || step == null || step >= sc.total) return;
     ctx.fillStyle = sc.tipColour;
     const one = (R, S, ox, oy, w) => { const r = (rCss * 0.5 + 0.55 * w * s) / s; const nf = sc.clock ? sc.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1); if (!(nf > 1 + 1e-6) || nf >= R.segs.length - 1e-6) return;
       const n = Math.ceil(nf - 1e-9), f = n - nf > 1e-9 ? 1 - (n - nf) : 1, a = S[n - 2], c = S[n - 1];
       ctx.beginPath(); ctx.arc(a.x + (c.x - a.x) * f + ox, a.y + (c.y - a.y) * f + oy, r, 0, 2 * Math.PI); ctx.fill(); };
-    if (sc.kind === 'smoke') sc.items.forEach(it => { const o = it.o || sc.o, base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K; it.roots.forEach(R => one(R, smoothed(R), it.x, it.y, base * R.thick)); });
-    else if (sc.kind === 'rhizoma') sc.roots.forEach(R => one(R, R.segs, 0, 0, sc.o.weightUnits * R.thick));
+    if (sc.kind === 'smoke') sc.items.forEach(it => { const o = it.o || sc.o, base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K; it.roots.forEach(R => one(R, smoothed(R), it.x, it.y, base * R.thick * lw)); });
+    else if (sc.kind === 'rhizoma') sc.roots.forEach(R => one(R, R.segs, 0, 0, sc.o.weightUnits * R.thick * lw));
   }
   function paint(ctx, w, h, dpr, sc, step, col, emMax, pad, clear, cache) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (clear) ctx.clearRect(0, 0, w, h); else { ctx.fillStyle = col.ground; ctx.fillRect(0, 0, w, h); }
     const v = fit(w, h, sc, emMax, pad), T = [v.s * dpr, 0, 0, v.s * dpr, v.tx * dpr, v.ty * dpr];
     const roots = cache && step != null && step < sc.total ? allRoots(sc) : null;
-    if (!roots || roots.some(R => R.burn)) { if (cache) cache.sc = null; ctx.setTransform(...T); drawPart(ctx, sc, step, col, null, true); tipDots(ctx, sc, step, 2.4, v.s); return; }
-    const W = Math.round(w * dpr), H = Math.round(h * dpr), key = [W, H, T.join(','), col.ink].join('|');
+    if (!roots || roots.some(R => R.burn)) { if (cache) cache.sc = null; ctx.setTransform(...T); drawPart(ctx, sc, step, col, null, true); tipDots(ctx, sc, step, 2.4, v.s, lwOf(sc, col)); return; }
+    const W = Math.round(w * dpr), H = Math.round(h * dpr), key = [W, H, T.join(','), col.ink, lwOf(sc, col)].join('|');
     if (cache.sc !== sc || cache.key !== key) {
       if (!cache.cv) cache.cv = document.createElement('canvas');
       cache.cv.width = W; cache.cv.height = H; cache.sc = sc; cache.key = key; cache.done = new Set(); cache.bk = new Map();
@@ -1485,11 +1510,11 @@
     if (fresh.length) { const c = cache.cv.getContext('2d'); c.setTransform(...T); const f = new Set(fresh); drawPart(c, sc, null, col, R => f.has(R), false); fresh.forEach(R => cache.done.add(R)); }
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(cache.cv, 0, 0);
     ctx.setTransform(...T); drawPart(ctx, sc, step, col, R => !cache.done.has(R), false);
-    tipDots(ctx, sc, step, 2.4, v.s);
+    tipDots(ctx, sc, step, 2.4, v.s, lwOf(sc, col));
   }
-  function svgOf(sc, ink, mode, name) {
-    if (sc.kind === 'smoke') return mode === 'united' ? svgUnitedOriginal(sc, ink) : svgLayersOriginal(sc, ink);
-    return S2.svg(sc, ink, mode, name);
+  function svgOf(sc, ink, mode, name, lw = lwOf(sc)) {
+    if (sc.kind === 'smoke') return mode === 'united' ? svgUnitedOriginal(sc, ink, lw) : svgLayersOriginal(sc, ink, lw);
+    return withLW(sc, lw, () => S2.svg(sc, ink, mode, name));
   }
   // canvas sizes come from a ResizeObserver, so drawing a frame never has to wait for the page to lay itself out
   const SIZES = new WeakMap();
@@ -1592,7 +1617,7 @@
   }
   const HANGUL = /[ᄀ-ᇿ㄰-㆏가-힣]/;
   // grow(element, options): draws the element's text grown in an SG face, over the element, and plays the growth. The text
-  // stays in the page (for readers, search and copying) and is only made transparent. Returns { replay, stop, redraw, remove }.
+  // stays in the page (for readers, search and copying) and is only made transparent. Returns { replay, stop, redraw, setWeight, remove }.
   function growEl(el, o) {
     o = Object.assign({}, o);
     const ds = el.dataset, face = FACE[String(o.face || ds.sgRhizoma || 'smoke').toLowerCase()] || 'SMOKE';
@@ -1605,7 +1630,10 @@
     Object.assign(cv.style, { position: 'absolute', pointerEvents: 'none', userSelect: 'none', zIndex: '0' });
     el.appendChild(cv);
     let sc = null, p = null, alive = true;
-    const col = () => ({ ink, ground });
+    // line weight: a number (1 is the v19.16 look, 0.5 to 2), or fine, earthy (the typeface's own, the default) or heavy
+    const wOf = v => { if (v == null || v === '') return null; const s = String(v).toLowerCase(); if (s === 'earthy') return null; const pre = LW_PRE[face] || LW_PRE.ANY; if (pre[s] != null) return pre[s]; const n = parseFloat(s); return Number.isFinite(n) ? Math.max(0.5, Math.min(2, n)) : null; };
+    let weight = wOf(o.weight != null ? o.weight : ds.weight);
+    const col = () => weight == null ? { ink, ground } : { ink, ground, lw: weight };
     function place() {                                                 // the grown word sits on the element's text: left edge and middle of the line
       if (!sc) return;
       const fsz = parseFloat(getComputedStyle(el).fontSize) || 32, s = fsz * (+(o.scale || ds.scale) || 1) / 1000;
@@ -1621,6 +1649,7 @@
       replay() { return ready.then(() => { if (alive && p) { place(); p.play(sc, col); } }); },
       stop() { if (p) p.stop(); },
       redraw() { if (p && sc) { place(); p.redraw(); } },
+      setWeight(v) { weight = wOf(v); if (p && sc) p.redraw(); },
       remove() { alive = false; if (p) p.stop(); cv.remove(); el.style.color = ''; el.style.webkitTextFillColor = ''; },
       ready,
     };
@@ -1637,7 +1666,7 @@
     els.forEach(el => { el._sgr = true; io.observe(el); });
   }
   window.SGRhizoma = {
-    version: '19.15',
+    version: '19.17',
     faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow(el, o) { const a = growEl(typeof el === 'string' ? document.querySelector(el) : el, o || {}); a.replay(); return a; },
     config(c) { if (c && c.base) base = new URL(c.base, location.href).href; return { base }; },
