@@ -87,21 +87,24 @@ In a field the canvas fills the element edge to edge, with no border, on a deskt
 
 ### 1.3 Continue a growth
 
-`setGrowth(14)` takes the growth on screen to 14. `climb(20, { seconds: 40 })` rises one growth at a time to 20 over 40 seconds, and `climb` and `seconds` as attributes or options do it once the word is drawn.
+`setGrowth(14)` takes the growth on screen to 14. `climb(20, { seconds: 40 })` takes it to 20 over 40 seconds, as one growth: every tip moves at one speed from the first frame to the last, with no steps to stall at. `climb` and `seconds` as attributes or options with nothing drawn yet grow the word straight to that growth, from nothing, in those seconds. This is what an entry should use: nothing is drawn twice, and no root is drawn wider once it has stopped. With a `growth` also given, the word grows to that first and then climbs on from it.
 
-At a higher growth, SG Smoke, SG Roses, SG Drag, SG Flame and SG Tangle keep every root they had, carry some tips further and add roots of their own. Continuing draws exactly that: the roots already grown stay where they are, a little wider, the stopped tips go on, and the new roots set out. The last frame is the picture you would get by growing that growth from nothing; the test checks it to the pixel on all five faces. SG Rhizoma V2 grows a new plant at each growth and has nothing to carry on, so it plays the new growth whole. A lower growth also plays whole. After `release()` the next growth plays whole from the word.
+**The speed.** A growth is a number of steps (for the word ROSES at growth 20: SG Roses 657, SG Smoke 442, SG Drag 567, SG Flame 657, SG Tangle 697) and the seconds you give are shared out evenly over them. SG Roses to 20 in 40 seconds is 16 steps a second, about 44 px a second at a word 640 px wide; in 25 seconds it is 26 steps a second. The growths of the page's own headings run at about 70 to 130 steps a second.
 
-Each growth is built, and its first frame prepared, while the one before is still growing. The build runs in one piece on the page's thread, so the page pauses for as long as the scene takes, once per growth. In our tests of a climb from 10 to 16 over 20 seconds:
+At a higher growth, SG Smoke, SG Roses, SG Drag, SG Flame and SG Tangle keep every root they had, carry some tips further and add roots of their own. Continuing a growth that is already drawn shows exactly that: the roots already grown stay where they are, the stopped tips go on, and the new roots set out. The last frame is the picture you would get by growing that growth from nothing; the test checks it to the pixel on all five faces. A root that goes on is drawn along its whole length, so it grows wider as its tip runs on. Measured from one growth to the next (SG Roses, growth 12 to 20): where a root had stopped it ends up 1.6 to 1.9 times as wide, and half way along its length 1.1 to 1.25 times. That is the difference between continuing and the first growth of the entry, where each root is drawn once, as it grows. SG Rhizoma V2 grows a new plant at each growth and has nothing to carry on, so it plays the new growth whole. A lower growth also plays whole. After `release()` the next growth plays whole from the word.
 
-| Face | Full speed | At a quarter of desktop speed |
-|---|---|---|
-| SG Smoke | no pause over 50 ms | pauses of 50 to 110 ms |
-| SG Roses | pauses of 50 to 70 ms | pauses of 140 to 190 ms, about five in 20 seconds |
-| SG Flame | no pause over 50 ms | pauses of 95 to 130 ms |
-| SG Drag | pauses of 150 to 220 ms | up to 0.8 s |
-| SG Tangle | pauses of 510 to 660 ms | 2.4 to 2.8 s |
+A growth is built in one piece on the page's thread, and the heading stays in the page until its first frame is drawn. For a climb from nothing that is one build, before the first frame, and none after it. In our tests, a fixed field on a 390 px phone screen at pixel ratio 3, climbing to 18 over 20 seconds:
 
-When a scene takes over 120 ms to build, the climb takes the next two growths as one step, which halves the pauses; the events for a growth it skips do not fire. The figures come from a two-core cloud machine; on a slower day the same machine gave about twice the pauses, so read them as an order of magnitude. Between pauses the frames hold 60 a second. For a climb, choose SG Smoke, SG Roses or SG Flame. SG Drag and SG Tangle suit a single `setGrowth`, or a climb on desktop only.
+| Face | First frame, full speed | First frame, a quarter of desktop speed | Frames at a quarter of desktop speed (median, slowest 5%) |
+|---|---|---|---|
+| SG Smoke | 56 ms | 0.2 s | 50 ms, 100 ms |
+| SG Roses | 250 ms | 0.6 s | 67 ms, 100 ms |
+| SG Flame | 140 ms | 0.45 s | 50 ms, 67 ms |
+| SG Rhizoma V2 | 100 ms | 0.26 s | 17 ms, 50 ms |
+| SG Drag | 0.8 s | 2.3 s | 50 ms, 83 ms |
+| SG Tangle | 1.4 s | 13.5 s | 33 ms, 83 ms |
+
+At full speed every face holds 60 frames a second, with no frame over 50 ms. At a quarter of desktop speed the frames are 15 a second for SG Roses, 20 for SG Smoke, SG Flame and SG Drag, and 30 to 60 for SG Tangle and SG Rhizoma V2, and the growth takes 1.2 to 1.9 times as long as asked, because it is timed by the clock and a frame that runs long is caught up by only two frames' worth. The figures come from a two-core cloud machine; on a slower day the same machine gave about twice the times, so read them as an order of magnitude. A climb that starts from a growth already drawn builds the end of the climb in one piece, as it begins. For a climb on a phone, choose SG Smoke, SG Roses, SG Flame or SG Rhizoma V2; SG Tangle to 18 suits a desktop only, or a `setGrowth` to a lower growth.
 
 ### 1.4 Events, release and snapshot
 
@@ -110,7 +113,7 @@ Events fire on the element and bubble, so one listener on `document` hears every
 | Event | When | `detail` |
 |---|---|---|
 | `sg:ready` | the first frame is drawn, and the heading text is hidden | `{ growth, face }` |
-| `sg:level` | a growth is reached | `{ growth, roots }` |
+| `sg:level` | a growth is reached (once, at the end, for a climb from nothing) | `{ growth, roots }` |
 | `sg:settled` | nothing is left to play: once at the end of a climb | `{ growth }` |
 | `sg:released` | `release()` has withdrawn the roots | `{ growth }` |
 | `sg:error` | the fonts, the build or the drawing failed, and the heading is back | `{ stage, error }` |
@@ -226,25 +229,25 @@ Every recipe has the same shape: import in the browser after the component is mo
 
 ### 1.6 An entry: SG Roses fills the screen, a click opens the site
 
-The word grows from the first growth to the last across the whole screen. A click starts the music, the roots withdraw, the entry disappears and the page behind it opens, for instance as an infinite scroll of stills.
+The word grows across the whole screen, as one growth at one steady speed. A click starts the music, the roots withdraw, the entry disappears and the page behind it opens, for instance as an infinite scroll of stills.
 
 ```html
-<section id="entry"><div id="rose">Roses</div></section>
+<section id="entry"><div id="rose">ROSES</div></section>
 <script type="module">
   import SGRhizoma from './sg-rhizoma.mjs';
   const entry = document.getElementById('entry');
   const rose = SGRhizoma.grow(document.getElementById('rose'), { face: 'roses', seed: 202, field: true, fixed: true, climb: 20, seconds: 40 });
   entry.addEventListener('click', async () => {
     startMusic();                          // your sound, started inside the click: browsers allow it nowhere else
-    rose.stop();                           // the climb ends where it is
-    await rose.release({ seconds: 1.4 }); // the roots withdraw, and sg:released fires
+    rose.stop();                           // the growth stops where it is
+    await rose.release({ seconds: 1.4 }); // the roots withdraw from there, and sg:released fires
     entry.remove();                        // the entry is gone
     openTheSite();                         // the page behind it, the scroll of stills
   }, { once: true });
 </script>
 ```
 
-A working page with the sound unlock and four stills taken with `snapshot()` is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html. Two choices are yours: the length of the climb (`seconds`), and whether the entry runs to growth 20 or stops earlier, where a phone has more room to spare. We measured a 390 px phone screen at pixel ratio 3, slowed to a quarter of desktop speed, climbing SG Roses from 10 to 18: the median frame was 17 ms, and a growth is built with a pause of 140 to 200 ms about five times in 20 seconds. We have not yet run it on a physical phone.
+A working page with the sound unlock and four stills taken with `snapshot()` is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html. Two choices are yours: the length of the climb (`seconds`, and with it the speed of the tips, see 1.3), and whether the entry runs to growth 20 or stops earlier, where a phone has more room to spare. A click at any moment withdraws the roots from the growth as it stands: the roots do not jump to their full growth first. We measured a 390 px phone screen at pixel ratio 3, slowed to a quarter of desktop speed, growing SG Roses to 18 over 20 seconds: the first frame after 0.6 s, and frames at a median of 67 ms (15 a second). At full speed the frames were 60 a second. We have not yet run it on a physical phone.
 
 ---
 
@@ -260,6 +263,8 @@ Every face as WOFF2, split into Latin and Hangul, so a page loads only the scrip
 |---|---|
 | `SG Rhizoma Smoke`, `SG Rhizoma Roses`, `SG Rhizoma V2`, `SG Rhizoma Drag`, `SG Rhizoma Flame`, `SG Rhizoma Tangle` | none: the growth as grown |
 | `SG Rhizoma Smoke Variable`, `SG Rhizoma Roses Variable`, `SG Rhizoma V2 Variable`, `SG Rhizoma Drag Variable`, `SG Rhizoma Flame Variable` | `GRWT`, 0 to 100 |
+
+SG Smoke and SG Roses carry the weights the site draws them at, ×1.5 and ×1.25; the other faces are drawn at ×1. The static SG Roses grows to 12, and the Growth axis of SG Roses Variable reaches 10 at 100.
 
 A variable face shows its full growth (100) until told otherwise. Set the axis with `font-variation-settings`:
 

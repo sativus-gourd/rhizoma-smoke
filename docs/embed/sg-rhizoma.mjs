@@ -1,4 +1,4 @@
-/*! SG Rhizoma Engine (embed) v19.18, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v19.19, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
@@ -872,8 +872,11 @@ function build(HERE) {
     }
   
     // ---------- fonts (growth frozen per character)
+    // o.growth ({ from, to, scale } as in grow(), plus an optional upTo: only characters below that code point) freezes each character
+    // at that growth instead of at 10: the plant at 10, then the roots a second plant adds above it, as grow() builds them.
     function buildFont(fonts, charset, o, family, style, ligatures) {
       o = opts(o); ensurePaper();
+      const G0 = o.growth || null; if (G0) o = opts(Object.assign({}, o, { growth: null }));
       const glyphs = [new opentype.Glyph({ name: '.notdef', advanceWidth: 600, path: new opentype.Path() })];
       const seen = new Set();
       const one = (info, unicode, seedKey) => {
@@ -882,7 +885,18 @@ function build(HERE) {
         if (unicode && String.fromCodePoint(unicode).trim() === '') return new opentype.Glyph({ name: unicode === 32 ? 'space' : name, unicode, advanceWidth: adv, path: new opentype.Path() });
         const hk = hash2(o.seed, seedKey);
         const inst = { info, x: 0, y: 0, adv, index: 1, line: 0, rng: mulberry32(hk), id: 0, ignite: 0, fdx: (hk % 1000) / 7.3, fdy: ((hk >>> 10) % 1000) / 9.1 };
-        const scene = growInstances([inst], opts(Object.assign({}, o, { ignite: null, connect: o.connectSelf ? o.connect : 0, seek: o.connectSelf ? o.seek : 0 })));
+        const oi = opts(Object.assign({}, o, { ignite: null, connect: o.connectSelf ? o.connect : 0, seek: o.connectSelf ? o.seek : 0 }));
+        const G = G0 && (!unicode || unicode < (G0.upTo || 0x110000)) ? G0 : null;
+        let scene;
+        if (G) {
+          const gv = growthAt(G, 0, 1), lin = { next: 0 };
+          const sc = { insts: [inst], roots: seedInstance(inst, oi, inst.rng, 0, lin), joints: [] };
+          runLoop(sc, oi, Math.round((oi.maxSteps + (oi.stagger || 0)) * (1 + Math.max(0, gv - 10) / 10)));
+          if (oi.hangulGuard) sc.roots = guardHangul(oi, sc.roots);
+          inst.index = seedKey;                                          // the second plant is seeded by the character, so no two letters share it
+          cumulate(sc, oi, G, [gv], lin);
+          scene = { o: opts(Object.assign({}, oi, { growth: G })), insts: [inst], roots: sc.roots, joints: sc.joints, total: 0, b: null };
+        } else scene = growInstances([inst], oi);
         const d = unitedPaths(scene)[0].d;
         const pp = new paper.CompoundPath({ pathData: d, insert: false });
         const op = new opentype.Path();
@@ -1769,7 +1783,7 @@ function build(HERE) {
       const render = (step, useCache) => paintTo(ctx, step, useCache);
   
       // frames: timed by the clock and not by frames, a dropped frame is caught up (to two frames' worth), as the page's growths are
-      let released = false, raf = 0, lastT = 0, odd = false, step = 0, s0 = 0, pos = 0, secs = 1.6, task = null, mode = 'idle', vis = true, nextPrep = null, rel = null;
+      let released = false, cut = null, raf = 0, lastT = 0, odd = false, step = 0, s0 = 0, pos = 0, secs = 1.6, task = null, mode = 'idle', vis = true, nextPrep = null, rel = null;
       const ring = [];
       function stopRaf() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
       function govern(dt) {                                              // frames that stay slow lower the pixel ratio a step, so the growth never visibly halts
@@ -1796,7 +1810,7 @@ function build(HERE) {
         } catch (e) { fail('draw', e); }
       }
       function startPlay(view2, from, seconds, t) {                       // the view to play, the step of its clock to begin at, how long
-        view = view2; s0 = from; secs = Math.max(0.3, seconds); pos = 0; step = from; lastT = 0; task = t || null; mode = 'grow';
+        view = view2; s0 = from; secs = Math.max(0.3, seconds); pos = 0; step = from; lastT = 0; task = t || null; mode = 'grow'; cut = null;
         if (reduce) { step = view.total; render(step, false); afterPaint(); settle(); return; }
         render(step, true); afterPaint();                                 // the first frame at once, in the same task as any resize of the canvas: nothing blinks
         raf = requestAnimationFrame(frame);
@@ -1810,15 +1824,13 @@ function build(HERE) {
       }
   
       // building ahead: the next growth is grown, warmed and its first frame drawn into a scratch canvas while the current one plays
-      const SLOW_BUILD = 120, queue = []; let scratch = null, gen = 0;
-      let lastBuild = 0;                                                 // what the last scene took to build, in ms: a climb on a slow device or a heavy face takes bigger steps
+      const queue = []; let scratch = null, gen = 0;
       function prepare(g, from) {
         return new Promise((ok, no) => idle(() => {
           try {
-            const P0 = performance.now(), B = cached(text, face, seed, growthFor(g)); let spent = performance.now() - P0;
+            const B = cached(text, face, seed, growthFor(g));
             idle(() => {
               try {
-                const P1 = performance.now();
                 try { warm(B); } catch (e) { /* drawn when needed instead */ }
                 const out = { g, B, from, con: null, cache: null };
                 if (from && face !== 'RHIZOMA' && from !== B) out.con = continuation(from, B);
@@ -1826,7 +1838,7 @@ function build(HERE) {
                   const G = geom(B), k = {}; scratch = scratch || document.createElement('canvas'); scratch.width = scratch.height = 1;
                   paint(scratch.getContext('2d'), G.w, G.h, dprNow(), out.con.view, out.con.s0, col(), 0, 0, true, k, G.v); out.cache = k;
                 }
-                lastBuild = spent + (performance.now() - P1); ok(out);
+                ok(out);
               } catch (e) { no(e); }
             });
           } catch (e) { no(e); }
@@ -1834,9 +1846,6 @@ function build(HERE) {
       }
       function prefetch() {
         if (nextPrep || !queue.length || !cur) return;
-        if (lastBuild > SLOW_BUILD && queue.length > 1 && queue[0].merge && queue[1].merge) {      // a slow build pauses the page: the climb takes the next two growths as one step
-          const a = queue.shift(), b = queue[0]; b.seconds += a.seconds; a.done(true);
-        }
         const t = queue[0]; nextPrep = { g: t.g, from: cur, p: prepare(t.g, cur) }; nextPrep.p.catch(() => {});
       }
       function pump() {
@@ -1868,32 +1877,33 @@ function build(HERE) {
         const lvl = Math.max(0, Math.min(20, Math.round(n)));
         return built.then(ok => { if (!ok || !alive) return false; cancel(); if (lvl === lv) return true; return enqueue([{ g: lvl, seconds: opt.seconds }])[0]; });
       }
-      function climb(to, opt) {                                          // rise one growth at a time to `to`, over `seconds`, each step growing as the next is built
+      function climb(to, opt) {                                          // rise to growth `to` over `seconds`, as one growth: the roots on screen stay, and every tip moves at one speed
         opt = opt || {}; const end = Math.max(0, Math.min(20, Math.round(+to)));
         return built.then(ok => {
           if (!ok || !alive) return false; cancel();
           const from = lv;                                               // a growth still playing finishes, and the climb goes on from it
           if (from == null || reduce || face === 'RHIZOMA' || !(end > from)) return end === from ? true : enqueue([{ g: end }])[0];
-          const levels = []; for (let g = from + 1; g <= end; g++) levels.push(g);
-          const per = (opt.seconds != null ? +opt.seconds : 40) / levels.length;
-          return Promise.all(enqueue(levels.map(g => ({ g, seconds: Math.max(0.6, per * 0.94), merge: true })))).then(r => r.every(Boolean));
+          return enqueue([{ g: end, seconds: Math.max(0.6, opt.seconds != null ? +opt.seconds : 40) }])[0];
         });
       }
       function release(opt) {                                            // the roots withdraw, last grown first, the word stays; then sg:released
         opt = opt || {}; const secsR = opt.seconds != null ? +opt.seconds : 1.1;
         return built.then(ok => new Promise(done => {
           if (!ok || !alive || !cur) { done(false); return; }
-          cancel(); stopRaf(); mode = 'release'; view = cur; const total = cur.total;
-          const end = () => { mode = 'idle'; rel = null; released = true; emit(el, 'released', { growth: lv }); done(true); };
-          const redo = () => { ctx.clearRect(0, 0, cv.width, cv.height); render(0, false); };
+          const from = mode === 'grow' ? { view, step } : cut;           // a growth cut short (stop(), or a release while it plays) withdraws from where it was, not from its end
+          cancel(); stopRaf(); cut = null; mode = 'release'; view = from ? from.view : cur; const total = from ? from.step : cur.total;
+          const end = () => { mode = 'idle'; rel = null; released = true; view = cur; emit(el, 'released', { growth: lv }); done(true); };
+          const redo = () => { view = cur; ctx.clearRect(0, 0, cv.width, cv.height); render(0, false); };
+          const fade = left => { cv.style.transition = 'opacity ' + Math.max(0.2, left).toFixed(2) + 's'; cv.style.opacity = '0'; setTimeout(() => { if (alive && mode === 'release') { redo(); cv.style.transition = ''; cv.style.opacity = ''; end(); } }, Math.max(200, left * 1000)); };
           if (reduce || secsR <= 0) { redo(); end(); return; }
+          if (from && from.view !== cur) { fade(secsR); return; }         // a growth carried on over roots already drawn holds those at their length, so they fade out instead
           const t0 = performance.now(); let slow = 0, n = 0;
           rel = function f(now) {
             raf = 0; if (!alive || mode !== 'release') return;
             const u = Math.min(1, (now - t0) / (secsR * 1000)), e = u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u);
             const c0 = performance.now(); render(total * (1 - e), false); const cost = performance.now() - c0;
             if (++n <= 4) slow += cost;
-            if (n === 4 && slow / 4 > 55) { cv.style.transition = 'opacity ' + Math.max(0.2, secsR * (1 - u)).toFixed(2) + 's'; cv.style.opacity = '0'; setTimeout(() => { if (alive && mode === 'release') { redo(); cv.style.transition = ''; cv.style.opacity = ''; end(); } }, Math.max(200, secsR * (1 - u) * 1000)); return; }   // too heavy to draw backwards at speed: a fade instead
+            if (n === 4 && slow / 4 > 55) { fade(secsR * (1 - u)); return; }   // too heavy to draw backwards at speed: a fade instead
             if (u < 1) raf = requestAnimationFrame(rel); else end();
           };
           raf = requestAnimationFrame(rel);
@@ -1913,7 +1923,7 @@ function build(HERE) {
   
       const api = {
         ready, replay, setGrowth, climb, release, snapshot, redraw,
-        stop() { stopRaf(); cancel(); if (mode === 'grow') { mode = 'idle'; task = null; } },
+        stop() { stopRaf(); cancel(); if (mode === 'grow') { cut = step < view.total ? { view, step } : null; mode = 'idle'; const t = task; task = null; if (t) t.done(false); } },
         setWeight(x) { weight = wOf(x); if (cur && mode === 'idle') redraw(); },
         setColour(c) { ink = c; if (cur && mode === 'idle') redraw(); },
         remove() { if (!alive) return; alive = false; stopRaf(); cancel(); if (ro) ro.disconnect(); window.removeEventListener('resize', onWin); if (io) io.disconnect(); showText(); cv.remove(); restoreStyle(); delete el._sgr; resolveBuilt(false); resolveReady(false); },
@@ -1928,13 +1938,16 @@ function build(HERE) {
       if (bool(pick('replay'))) { el.style.cursor = 'pointer'; el.addEventListener('click', () => api.replay()); }
       el._sgr = api;
   
+      // a climb, with nothing drawn yet to begin from, is one growth to its end, played over its seconds: every tip moves at one speed from
+      // the first frame to the last, and no finished root is ever drawn again wider. The scene is built once, before the first frame.
+      const climbTo = num(pick('climb')), climbSecs = num(pick('seconds')) || 40;
+      const direct = auto && climbTo != null && growth0 == null, g0 = direct ? growthFor(Math.max(0, Math.min(20, Math.round(climbTo)))) : growth0;
       fonts(HANGUL.test(text)).then(() => {                              // the page's text stays until the first frame is drawn; any failure below puts it back
         if (!alive || failed) return;
-        const F0 = performance.now(); cur = cached(text, face, seed, growth0); lv = levelOf(growth0); view = cur; lastBuild = performance.now() - F0;
-        layout(cur); resolveBuilt(true); if (auto) startPlay(cur, 0, playSecs(cur.total) / pace, null); else resolveReady(true);   // not playing yet: ready means built, the heading stays until the first frame
+        cur = cached(text, face, seed, g0); lv = levelOf(g0); view = cur;
+        layout(cur); resolveBuilt(true); if (auto) startPlay(cur, 0, direct ? climbSecs : playSecs(cur.total), null); else resolveReady(true);   // not playing yet: ready means built, the heading stays until the first frame
       }).catch(e => fail('fonts', e));
-      const climbTo = num(pick('climb'));
-      if (climbTo != null) ready.then(ok => { if (ok) climb(climbTo, { seconds: num(pick('seconds')) || 40 }); });
+      if (climbTo != null && !direct) ready.then(ok => { if (ok) climb(climbTo, { seconds: climbSecs }); });
       return api;
     }
   
@@ -1974,7 +1987,7 @@ function build(HERE) {
       customElements.define('sg-rhizoma', SGRhizomaElement);
     }
     const API = {
-      version: '19.18',
+      version: '19.19',
       faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
       grow(el, o) { const e = typeof el === 'string' ? document.querySelector(el) : el; if (!e) throw new Error('SGRhizoma.grow: no element'); return make(e, o || {}); },
       field(el, o) { return API.grow(el, Object.assign({ field: true }, o || {})); },
@@ -1992,7 +2005,7 @@ function build(HERE) {
   var SERVER = typeof window === 'undefined' || typeof document === 'undefined';       // rendered on a server: import is safe, and every call does nothing
   function inert() { var no = function () { return Promise.resolve(false); };
     return { ready: Promise.resolve(false), replay: no, setGrowth: no, climb: no, release: no, snapshot: no, redraw: function () {}, stop: function () {}, setWeight: function () {}, setColour: function () {}, remove: function () {}, growth: null, state: 'server', element: null }; }
-  var lazy = { version: '19.18', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
+  var lazy = { version: '19.19', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow: function (el, o) { return SERVER ? inert() : get().grow(el, o); }, field: function (el, o) { return SERVER ? inert() : get().field(el, o); },
     config: function (c) { return SERVER ? undefined : get().config(c); }, scan: function () { if (!SERVER) get().scan(); } };
 

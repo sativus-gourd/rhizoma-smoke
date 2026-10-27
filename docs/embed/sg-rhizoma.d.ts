@@ -1,4 +1,4 @@
-/* SG Rhizoma Engine (embed) v19.18, types. https://github.com/sativus-gourd/rhizoma-smoke */
+/* SG Rhizoma Engine (embed) v19.19, types. https://github.com/sativus-gourd/rhizoma-smoke */
 declare namespace SGRhizoma {
   type Face = 'smoke' | 'roses' | 'v2' | 'rhizoma' | 'drag' | 'flame' | 'tangle';
   type Growth = number | string | { from: number; to: number };
@@ -29,9 +29,9 @@ declare namespace SGRhizoma {
     dpr?: number;
     /** Speed of growth; 1 is as tuned. */
     pace?: number;
-    /** Rise to this growth once drawn. */
+    /** Grow to this growth, 0 to 20: from nothing when no `growth` is given, or on from that growth. */
     climb?: number;
-    /** How long the climb takes in seconds; default 40. */
+    /** How long the climb takes in seconds; default 40. With nothing drawn yet, the word grows straight to `climb` over these seconds, as one growth. */
     seconds?: number;
     /** Click to grow again. */
     replay?: boolean;
@@ -47,7 +47,7 @@ declare namespace SGRhizoma {
     replay(): Promise<boolean>;
     /** Continues the growth to n; a lower n plays that growth whole. */
     setGrowth(n: number | string, options?: { seconds?: number }): Promise<boolean>;
-    /** Rises one growth at a time to n over the given seconds. */
+    /** Rises to growth n over the given seconds, as one growth: the roots on screen stay and every tip moves at one speed. */
     climb(n: number, options?: { seconds?: number }): Promise<boolean>;
     /** The roots withdraw and the word stays; fires sg:released. */
     release(options?: { seconds?: number }): Promise<boolean>;

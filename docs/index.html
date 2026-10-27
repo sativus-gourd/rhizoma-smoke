@@ -233,6 +233,9 @@ textarea { resize: vertical; }
 #t-canvas { display: block; width: 100%; height: clamp(260px, 38vw, 460px); transition: height .35s var(--ease); }
 .stage.tall #t-canvas { height: clamp(300px, 46vw, 580px); }
 .fail { position: absolute; inset: 0; display: grid; place-items: center; padding: 1rem; text-align: center; font-family: var(--ui); font-size: .9rem; color: var(--muted); }
+.vmark { margin: 1.4rem 0 0; font-family: var(--ui); font-size: .8rem; letter-spacing: .02em; color: var(--muted); font-variant-numeric: tabular-nums; }
+.vmark a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--rule); }
+.vmark a:hover { color: var(--ink); }
 .foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem 1rem; align-items: center; padding: .8rem 0 0; }
 .foot .acts { display: flex; flex-wrap: wrap; gap: .5rem; }
 #t-msg { padding: .6rem 0 0; font-family: var(--ui); font-size: .88rem; color: var(--muted); }
@@ -776,10 +779,10 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   <h2 id="dl-h">Download</h2>
   <p class="col">The fonts are under the SIL Open Font License: use them in any work, commercial included, and change them under the same licence. Each download holds the font, the licence and a short readme.</p>
   <div class="tts"><label for="tts">Type to see</label><input type="text" id="tts" value="" placeholder="Roses 서울은 나를 죽여" maxlength="60" spellcheck="false"></div>
-  <div class="famrow"><span class="nm">The whole family</span><span class="ds">Every font, with the licence and readme. 46.7 MB.</span><a class="btn primary getfont" href="downloads/SG-Rhizoma-Family.zip" download="SG-Rhizoma-Family.zip" data-zip="SG-Rhizoma-Family.zip" data-folder="SG-Rhizoma-Family" data-files="SGRhizoma-Smoke.otf SGRhizoma-Roses.otf SGRhizoma-V2.otf SGRhizoma-Drag.otf SGRhizoma-Flame.otf SGRhizoma-Tangle.otf SGRhizoma-SmokeVariable.ttf SGRhizoma-DragVariable.ttf SGRhizoma-FlameVariable.ttf SGRhizoma-V2Variable.ttf SGRhizoma-RosesVariable.ttf" data-readme="family" data-name="the whole family"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Download all</a></div>
+  <div class="famrow"><span class="nm">The whole family</span><span class="ds">Every font, with the licence and readme. 46.9 MB.</span><a class="btn primary getfont" href="downloads/SG-Rhizoma-Family.zip" download="SG-Rhizoma-Family.zip" data-zip="SG-Rhizoma-Family.zip" data-folder="SG-Rhizoma-Family" data-files="SGRhizoma-Smoke.otf SGRhizoma-Roses.otf SGRhizoma-V2.otf SGRhizoma-Drag.otf SGRhizoma-Flame.otf SGRhizoma-Tangle.otf SGRhizoma-SmokeVariable.ttf SGRhizoma-DragVariable.ttf SGRhizoma-FlameVariable.ttf SGRhizoma-V2Variable.ttf SGRhizoma-RosesVariable.ttf" data-readme="family" data-name="the whole family"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Download all</a></div>
   <ul class="specs" id="specs">
     <li class="spec" id="dl-Smoke"><div class="sh"><span class="nm smoke">SG Smoke</span><span class="ds">Latin and Hangul, 3.1 MB. Installs as SG Rhizoma Smoke.</span><a class="btn sm getfont" href="downloads/SGRhizoma-Smoke.otf" download="SGRhizoma-Smoke.otf" data-zip="SG-Rhizoma-Smoke.zip" data-files="SGRhizoma-Smoke.otf" data-readme="Smoke" data-name="SG Rhizoma Smoke"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Download</a></div><div class="sample" data-ff="&quot;SGP Smoke&quot;, &quot;Song Myung&quot;, serif"></div></li>
-    <li class="spec" id="dl-SmokeVariable"><div class="sh"><span class="nm smoke">SG Smoke Variable</span><span class="ds">Latin and Hangul, 5.7 MB. Installs as SG Rhizoma Smoke Variable.</span><label class="vfctl">Growth <input type="range" min="0" max="100" step="1" value="50"></label><a class="btn sm getfont" href="downloads/SGRhizoma-SmokeVariable.ttf" download="SGRhizoma-SmokeVariable.ttf" data-zip="SG-Rhizoma-Smoke-Variable.zip" data-files="SGRhizoma-SmokeVariable.ttf" data-readme="Smoke Variable" data-name="SG Rhizoma Smoke Variable"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Download</a></div><div class="sample vf" data-ff="&quot;SG Smoke Variable&quot;, &quot;IM Fell English&quot;, &quot;Song Myung&quot;, serif"></div></li>
+    <li class="spec" id="dl-SmokeVariable"><div class="sh"><span class="nm smoke">SG Smoke Variable</span><span class="ds">Latin and Hangul, 5.8 MB. Installs as SG Rhizoma Smoke Variable.</span><label class="vfctl">Growth <input type="range" min="0" max="100" step="1" value="50"></label><a class="btn sm getfont" href="downloads/SGRhizoma-SmokeVariable.ttf" download="SGRhizoma-SmokeVariable.ttf" data-zip="SG-Rhizoma-Smoke-Variable.zip" data-files="SGRhizoma-SmokeVariable.ttf" data-readme="Smoke Variable" data-name="SG Rhizoma Smoke Variable"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Download</a></div><div class="sample vf" data-ff="&quot;SG Smoke Variable&quot;, &quot;IM Fell English&quot;, &quot;Song Myung&quot;, serif"></div></li>
     <li class="spec" id="dl-Roses"><div class="sh"><span class="nm rose">SG Roses</span><span class="ds">Latin and Hangul, 1.8 MB. Installs as SG Rhizoma Roses.</span><a class="btn sm getfont" href="downloads/SGRhizoma-Roses.otf" download="SGRhizoma-Roses.otf" data-zip="SG-Rhizoma-Roses.zip" data-files="SGRhizoma-Roses.otf" data-readme="Roses" data-name="SG Rhizoma Roses"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Download</a></div><div class="sample" data-ff="&quot;SGP Roses&quot;, &quot;Song Myung&quot;, serif"></div></li>
     <li class="spec" id="dl-RosesVariable"><div class="sh"><span class="nm rose">SG Roses Variable</span><span class="ds">Latin and Hangul, 3.2 MB. Installs as SG Rhizoma Roses Variable.</span><label class="vfctl rose">Growth <input type="range" min="0" max="100" step="1" value="50"></label><a class="btn sm getfont" href="downloads/SGRhizoma-RosesVariable.ttf" download="SGRhizoma-RosesVariable.ttf" data-zip="SG-Rhizoma-Roses-Variable.zip" data-files="SGRhizoma-RosesVariable.ttf" data-readme="Roses Variable" data-name="SG Rhizoma Roses Variable"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Download</a></div><div class="sample vf" data-ff="&quot;SG Roses Variable&quot;, &quot;IM Fell English&quot;, &quot;Song Myung&quot;, serif"></div></li>
     <li class="spec" id="dl-V2"><div class="sh"><span class="nm orig">SG Rhizoma V2</span><span class="ds">Latin and Hangul, 5.2 MB.</span><a class="btn sm getfont" href="downloads/SGRhizoma-V2.otf" download="SGRhizoma-V2.otf" data-zip="SG-Rhizoma-V2.zip" data-files="SGRhizoma-V2.otf" data-readme="V2" data-name="SG Rhizoma V2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Download</a></div><div class="sample" data-ff="&quot;SGP V2&quot;, &quot;Song Myung&quot;, serif"></div></li>
@@ -826,6 +829,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     <li>Voltaire, <em>Candide</em> (1759). Astrid Lindgren, <em>Karlsson-on-the-Roof</em>, quoted as the epigraph to Kafka on Waterloo Shore.</li>
     <li>Not covered by these licences: the Sativus Gourd name, signature and logo, the atelier artwork shown here (including the 담배 피는 여자 / Women Who Smoke lockup and the Kafka on Waterloo Shore page) and the text of this site are © 2026 Sativus Gourd and their respective owners. All rights reserved.</li>
   </ul>
+  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v19.19-beta" target="_blank" rel="noopener" aria-label="Release notes for version 19.19 beta">v19.19 beta</a></p>
 </footer>
 
 <section class="signoff wrap" aria-label="Sativus Gourd">
@@ -1689,8 +1693,11 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   }
 
   // ---------- fonts (growth frozen per character)
+  // o.growth ({ from, to, scale } as in grow(), plus an optional upTo: only characters below that code point) freezes each character
+  // at that growth instead of at 10: the plant at 10, then the roots a second plant adds above it, as grow() builds them.
   function buildFont(fonts, charset, o, family, style, ligatures) {
     o = opts(o); ensurePaper();
+    const G0 = o.growth || null; if (G0) o = opts(Object.assign({}, o, { growth: null }));
     const glyphs = [new opentype.Glyph({ name: '.notdef', advanceWidth: 600, path: new opentype.Path() })];
     const seen = new Set();
     const one = (info, unicode, seedKey) => {
@@ -1699,7 +1706,18 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       if (unicode && String.fromCodePoint(unicode).trim() === '') return new opentype.Glyph({ name: unicode === 32 ? 'space' : name, unicode, advanceWidth: adv, path: new opentype.Path() });
       const hk = hash2(o.seed, seedKey);
       const inst = { info, x: 0, y: 0, adv, index: 1, line: 0, rng: mulberry32(hk), id: 0, ignite: 0, fdx: (hk % 1000) / 7.3, fdy: ((hk >>> 10) % 1000) / 9.1 };
-      const scene = growInstances([inst], opts(Object.assign({}, o, { ignite: null, connect: o.connectSelf ? o.connect : 0, seek: o.connectSelf ? o.seek : 0 })));
+      const oi = opts(Object.assign({}, o, { ignite: null, connect: o.connectSelf ? o.connect : 0, seek: o.connectSelf ? o.seek : 0 }));
+      const G = G0 && (!unicode || unicode < (G0.upTo || 0x110000)) ? G0 : null;
+      let scene;
+      if (G) {
+        const gv = growthAt(G, 0, 1), lin = { next: 0 };
+        const sc = { insts: [inst], roots: seedInstance(inst, oi, inst.rng, 0, lin), joints: [] };
+        runLoop(sc, oi, Math.round((oi.maxSteps + (oi.stagger || 0)) * (1 + Math.max(0, gv - 10) / 10)));
+        if (oi.hangulGuard) sc.roots = guardHangul(oi, sc.roots);
+        inst.index = seedKey;                                          // the second plant is seeded by the character, so no two letters share it
+        cumulate(sc, oi, G, [gv], lin);
+        scene = { o: opts(Object.assign({}, oi, { growth: G })), insts: [inst], roots: sc.roots, joints: sc.joints, total: 0, b: null };
+      } else scene = growInstances([inst], oi);
       const d = unitedPaths(scene)[0].d;
       const pp = new paper.CompoundPath({ pathData: d, insert: false });
       const op = new opentype.Path();

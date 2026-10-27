@@ -19,6 +19,9 @@ download the fonts. Leave the page open and it keeps growing.
 Free fonts in `docs/downloads/`, to install, and in `docs/webfonts/`, for the web. Each carries 212 Latin characters from
 IM Fell English, five ligatures and 2,897 kerning pairs. All but SG Tangle also carry Hangul: the 2,350 syllables of
 KS X 1001 and 51 jamo. SG Rhizoma V2 and SG Rhizoma V2 Variable are grown with Dabin Kim's Rhizoma at its default settings.
+SG Smoke and SG Roses are drawn at the weights the site gives them, SG Smoke at ×1.5 and SG Roses at ×1.25, so type set in
+the fonts carries the same weight of root as the site. SG Roses grows to 12 as a static font, and to 10 on the Growth axis of
+its Variable font.
 
 ## Use it on your site
 
@@ -45,8 +48,8 @@ The heading grows when it first comes into view, with the same engine and motion
 | `data-field` | the canvas fills the element, the word in the middle, the roots running to its edges | off |
 | `data-fixed` | with `field`: the element is the screen | off |
 | `data-size` | with `field`: the word's share of the width | `0.5`, and `0.8` below 640 px |
-| `data-climb` | rise to this growth (0 to 20) once drawn | none |
-| `data-seconds` | how long the climb takes | `40` |
+| `data-climb` | grow to this growth (0 to 20) in `seconds`, as one growth: from nothing, or on from `data-growth` | none |
+| `data-seconds` | how long the climb takes, and so how fast the tips move | `40` |
 | `data-pace`, `data-dpr`, `data-autoplay` | the speed, the highest pixel ratio drawn (2), whether it plays on its own | `1`, `2`, on |
 
 From a script: `SGRhizoma.grow(element, { face: 'drag', seed: 33, growth: '2-18' })` returns a controller with `ready`, `replay()`, `setGrowth(n)`, `climb(n, { seconds })`, `release()`, `snapshot()`, `setWeight()`, `setColour()`, `redraw()`, `stop()` and `remove()`. The element `<sg-rhizoma face="roses" field climb="20" seconds="40">Roses</sg-rhizoma>` does the same with attributes, and fires `sg:ready`, `sg:level`, `sg:settled`, `sg:released` and `sg:error`.
