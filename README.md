@@ -4,7 +4,7 @@ The SG Rhizoma Engine and the SG Rhizoma Typeface Family by Sativus Gourd, led b
 Built on [Rhizoma](https://github.com/dabinkiim/Rhizoma), the growing type system by Dabin Kim.
 
 **Website:** https://sativus-gourd.github.io/rhizoma-smoke/
-**Guide:** [GUIDE.md](GUIDE.md), for the growth on a website, in After Effects and on video
+**Guide:** [GUIDE.md](GUIDE.md), for the growth on a website (a heading, a field, a whole-screen entry, and recipes for React, Next.js, Vue, Nuxt, Svelte, SvelteKit, Astro, Angular and plain pages), in After Effects and on video
 
 Type into the SG Rhizoma Engine and watch the letters grow, every root on a clock of its own, the thickest first and the
 finest last. Let growth rise or fall through a text, bring any growth back from its seed, save it as SVG or video, and
@@ -42,17 +42,27 @@ The heading grows when it first comes into view, with the same engine and motion
 | `data-scale` | the grown word's size against the heading's | `1` |
 | `data-weight` | line weight: a number from 0.5 to 2, or `fine`, `earthy` or `heavy` | `earthy` (the face's own: SG Smoke 1.5, SG Roses 1.25, the others 1) |
 | `data-replay` | a click grows it again | off |
+| `data-field` | the canvas fills the element, the word in the middle, the roots running to its edges | off |
+| `data-fixed` | with `field`: the element is the screen | off |
+| `data-size` | with `field`: the word's share of the width | `0.5`, and `0.8` below 640 px |
+| `data-climb` | rise to this growth (0 to 20) once drawn | none |
+| `data-seconds` | how long the climb takes | `40` |
+| `data-pace`, `data-dpr`, `data-autoplay` | the speed, the highest pixel ratio drawn (2), whether it plays on its own | `1`, `2`, on |
 
-From a script: `SGRhizoma.grow(element, { face: 'drag', seed: 33, growth: '2-18' })` returns `{ replay, stop, redraw, remove }`.
+From a script: `SGRhizoma.grow(element, { face: 'drag', seed: 33, growth: '2-18' })` returns a controller with `ready`, `replay()`, `setGrowth(n)`, `climb(n, { seconds })`, `release()`, `snapshot()`, `setWeight()`, `setColour()`, `redraw()`, `stop()` and `remove()`. The element `<sg-rhizoma face="roses" field climb="20" seconds="40">Roses</sg-rhizoma>` does the same with attributes, and fires `sg:ready`, `sg:level`, `sg:settled`, `sg:released` and `sg:error`.
+
+### Fill a section or the screen, and keep growing
+In field mode the canvas fills the element with no border, on a desktop and on a phone, and the roots run to the edges and past them. `setGrowth` and `climb` continue a growth that is on screen: the roots already grown stay, the tips go on and new roots set out. `release()` withdraws the roots and leaves the word, for an entry that a click opens. [docs/embed/entry.html](docs/embed/entry.html) is that entry, live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html.
 
 - The heading keeps its text for screen readers, search and copying; the grown word is drawn over it.
 - Roots reach past the text, so give the heading room.
 - Reduced motion shows the finished growth at once.
 - Hangul loads Song Myung only when a heading needs it.
-- To host it yourself, copy `docs/embed/sg-rhizoma.js` with `docs/fonts/im-fell-english.woff` and
-  `docs/fonts/song-myung-korean.woff`, keeping the folders, or point it at your fonts with `SGRhizoma.config({ base: '/path/' })`.
+- If the fonts or the build fail, the heading stays as text and `sg:error` fires. The script makes no request to any host but your own: opentype.js is bundled in it.
+- To host it yourself, copy `docs/embed/sg-rhizoma.js` (or `sg-rhizoma.mjs`, with `sg-rhizoma.d.mts` for TypeScript) with `docs/fonts/im-fell-english.woff` and
+  `docs/fonts/song-myung-korean.woff`, keeping the folders, or point it at your fonts with `SGRhizoma.config({ base: '/path/' })`. In a bundled app, put `fonts/` in `public/`.
 
-Example: [docs/embed/index.html](docs/embed/index.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/. More in [GUIDE.md](GUIDE.md): growing on hover, room around a heading, weight on phones.
+Example: [docs/embed/index.html](docs/embed/index.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/. More in [GUIDE.md](GUIDE.md): growing on hover, room around a heading, weight on phones, fields, climbs and each framework.
 
 ### Set text in the fonts
 ```html
@@ -77,7 +87,7 @@ any site.
   Dabin Kim, CC BY-SA 4.0, and is offered under the same licence. Credit Dabin Kim and Sativus Gourd where you use it.
 - Fonts: SIL Open Font License 1.1. Latin from IM Fell English Roman by Igino Marini (Reserved Font Name
   "IM FELL English Roman"), Hangul from Song Myung by the Song Myung Project Authors.
-- Interface fonts: Libre Caslon Text and Libre Franklin (OFL). Libraries: opentype.js, Paper.js, JSZip (MIT).
+- Interface fonts: Libre Caslon Text and Libre Franklin (OFL). Libraries: opentype.js (bundled in the embed), Paper.js, JSZip (MIT).
 - Not covered: the Sativus Gourd name, signature and logo, the atelier artwork and the site's text are
   © 2026 Sativus Gourd and their respective owners. All rights reserved.
 

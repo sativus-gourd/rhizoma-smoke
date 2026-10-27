@@ -130,14 +130,23 @@ textarea { resize: vertical; }
 .tsep { display: none; width: 1px; height: 1.6rem; background: var(--rule); margin: 0 .3rem; flex: none; }
 .tbreak { flex-basis: 100%; height: 0; }
 .facewrap { container-type: inline-size; }
+/* Typeface and Growth share a row: the chips on the left, Growth on the right, the typeface note under both (beside the chips on a wide row). */
+.faceinner { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "chips" "note" "grow"; gap: 0 1.5rem; align-items: center; }
+.faceinner > .facesel, .faceinner > .tline { grid-area: chips; }
+.faceinner > .facenote { grid-area: note; align-self: start; }
+.faceinner > .growbox { grid-area: grow; justify-self: end; margin: .9rem 0 0; }
+@container (min-width: 46rem) {
+  .faceinner { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "chips grow" "note note"; }
+  .faceinner > .growbox { margin: 0; }
+}
 .facenote { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows .32s var(--ease), opacity .32s var(--ease), margin .32s var(--ease), visibility 0s .32s; margin-top: 0; }
 .facenote.on { grid-template-rows: 1fr; opacity: 1; visibility: visible; margin-top: .6rem; transition: grid-template-rows .32s var(--ease), opacity .32s var(--ease), margin .32s var(--ease), visibility 0s; }
 .fbox { overflow: hidden; max-width: 36rem; background: var(--panel); border-radius: var(--r-surf); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--orig) 70%, transparent); }
 .fbox p { margin: 0; padding: .65rem .95rem .7rem; font-size: .93rem; line-height: 1.45; color: var(--muted); }
 .facenote b { color: var(--orig); font-weight: 400; }
 @container (min-width: 60rem) {
-  .faceinner { display: grid; grid-template-columns: fit-content(34rem) minmax(0, 1fr); gap: 0 1.5rem; }
-  .facenote, .facenote.on { grid-column: 2; grid-row: 1; height: 0; margin: 0; display: block; transform: translateY(6px); transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s .3s; }
+  .faceinner { grid-template-columns: 23.5rem minmax(0, 1fr) auto; grid-template-areas: "chips note grow"; }
+  .facenote, .facenote.on { height: 0; margin: 0; display: block; transform: translateY(6px); transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s .3s; }
   .facenote.on { transform: none; transition: opacity .3s var(--ease), transform .3s var(--ease), visibility 0s; }
   .fbox { overflow: visible; max-width: 32rem; }
   .fbox p { padding: .6rem .95rem .65rem; font-size: .9rem; line-height: 1.42; }
@@ -153,7 +162,7 @@ textarea { resize: vertical; }
 
 .growrow { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
 .colrow { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.5rem; }
-.growbox { display: inline-flex; align-items: center; gap: .75rem; margin-left: auto; user-select: none; -webkit-user-select: none; }
+.ctlbox { display: inline-flex; align-items: center; gap: .75rem; margin-left: auto; user-select: none; -webkit-user-select: none; }
 .gstack { display: grid; gap: .45rem; flex: none; }
 .gpre { display: flex; justify-content: flex-end; gap: .35rem; }
 .gp { width: 2.15rem; height: 1.6rem; padding: 0; border-radius: 7px; border: 1px solid var(--rule); background: var(--ground); color: var(--muted); display: grid; place-items: center; cursor: pointer; transition: color .2s var(--ease), border-color .2s var(--ease), background-color .2s var(--ease); }
@@ -163,7 +172,6 @@ textarea { resize: vertical; }
 .gp:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .gp[data-g="20,20"] { margin-right: .35rem; }
 /* Weight: presets, a slider (the specimens' slider) and a tick where roots begin to fill the letters */
-.wtrow { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1.4rem; }
 .wpre { display: flex; gap: .35rem; }
 .wp { font-family: var(--ui); font-size: .82rem; font-weight: 500; min-height: 1.6rem; padding: 0 .8rem; border-radius: 7px; border: 1px solid var(--rule); background: var(--ground); color: var(--muted); cursor: pointer; transition: color .2s var(--ease), border-color .2s var(--ease), background-color .2s var(--ease); }
 .wp:hover { color: var(--ink); border-color: color-mix(in srgb, var(--ink) 35%, var(--rule)); transition-duration: 0s; }
@@ -171,13 +179,9 @@ textarea { resize: vertical; }
 .wp:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .wsl { gap: .8rem; }
 .wsl .wtrack { position: relative; display: block; }
-.vfctl.wsl input { width: 12rem; display: block; }
-#l-wt { padding-top: .2rem; }
-@media (max-width: 640px) { .vfctl.wsl { flex: 1 1 100%; } .vfctl.wsl .wtrack { flex: 1; max-width: 19rem; } .vfctl.wsl input { width: 100%; } }
-.wsl output { min-width: 3.1rem; font-variant-numeric: tabular-nums; color: var(--ink); }
+.vfctl.wsl input { width: 13rem; display: block; }
+.wbox .gout { color: var(--ink); }
 .wtick { position: absolute; top: 50%; left: calc(.525rem + (100% - 1.05rem) * var(--c, 1)); width: 2px; height: .9rem; margin: -.45rem 0 0 -1px; border-radius: 1px; background: color-mix(in srgb, var(--ink) 45%, transparent); pointer-events: none; }
-.wnote { flex-basis: 100%; min-height: 1.2em; font-family: var(--ui); font-size: .8rem; color: var(--muted); }
-.wnote:empty { display: none; }
 .facesel { display: none; position: relative; }
 .facesel select { -webkit-appearance: none; appearance: none; width: 100%; min-height: 2.75rem; padding: 0 2.75rem 0 1.1rem; border-radius: var(--r-pill); border: 1px solid var(--rule); background: var(--ground); color: var(--ink); font-family: var(--ui); font-size: 1rem; font-weight: 500; cursor: pointer; }
 .facesel select[data-sel="SMOKE"] { color: var(--smoke); border-color: color-mix(in srgb, var(--smoke) 55%, transparent); }
@@ -497,10 +501,11 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   .tbreak { display: none; }
   .btn { min-height: 2.75rem; }
   .seedbox { margin-left: 0; width: 100%; }
-  .growbox { margin-left: 0; width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "lab pre out" "ramp ramp ramp"; gap: .6rem .75rem; }
+  .ctlbox { margin-left: 0; width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "lab pre out" "ramp ramp ramp"; gap: .6rem .75rem; }
   .gstack { display: contents; }
   .glab { grid-area: lab; } .gout { grid-area: out; justify-self: end; } .gpre { grid-area: pre; justify-content: flex-start; } .ramp { grid-area: ramp; }
   .ramp { width: auto; height: 4rem; }
+  .wbox .vfctl.wsl { grid-area: ramp; display: block; } .wbox .vfctl.wsl input { width: 100%; }
   .facesel { display: block; }
   .facesel + .tline { display: none; }
   .seedbox input { flex: 1; }
@@ -556,6 +561,25 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
             <button type="button" class="tog" data-face="TANGLE" aria-pressed="false">SG Tangle</button>
           </div>
           <div class="facenote" id="t-facenote" aria-live="polite"><div class="fbox"><p><b>SG Rhizoma V2</b> is the original Rhizoma engine by Dabin Kim, with reproducible seeds and Hangul support added.</p></div></div>
+          <div class="ctlbox growbox" role="group" aria-labelledby="l-gro"><span class="glab" id="l-gro">Growth</span>
+            <div class="gstack">
+            <div class="gpre" role="group" aria-label="Growth presets">
+              <button type="button" class="gp" data-g="5,5" aria-pressed="false" aria-label="Small, growth 5 through the text" title="Small"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="10.5" width="2.4" height="3.5" rx="1"/><rect x="5" y="10.5" width="2.4" height="3.5" rx="1"/><rect x="9" y="10.5" width="2.4" height="3.5" rx="1"/><rect x="13" y="10.5" width="2.4" height="3.5" rx="1"/><rect x="17" y="10.5" width="2.4" height="3.5" rx="1"/></svg></button>
+              <button type="button" class="gp" data-g="10,10" aria-pressed="true" aria-label="Even, growth 10 through the text" title="Even"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="7" width="2.4" height="7" rx="1"/><rect x="5" y="7" width="2.4" height="7" rx="1"/><rect x="9" y="7" width="2.4" height="7" rx="1"/><rect x="13" y="7" width="2.4" height="7" rx="1"/><rect x="17" y="7" width="2.4" height="7" rx="1"/></svg></button>
+              <button type="button" class="gp" data-g="20,20" aria-pressed="false" aria-label="Full, growth 20 through the text" title="Full"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="1" width="2.4" height="13" rx="1"/><rect x="5" y="1" width="2.4" height="13" rx="1"/><rect x="9" y="1" width="2.4" height="13" rx="1"/><rect x="13" y="1" width="2.4" height="13" rx="1"/><rect x="17" y="1" width="2.4" height="13" rx="1"/></svg></button>
+              <button type="button" class="gp" data-g="2,18" aria-pressed="false" aria-label="Rise, growth 2 to 18" title="Rise"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="11.5" width="2.4" height="2.5" rx="1"/><rect x="5" y="9" width="2.4" height="5" rx="1"/><rect x="9" y="6.5" width="2.4" height="7.5" rx="1"/><rect x="13" y="4" width="2.4" height="10" rx="1"/><rect x="17" y="1.5" width="2.4" height="12.5" rx="1"/></svg></button>
+              <button type="button" class="gp" data-g="18,2" aria-pressed="false" aria-label="Fall, growth 18 to 2" title="Fall"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="1.5" width="2.4" height="12.5" rx="1"/><rect x="5" y="4" width="2.4" height="10" rx="1"/><rect x="9" y="6.5" width="2.4" height="7.5" rx="1"/><rect x="13" y="9" width="2.4" height="5" rx="1"/><rect x="17" y="11.5" width="2.4" height="2.5" rx="1"/></svg></button>
+            </div>
+            <div class="ramp" id="g-ramp">
+              <span class="rband" aria-hidden="true"></span><span class="rmid" aria-hidden="true"></span>
+              <span class="rbars" id="g-bars" aria-hidden="true"></span>
+              <span class="rh" id="g-from" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Growth where the text starts" aria-valuemin="0" aria-valuemax="20" aria-valuenow="10"></span>
+              <span class="rh" id="g-to" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Growth where the text ends" aria-valuemin="0" aria-valuemax="20" aria-valuenow="10"></span>
+              <span class="rtip" id="g-tip" aria-hidden="true"></span>
+            </div>
+            </div>
+            <span class="gout" id="g-out" aria-hidden="true">10</span>
+          </div>
         </div></div>
       </div>
       <div class="row" role="group" aria-labelledby="l-col"><span class="lab" id="l-col">Colour</span>
@@ -567,36 +591,17 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
           <button type="button" class="chip" data-colour="oxide" aria-pressed="false" aria-label="Oxide" title="Oxide"><span class="cs" style="background:#713840;color:#E59A60">Aa</span></button>
           <button type="button" class="chip" data-colour="indigo" aria-pressed="false" aria-label="Indigo" title="Indigo"><span class="cs" style="background:#0C123A;color:#B4785F">Aa</span></button>
         </div>
-        <div class="growbox" role="group" aria-labelledby="l-gro"><span class="glab" id="l-gro">Growth</span>
+        <div class="ctlbox wbox" role="group" aria-labelledby="l-wt"><span class="glab" id="l-wt">Weight</span>
           <div class="gstack">
-          <div class="gpre" role="group" aria-label="Growth presets">
-            <button type="button" class="gp" data-g="5,5" aria-pressed="false" aria-label="Small, growth 5 through the text" title="Small"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="10.5" width="2.4" height="3.5" rx="1"/><rect x="5" y="10.5" width="2.4" height="3.5" rx="1"/><rect x="9" y="10.5" width="2.4" height="3.5" rx="1"/><rect x="13" y="10.5" width="2.4" height="3.5" rx="1"/><rect x="17" y="10.5" width="2.4" height="3.5" rx="1"/></svg></button>
-            <button type="button" class="gp" data-g="10,10" aria-pressed="true" aria-label="Even, growth 10 through the text" title="Even"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="7" width="2.4" height="7" rx="1"/><rect x="5" y="7" width="2.4" height="7" rx="1"/><rect x="9" y="7" width="2.4" height="7" rx="1"/><rect x="13" y="7" width="2.4" height="7" rx="1"/><rect x="17" y="7" width="2.4" height="7" rx="1"/></svg></button>
-            <button type="button" class="gp" data-g="20,20" aria-pressed="false" aria-label="Full, growth 20 through the text" title="Full"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="1" width="2.4" height="13" rx="1"/><rect x="5" y="1" width="2.4" height="13" rx="1"/><rect x="9" y="1" width="2.4" height="13" rx="1"/><rect x="13" y="1" width="2.4" height="13" rx="1"/><rect x="17" y="1" width="2.4" height="13" rx="1"/></svg></button>
-            <button type="button" class="gp" data-g="2,18" aria-pressed="false" aria-label="Rise, growth 2 to 18" title="Rise"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="11.5" width="2.4" height="2.5" rx="1"/><rect x="5" y="9" width="2.4" height="5" rx="1"/><rect x="9" y="6.5" width="2.4" height="7.5" rx="1"/><rect x="13" y="4" width="2.4" height="10" rx="1"/><rect x="17" y="1.5" width="2.4" height="12.5" rx="1"/></svg></button>
-            <button type="button" class="gp" data-g="18,2" aria-pressed="false" aria-label="Fall, growth 18 to 2" title="Fall"><svg viewBox="0 0 20 14" aria-hidden="true"><rect x="1" y="1.5" width="2.4" height="12.5" rx="1"/><rect x="5" y="4" width="2.4" height="10" rx="1"/><rect x="9" y="6.5" width="2.4" height="7.5" rx="1"/><rect x="13" y="9" width="2.4" height="5" rx="1"/><rect x="17" y="11.5" width="2.4" height="2.5" rx="1"/></svg></button>
-          </div>
-          <div class="ramp" id="g-ramp">
-            <span class="rband" aria-hidden="true"></span><span class="rmid" aria-hidden="true"></span>
-            <span class="rbars" id="g-bars" aria-hidden="true"></span>
-            <span class="rh" id="g-from" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Growth where the text starts" aria-valuemin="0" aria-valuemax="20" aria-valuenow="10"></span>
-            <span class="rh" id="g-to" role="slider" tabindex="0" aria-orientation="vertical" aria-label="Growth where the text ends" aria-valuemin="0" aria-valuemax="20" aria-valuenow="10"></span>
-            <span class="rtip" id="g-tip" aria-hidden="true"></span>
-          </div>
-          </div>
-          <span class="gout" id="g-out" aria-hidden="true">10</span>
-        </div>
-        </div>
-      </div>
-      <div class="row" role="group" aria-labelledby="l-wt"><span class="lab" id="l-wt">Weight</span>
-        <div class="wtrow">
-          <div class="wpre" role="group" aria-label="Line weight presets">
+          <div class="gpre wpre" role="group" aria-label="Line weight presets">
             <button type="button" class="wp" data-wp="fine" aria-pressed="false" title="Finer roots">Fine</button>
             <button type="button" class="wp" data-wp="earthy" aria-pressed="true" title="The weight this typeface grows with">Earthy</button>
             <button type="button" class="wp" data-wp="heavy" aria-pressed="false" title="Heavier roots">Heavy</button>
           </div>
-          <label class="vfctl ink wsl"><span class="wtrack"><input type="range" id="t-weight" min="0.5" max="2" step="0.05" value="1.5" aria-label="Line weight" aria-describedby="t-wnote"><i class="wtick" id="t-wtick" aria-hidden="true"></i></span><output id="t-wout" for="t-weight">×1.50</output></label>
-          <span class="wnote" id="t-wnote" aria-live="polite"></span>
+          <label class="vfctl ink wsl"><span class="wtrack"><input type="range" id="t-weight" min="0.5" max="2" step="0.05" value="1.5" aria-label="Line weight"><i class="wtick" id="t-wtick" aria-hidden="true"></i></span></label>
+          </div>
+          <output class="gout" id="t-wout" for="t-weight">×1.50</output>
+        </div>
         </div>
       </div>
       <div class="row" role="group" aria-labelledby="l-grow"><span class="lab" id="l-grow">Plant</span>
@@ -1602,10 +1607,17 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       for (let i = 0; i < n; i++) rad.push(i === 0 || i === n - 1 ? Infinity : full[i]);
       lim = rad.map((r, i) => o.bend * Math.min(r, rad[Math.max(0, i - 1)], rad[Math.min(n - 1, i + 1)]));
     }
+    // A root starts on its letter, so a heavier weight must not swell the round cap at that end past the stroke it sits on: above
+    // x1 the extra width eases in over the first stretch (one x1 width, at most 30% of the root), and the cap stays the size it
+    // always was. A fine weight and x1 itself draw as before.
+    let run = 0, ramp = 0;
     for (let i = 0; i < n; i++) {
       const p0 = s[Math.max(0, i - 1)], p1 = s[Math.min(n - 1, i + 1)];
       let dx = p1.x - p0.x, dy = p1.y - p0.y; const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
-      let h = wf(o, R, i, nf) / 2; if (lw !== 1) h = Math.max(h * lw, o.minWidth / 2); if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); hs.push(h);
+      if (i > 0) run += Math.hypot(s[i].x - s[i - 1].x, s[i].y - s[i - 1].y);
+      let h = wf(o, R, i, nf) / 2;
+      if (lw > 1) { if (i === 0) { let L = 0; for (let j = 1; j < s0.length; j++) L += Math.hypot(s0[j].x - s0[j - 1].x, s0[j].y - s0[j - 1].y); ramp = Math.min(2 * h, 0.3 * L); } const t = ramp > 0 ? Math.min(1, run / ramp) : 1; h *= 1 + (lw - 1) * t * t * (3 - 2 * t); }
+      else if (lw !== 1) h = Math.max(h * lw, o.minWidth / 2); if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); hs.push(h);
       L.push([s[i].x - dy * h, s[i].y + dx * h]); Rr.push([s[i].x + dy * h, s[i].y - dx * h]);
     }
     const cap = (p, q, h) => { const ang = Math.atan2(p.y - q.y, p.x - q.x) - Math.PI / 2, out = []; for (let k = 1; k < 8; k++) { const a = ang + Math.PI * k / 8; out.push([p.x + Math.cos(a) * h, p.y + Math.sin(a) * h]); } return out; };
@@ -2329,10 +2341,12 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     if (sc.kind === 'smoke') sc.items.forEach(it => { const o = it.o || sc.o, base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K; it.roots.forEach(R => one(R, smoothed(R), it.x, it.y, base * R.thick * lw)); });
     else if (sc.kind === 'rhizoma') sc.roots.forEach(R => one(R, R.segs, 0, 0, sc.o.weightUnits * R.thick * lw));
   }
-  function paint(ctx, w, h, dpr, sc, step, col, emMax, pad, clear, cache) {
+  // fixed (optional): { s, tx, ty }, a placement given by the caller (the embed's field, where the word keeps one size while the
+  // growth around it rises); the page leaves it out and the scene is fitted to the canvas
+  function paint(ctx, w, h, dpr, sc, step, col, emMax, pad, clear, cache, fixed) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (clear) ctx.clearRect(0, 0, w, h); else { ctx.fillStyle = col.ground; ctx.fillRect(0, 0, w, h); }
-    const v = fit(w, h, sc, emMax, pad), T = [v.s * dpr, 0, 0, v.s * dpr, v.tx * dpr, v.ty * dpr];
+    const v = fixed || fit(w, h, sc, emMax, pad), T = [v.s * dpr, 0, 0, v.s * dpr, v.tx * dpr, v.ty * dpr];
     const roots = cache && step != null && step < sc.total ? allRoots(sc) : null;
     if (!roots || roots.some(R => R.burn)) { if (cache) cache.sc = null; ctx.setTransform(...T); drawPart(ctx, sc, step, col, null, true); tipDots(ctx, sc, step, 2.4, v.s, lwOf(sc, col)); return; }
     const W = Math.round(w * dpr), H = Math.round(h * dpr), key = [W, H, T.join(','), col.ink, lwOf(sc, col)].join('|');
@@ -2851,7 +2865,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     h.addEventListener('blur', () => { if (!drag) { delete ramp.dataset.zone; tip(null); } });
   });
   // ---------- line weight: the tool's slider and presets. A weight redraws and never regrows, so the seed keeps its shape.
-  const wIn = $('t-weight'), wOut = $('t-wout'), wTick = $('t-wtick'), wNote = $('t-wnote'), wPre = [...document.querySelectorAll('.wp')];
+  const wIn = $('t-weight'), wOut = $('t-wout'), wTick = $('t-wtick'), wPre = [...document.querySelectorAll('.wp')];
   const gTop = () => Math.max(G.from, G.to);
   function toolW() { return st.w != null ? st.w : weightDefault(st.face, gTop()); }
   function showWeight() {
@@ -2860,7 +2874,8 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     wTick.style.setProperty('--c', ((Math.min(hi, Math.max(lo, c)) - lo) / (hi - lo)).toFixed(3)); wTick.hidden = c >= hi - 1e-6;
     const v = { fine: pre.fine, earthy: d, heavy: pre.heavy };
     wPre.forEach(b => b.setAttribute('aria-pressed', String(Math.abs(v[b.dataset.wp] - w) < 0.005)));
-    wNote.textContent = w > c + 0.005 ? 'Past \u00D7' + c.toFixed(2) + ' the roots begin to fill the letters at this growth.' : '';
+    // nothing is written into the page when the slider passes the tick (a line there moved the preview down); the spoken value carries it
+    wIn.setAttribute('aria-valuetext', '\u00D7' + w.toFixed(2) + (w > c + 0.005 ? ', past \u00D7' + c.toFixed(2) + ', where the roots begin to fill the letters' : ''));
   }
   wIn.addEventListener('input', () => { st.w = Math.round(+wIn.value * 20) / 20; showWeight(); tool.redraw(); });
   wPre.forEach(b => b.addEventListener('click', () => {

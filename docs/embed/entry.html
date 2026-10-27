@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SG Rhizoma Engine: an entry</title>
+<style>
+  :root { --ink: #EBE6D7; --ground: #0A0807; }
+  html, body { margin: 0; background: var(--ground); color: var(--ink); font: 18px/1.6 Georgia, serif; }
+  #entry { position: fixed; inset: 0; z-index: 10; background: var(--ground); color: var(--ink); display: grid; place-items: center; font-size: clamp(2.6rem, 9vw, 7rem); cursor: pointer; }
+  #rose { position: relative; }
+  #entry small { position: fixed; left: 0; right: 0; bottom: 1.5rem; text-align: center; font-size: 14px; letter-spacing: .06em; opacity: 0; transition: opacity 1.4s; }
+  #entry.ready small { opacity: .7; }
+  #stills { max-width: 40rem; margin: 0 auto; padding: 18vh 1.25rem 30vh; }
+  #stills figure { margin: 0 0 22vh; }
+  #stills img { width: 100%; height: auto; display: block; }
+  #stills figcaption { margin-top: .6rem; font-size: 14px; opacity: .7; }
+</style></head>
+<body>
+<section id="entry" aria-label="Entry"><div id="rose">Roses</div><small>click to enter</small></section>
+<main id="stills" hidden></main>
+<script type="module">
+  import SGRhizoma from './sg-rhizoma.mjs';
+  const entry = document.getElementById('entry'), stills = document.getElementById('stills');
+  // 1. the entry grows as a field that fills the screen and keeps climbing (a growth every few seconds, forty in all)
+  const rose = SGRhizoma.grow(document.getElementById('rose'), { face: 'roses', seed: 202, field: true, fixed: true, climb: 20, seconds: 40 });
+  entry.addEventListener('sg:ready', () => entry.classList.add('ready'));
+  // 2. the click: start the sound here (browsers allow it only inside a click), withdraw the roots, then open the page
+  entry.addEventListener('click', async () => {
+    const audio = new (window.AudioContext || window.webkitAudioContext)(); audio.resume();          // your music starts here
+    rose.stop();
+    await rose.release({ seconds: 1.4 });                                                           // the roots withdraw; sg:released fires
+    entry.remove();
+    stills.hidden = false; scrollTo(0, 0);
+    // 3. the stills: the same word at other growths, taken from the engine (a PNG each); a real site would add more as the visitor scrolls
+    for (const g of [8, 12, 16, 20]) {
+      const host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-9999px;width:900px;height:360px;font-size:150px;color:#EBE6D7'; host.textContent = 'Roses'; document.body.appendChild(host);
+      const c = SGRhizoma.grow(host, { face: 'roses', seed: 202, growth: g, autoplay: false }); await c.ready;
+      const png = await c.snapshot({ type: 'png' }), fig = document.createElement('figure'), img = new Image(); img.alt = 'Roses grown to ' + g; img.src = URL.createObjectURL(png); await img.decode().catch(() => {});
+      fig.append(img, Object.assign(document.createElement('figcaption'), { textContent: 'growth ' + g })); stills.append(fig); c.remove(); host.remove();
+    }
+  }, { once: true });
+</script>
+</body></html>

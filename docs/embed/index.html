@@ -10,6 +10,10 @@
   .s { font-size: clamp(1.8rem, 5vw, 3rem); margin: 4rem 0 .5rem; font-weight: 400; }
   pre { background: rgba(127,127,127,.12); padding: 1rem; overflow-x: auto; font-size: 14px; border-radius: 8px; }
   small { color: var(--muted); }
+  .bar { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+  button { font: inherit; font-size: 15px; padding: .35rem .9rem; border-radius: 999px; border: 1px solid currentColor; background: none; color: inherit; cursor: pointer; }
+  output { color: var(--muted); font-size: 14px; }
+  a { color: inherit; }
 </style></head>
 <body><main>
 <p><small>SG Rhizoma Engine, embedded. Each heading below is ordinary text, grown when it comes into view. Click one to grow it again.</small></p>
@@ -22,9 +26,25 @@
 <h2 class="s" data-sg-rhizoma="smoke" data-growth="2-18" data-replay>rising growth</h2>
 <h2 class="s" data-sg-rhizoma="roses" data-weight="heavy" data-replay>Heavy roots</h2>
 <h2 class="s" data-sg-rhizoma="smoke" data-replay>담배 피는 여자</h2>
+
+<h2 class="s">A field</h2>
+<p><small>An element that grows into a field: the canvas fills it, the word keeps one size in the middle, and the roots run to the edges. Climb carries the roots already grown further, so they stay where they are while the tips go on and new roots set out.</small></p>
+<sg-rhizoma id="field" face="roses" seed="202" field climb="14" seconds="14" style="display:block;height:70vh;margin:0 -1.25rem;background:#0A0807;color:#EBE6D7;font-size:56px">Roses</sg-rhizoma>
+<p class="bar"><button data-do="climb">Climb to 20</button> <button data-do="release">Release</button> <button data-do="again">Grow again</button> <output id="log" aria-live="polite">waiting</output></p>
+
 <pre>&lt;script src="https://sativus-gourd.github.io/rhizoma-smoke/embed/sg-rhizoma.js" defer&gt;&lt;/script&gt;
-&lt;h1 data-sg-rhizoma="smoke" data-seed="12" data-growth="2-18"&gt;Cultivate your garden&lt;/h1&gt;</pre>
+&lt;h1 data-sg-rhizoma="smoke" data-seed="12" data-growth="2-18"&gt;Cultivate your garden&lt;/h1&gt;
+
+&lt;sg-rhizoma face="roses" field climb="20" seconds="40" style="display:block;height:70vh"&gt;Roses&lt;/sg-rhizoma&gt;</pre>
+<p><small>The whole entry, with a click that releases the roots and opens the page: <a href="entry.html">entry.html</a>.</small></p>
 <p><small>Built on Rhizoma by Dabin Kim, CC BY-SA 4.0. Fonts: SIL Open Font License 1.1.</small></p>
 </main>
 <script src="sg-rhizoma.js" defer></script>
+<script>
+  const f = document.getElementById('field'), log = document.getElementById('log');
+  ['ready', 'level', 'settled', 'released', 'error'].forEach(n => f.addEventListener('sg:' + n, e => { log.textContent = 'sg:' + n + (e.detail.growth != null ? '  growth ' + e.detail.growth : e.detail.stage ? '  ' + e.detail.stage : ''); }));
+  document.querySelector('[data-do=climb]').onclick = () => f.climb(20, { seconds: 20 });
+  document.querySelector('[data-do=release]').onclick = () => f.release();
+  document.querySelector('[data-do=again]').onclick = () => f.replay();
+</script>
 </body></html>

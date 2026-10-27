@@ -4,7 +4,7 @@ The SG Rhizoma growth leaves this site in five forms. Pick the one that fits the
 
 | You want | Use | Moves like the site |
 |---|---|---|
-| A heading that grows on a web page | The embed, `docs/embed/sg-rhizoma.js` | Yes: the same engine, every root on its own clock |
+| A heading, a section or a whole screen that grows on a web page | The embed, `docs/embed/sg-rhizoma.js` or `.mjs` | Yes: the same engine, every root on its own clock |
 | Text set in the fonts, on the web | The web fonts, `docs/webfonts/` | The variable fonts grow on their Growth axis |
 | Moving type in After Effects | The variable fonts, from Download on the site | On the Growth axis, keyframed |
 | A clip for any editor | Record in the SG Rhizoma Engine on the site | Yes: exactly as it plays on screen |
@@ -16,7 +16,9 @@ One difference runs through all of it. The SG Rhizoma Engine grows each root on 
 
 ## 1. On a website: the embed
 
-The live engine, in one script. A heading keeps its text for screen readers, search and copying; the growth is drawn over it.
+The live engine, in one script or one module. A heading keeps its text for screen readers, search and copying; the growth is drawn over it. The same engine fills a section or the whole screen, continues a growth that is already on screen, and runs in the major front-end stacks (section 1.5).
+
+### 1.1 A heading
 
 ```html
 <script src="https://sativus-gourd.github.io/rhizoma-smoke/embed/sg-rhizoma.js" defer></script>
@@ -35,14 +37,22 @@ The heading grows when a fifth of it comes into view, once.
 | `data-scale` | the grown word's size against the heading's | `1` |
 | `data-weight` | the line weight: `0.5` to `2`, or `fine`, `earthy` or `heavy` | `earthy`: the face's own |
 | `data-replay` | a click grows it again | off |
+| `data-field` | fill the element with the grown word (section 1.2) | off |
+| `data-fixed` | with `field`: the element is the screen | off |
+| `data-size` | with `field`: the word's share of the width, 0 to 1 | `0.5`, and `0.8` below 640 px |
+| `data-climb` | rise to this growth, 0 to 20, once drawn (section 1.3) | none |
+| `data-seconds` | how long the climb takes | `40` |
+| `data-pace` | the speed of the growth, 1 as tuned | `1` |
+| `data-dpr` | the highest pixel ratio drawn | `2` |
+| `data-autoplay` | `false` draws nothing until you call `replay()`, `setGrowth()` or `climb()` | on |
 
 **Finding a seed.** Type your text into the SG Rhizoma Engine on the site, press Randomise until a growth holds, and copy the number from the Seed field. The same text, face, growth and seed grow the same shape in the embed.
 
 **Line weight.** The width of every root is a multiplier, as in the original Rhizoma's Line Weight slider. A face grows with the weight that suits it: SG Smoke at 1.5 (its roots rise above the word), SG Roses at 1.25 (its roots lie over the word, and heavier begins to fill the letters), and SG Rhizoma V2, Drag, Flame and Tangle at 1, which is V2's original setting. `fine` and `heavy` are the face's lighter and heavier presets (SG Smoke 1 and 2, SG Roses 1 and 1.5, the others 0.75 and 1.5). The weight changes only how wide the roots are: the same seed grows the same shape at any weight, so you can set it after you have found a seed. At high growth the roots fill the space round the letters, so SG Smoke's own weight eases from 1.5 (growth 12 and below) to 1.4 at growth 14, 1.35 at 16 and 1.3 from 18; SG Roses holds 1.25. These limits come from 5,832 test renders: nine scenes in ten stay clear of the point where roots begin to fill the letters. Growths made before v19.17 were drawn at 1: use `data-weight="1"` to match them.
 
-**Room.** Roots reach past the text, above and below, and at high growth well beyond it. Give the heading padding: about half its font size above and below at growth 10, and more for SG Roses and SG Rhizoma V2 above 15, where the growth spreads to several times the height of the word.
+**Room.** Roots reach past the text, above and below, and at high growth well beyond it. Give the heading padding: about half its font size above and below at growth 10, and more for SG Roses and SG Rhizoma V2 above 15, where the growth spreads to several times the height of the word. A field (next) has no such limit: it clips at its own edge.
 
-**Growing again, on your terms.** The script can drive any heading:
+**From a script.** `SGRhizoma.grow(element, options)` grows at once and returns a controller. The options are the attributes without `data-`, plus `text` to grow a text other than the element's own.
 
 ```html
 <script>
@@ -54,19 +64,187 @@ The heading grows when a fifth of it comes into view, once.
 </script>
 ```
 
-`SGRhizoma.grow(element, options)` grows at once and returns `{ replay, stop, redraw, setWeight, remove, ready }`. The options are the attributes without `data-`: `face`, `seed`, `growth`, `colour`, `scale`, `weight`, plus `text` to grow a text other than the element's own.
+The controller: `ready` (a promise, true at the first frame), `replay()`, `setGrowth(n)`, `climb(n, { seconds })`, `release({ seconds })`, `snapshot({ type })`, `setWeight(w)`, `setColour(c)`, `redraw()`, `stop()`, `remove()`, and `growth`, `state` and `element` to read. Each method that takes time returns a promise that is true when it has finished and false when something replaced it.
 
-**Cost on the visitor's device.** The growth is computed and drawn in the visitor's browser. At growth 10 a heading is light on a phone. At growth 20, SG Roses and SG Rhizoma V2 grow over a thousand roots and play at 15 to 20 frames a second in our test at a quarter of desktop speed, a stand-in for a mid-range phone; keep those for one hero word on a page, and try it on the phones your visitors use. Visitors who ask for reduced motion see the finished growth at once.
+**Cost on the visitor's device.** The growth is computed and drawn in the visitor's browser. At growth 10 a heading is light on a phone. At growth 20, SG Roses and SG Rhizoma V2 grow over a thousand roots and play at 15 to 20 frames a second in our test at a quarter of desktop speed, a stand-in for a mid-range phone; keep those for one hero word on a page, and try it on the phones your visitors use. A climb (section 1.3) draws less: roots that have finished are kept as a picture, and only the growing tips are drawn each frame. Visitors who ask for reduced motion see the finished growth at once.
 
-**Hosting it yourself.** Copy `docs/embed/sg-rhizoma.js` with `docs/fonts/im-fell-english.woff` and `docs/fonts/song-myung-korean.woff`, keeping the folders, or point the script at your fonts:
+### 1.2 A field: a section or the whole screen
 
-```js
-SGRhizoma.config({ base: '/assets/sg-rhizoma/' });   // the folder that holds fonts/
+```html
+<script src="https://sativus-gourd.github.io/rhizoma-smoke/embed/sg-rhizoma.js" defer></script>
+
+<sg-rhizoma face="roses" seed="202" field climb="20" seconds="40"
+            style="display:block; height:100vh; background:#0A0807; color:#EBE6D7; font-size:56px">Roses</sg-rhizoma>
 ```
 
-Hangul loads Song Myung only when a heading needs it.
+In a field the canvas fills the element edge to edge, with no border, on a desktop and on a phone. The word sits in the middle at one size, half the element's width (four fifths below 640 px, and never taller than 42% of its height), and the roots run out to the edges and past them: the element clips them, so the picture is not shrunk to keep them in. The size does not change as the growth rises. SG Roses at growth 18 reaches about one word's width from the word on each side, and at growth 20 about two, so a screen fills without further settings.
 
-The script reads the fonts with opentype.js. When the page does not have it already, the script loads version 1.3.4 from cdn.jsdelivr.net. To keep every request on your own host, load your copy of opentype.js before the script.
+- The element's background is the ground, and its text colour is the ink.
+- `fixed` makes the canvas the screen itself: it stays fixed to the viewport, whatever the element's size. Use it for an entry.
+- The pixel ratio is capped at 2 (`dpr` changes that) and drops to 1.5, and no lower, when frames keep running slow, so the growth keeps its pace on a weak phone and the roots stay sharp.
+- A resize refits the same growth to the new size without growing it again. Painting stops while the element is off screen. Reduced motion shows the finished frame.
+- The heading text stays in the page, hidden from the eye and open to readers and search.
+
+### 1.3 Continue a growth
+
+`setGrowth(14)` takes the growth on screen to 14. `climb(20, { seconds: 40 })` rises one growth at a time to 20 over 40 seconds, and `climb` and `seconds` as attributes or options do it once the word is drawn.
+
+At a higher growth, SG Smoke, SG Roses, SG Drag, SG Flame and SG Tangle keep every root they had, carry some tips further and add roots of their own. Continuing draws exactly that: the roots already grown stay where they are, a little wider, the stopped tips go on, and the new roots set out. The last frame is the picture you would get by growing that growth from nothing; the test checks it to the pixel on all five faces. SG Rhizoma V2 grows a new plant at each growth and has nothing to carry on, so it plays the new growth whole. A lower growth also plays whole. After `release()` the next growth plays whole from the word.
+
+Each growth is built, and its first frame prepared, while the one before is still growing. The build runs in one piece on the page's thread, so the page pauses for as long as the scene takes, once per growth. In our tests of a climb from 10 to 16 over 20 seconds:
+
+| Face | Full speed | At a quarter of desktop speed |
+|---|---|---|
+| SG Smoke | no pause over 50 ms | pauses of 50 to 110 ms |
+| SG Roses | pauses of 50 to 70 ms | pauses of 140 to 190 ms, about five in 20 seconds |
+| SG Flame | no pause over 50 ms | pauses of 95 to 130 ms |
+| SG Drag | pauses of 150 to 220 ms | up to 0.8 s |
+| SG Tangle | pauses of 510 to 660 ms | 2.4 to 2.8 s |
+
+When a scene takes over 120 ms to build, the climb takes the next two growths as one step, which halves the pauses; the events for a growth it skips do not fire. The figures come from a two-core cloud machine; on a slower day the same machine gave about twice the pauses, so read them as an order of magnitude. Between pauses the frames hold 60 a second. For a climb, choose SG Smoke, SG Roses or SG Flame. SG Drag and SG Tangle suit a single `setGrowth`, or a climb on desktop only.
+
+### 1.4 Events, release and snapshot
+
+Events fire on the element and bubble, so one listener on `document` hears every element.
+
+| Event | When | `detail` |
+|---|---|---|
+| `sg:ready` | the first frame is drawn, and the heading text is hidden | `{ growth, face }` |
+| `sg:level` | a growth is reached | `{ growth, roots }` |
+| `sg:settled` | nothing is left to play: once at the end of a climb | `{ growth }` |
+| `sg:released` | `release()` has withdrawn the roots | `{ growth }` |
+| `sg:error` | the fonts, the build or the drawing failed, and the heading is back | `{ stage, error }` |
+
+**`release({ seconds })`** withdraws the roots, the last grown first, and leaves the word; 1.1 seconds unless you say otherwise. Where drawing backwards is too heavy for the device, it fades the canvas out in the same time. Reduced motion cuts at once. `sg:released` fires when it is done.
+
+**`snapshot()`** returns the current scene at its finished growth as a PNG `Blob`, transparent unless you pass `{ background: true }`, or as an SVG string with `{ type: 'svg' }`. Stills for a scroll can come from it: grow an element at the growth you want with `autoplay: false`, take the snapshot and remove the element.
+
+**Fail-soft.** The heading text stays visible until the first frame is drawn, and stays visible while the fonts load. If the fonts do not load, or the build or a frame fails, the canvas is removed, the heading is as it was, `sg:error` fires and `ready` resolves to false. The script makes no request to any host but your own: opentype.js 1.3.4 (MIT) is bundled inside it.
+
+### 1.5 In your stack
+
+Three ways in, one engine:
+
+- **A script tag**, for a plain page, WordPress, Webflow, Squarespace, Shopify and any other that lets you add a script and some HTML. Put it in the head with `defer`, at the end of the body, with `async`, or add it after the page has loaded: all work. Use `data-sg-rhizoma` or `<sg-rhizoma>`.
+- **A module**, `docs/embed/sg-rhizoma.mjs`: `import SGRhizoma, { grow } from './sg-rhizoma.mjs'`. Importing it on a server is safe, and every call there does nothing and returns an inert controller, so a server-rendered component may import it. Grow in the browser: in an effect, `onMounted`, an action or a script.
+- **The element** `<sg-rhizoma>`: attributes in (`face`, `seed`, `growth`, `colour`, `ground`, `scale`, `weight`, `text`, `field`, `fixed`, `size`, `dpr`, `pace`, `climb`, `seconds`, `replay`, `autoplay`), events out, methods on the element (`el.climb(20)`, `el.release()`, `el.snapshot()`, `el.ready`). The `growth`, `weight` and `colour` attributes are live: set one and the word follows. Removing the element removes the canvas.
+
+For TypeScript, put `sg-rhizoma.d.mts` beside the module: it types the options, the controller and the events.
+
+**Where the files go.** Copy `docs/embed/sg-rhizoma.mjs` (and `sg-rhizoma.d.mts`) into your source folder and the `docs/fonts/` folder into your public folder, so that `/fonts/im-fell-english.woff` is served by your site. The script looks for the fonts above itself when you load the file as it is (`/embed/sg-rhizoma.js` reads `/fonts/`), and at the site root when a bundler has renamed it; either falls back to the other, and `SGRhizoma.config({ base: '/assets/sg-rhizoma/' })` fixes one place. Serve the fonts from your own site or from a host that sends CORS headers, as GitHub Pages does.
+
+Each recipe below is the code of a test app, built and run in a real browser: React 19.3 (StrictMode on), Next.js 16.4 (webpack and Turbopack, server rendered), Vue 3.5, Nuxt 4.5, Svelte 5.57, SvelteKit 2.70, Astro 5.18 and Angular 21.2 (strict TypeScript). Each grows the word, climbs, unmounts without leaving a canvas, mounts again, resizes, makes no request off the site and logs no error. The `<sg-rhizoma>` element was run in React, Vue, Svelte and Angular too.
+
+**React** (and Next.js, with `'use client'` as the first line of the hook file):
+
+```jsx
+// useRhizoma.js
+import { useEffect, useRef } from 'react';
+export function useRhizoma(options) {
+  const ref = useRef(null), ctrl = useRef(null);
+  useEffect(() => {
+    let dead = false;
+    import('./sg-rhizoma.mjs').then(({ grow }) => { if (!dead && ref.current) ctrl.current = grow(ref.current, options); });
+    return () => { dead = true; if (ctrl.current) ctrl.current.remove(); ctrl.current = null; };
+  }, []);
+  return [ref, ctrl];
+}
+
+// Hero.jsx
+export function Hero() {
+  const [ref] = useRhizoma({ face: 'roses', field: true, climb: 20, seconds: 40 });
+  return <div ref={ref} style={{ height: '100vh', background: '#0A0807', color: '#EBE6D7', fontSize: 56 }}>Roses</div>;
+}
+```
+
+In Next.js the server sends the heading in its HTML, and the browser grows it once the page has loaded. Put `fonts/` in `public/`. The element works in React 19 as `<sg-rhizoma face="roses" field="" climb="20">Roses</sg-rhizoma>` after `import './sg-rhizoma.mjs'`; give a boolean attribute an empty string.
+
+**Vue 3** (and Nuxt 4: the same component, with `fonts/` in `public/`; the dynamic import in `onMounted` keeps the server from running it):
+
+```vue
+<script setup>
+import { onMounted, onBeforeUnmount, ref } from 'vue';
+const el = ref(null); let ctrl = null, dead = false;
+onMounted(async () => {
+  const { grow } = await import('./sg-rhizoma.mjs');
+  if (!dead && el.value) ctrl = grow(el.value, { face: 'roses', field: true, climb: 20, seconds: 40 });
+});
+onBeforeUnmount(() => { dead = true; if (ctrl) ctrl.remove(); ctrl = null; });
+</script>
+<template><div ref="el" class="hero">Roses</div></template>
+```
+
+To use the element, tell the compiler it is not a Vue component: in `vite.config.js`, `vue({ template: { compilerOptions: { isCustomElement: tag => tag === 'sg-rhizoma' } } })`; in `nuxt.config.ts`, `vue: { compilerOptions: { isCustomElement: t => t === 'sg-rhizoma' } }`.
+
+**Svelte 5 and SvelteKit** (an action; in SvelteKit keep the two files in `src/lib` and the fonts in `static/fonts`):
+
+```js
+// rhizoma.js
+export function rhizoma(node, options) {
+  let ctrl = null, dead = false;
+  import('./sg-rhizoma.mjs').then(({ grow }) => { if (!dead) ctrl = grow(node, options); });
+  return { destroy() { dead = true; if (ctrl) ctrl.remove(); } };
+}
+```
+```svelte
+<script>import { rhizoma } from './rhizoma.js';</script>
+<div use:rhizoma={{ face: 'roses', field: true, climb: 20, seconds: 40 }}>Roses</div>
+```
+
+**Astro** (a page script runs in the browser only; the heading is in the page's HTML):
+
+```astro
+<div id="hero">Roses</div>
+<script>
+  import { grow } from '../sg-rhizoma.mjs';
+  grow(document.getElementById('hero'), { face: 'roses', field: true, climb: 20, seconds: 40 });
+</script>
+```
+
+**Angular** (standalone component; `sg-rhizoma.d.mts` beside the module gives it types):
+
+```ts
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import type { Controller } from './sg-rhizoma.mjs';
+
+@Component({ selector: 'app-hero', template: `<div #host>Roses</div>` })
+export class Hero implements AfterViewInit, OnDestroy {
+  @ViewChild('host', { static: true }) host!: ElementRef<HTMLElement>;
+  private ctrl: Controller | null = null;
+  private dead = false;
+  async ngAfterViewInit() {
+    const { grow } = await import('./sg-rhizoma.mjs');
+    if (!this.dead) this.ctrl = grow(this.host.nativeElement, { face: 'roses', field: true, climb: 20, seconds: 40 });
+  }
+  ngOnDestroy() { this.dead = true; this.ctrl?.remove(); this.ctrl = null; }
+}
+```
+
+For the element in Angular, add `schemas: [CUSTOM_ELEMENTS_SCHEMA]` to the component that uses it and `import './sg-rhizoma.mjs'` once.
+
+Every recipe has the same shape: import in the browser after the component is mounted, keep the controller, call `remove()` when the component goes, and ignore an import that arrives after it has gone (the `dead` flag), which is what StrictMode and fast route changes produce.
+
+### 1.6 An entry: SG Roses fills the screen, a click opens the site
+
+The word grows from the first growth to the last across the whole screen. A click starts the music, the roots withdraw, the entry disappears and the page behind it opens, for instance as an infinite scroll of stills.
+
+```html
+<section id="entry"><div id="rose">Roses</div></section>
+<script type="module">
+  import SGRhizoma from './sg-rhizoma.mjs';
+  const entry = document.getElementById('entry');
+  const rose = SGRhizoma.grow(document.getElementById('rose'), { face: 'roses', seed: 202, field: true, fixed: true, climb: 20, seconds: 40 });
+  entry.addEventListener('click', async () => {
+    startMusic();                          // your sound, started inside the click: browsers allow it nowhere else
+    rose.stop();                           // the climb ends where it is
+    await rose.release({ seconds: 1.4 }); // the roots withdraw, and sg:released fires
+    entry.remove();                        // the entry is gone
+    openTheSite();                         // the page behind it, the scroll of stills
+  }, { once: true });
+</script>
+```
+
+A working page with the sound unlock and four stills taken with `snapshot()` is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html. Two choices are yours: the length of the climb (`seconds`), and whether the entry runs to growth 20 or stops earlier, where a phone has more room to spare. We measured a 390 px phone screen at pixel ratio 3, slowed to a quarter of desktop speed, climbing SG Roses from 10 to 18: the median frame was 17 ms, and a growth is built with a pause of 140 to 200 ms about five times in 20 seconds. We have not yet run it on a physical phone.
 
 ---
 
@@ -180,7 +358,7 @@ Recent versions of After Effects import SVG as shape layers. The roots are fille
 ## Credits and licences
 
 - **Fonts** (the downloads and the web fonts): SIL Open Font License 1.1. Use them in any work, commercial included.
-- **The embed** (`docs/embed/sg-rhizoma.js`): the SG Rhizoma Engine, adapted from Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0. Credit Dabin Kim and Sativus Gourd where you use it, and share changes to the script under the same licence.
+- **The embed** (`docs/embed/sg-rhizoma.js` and `sg-rhizoma.mjs`): the SG Rhizoma Engine, adapted from Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0. Credit Dabin Kim and Sativus Gourd where you use it, and share changes to the script under the same licence. It bundles opentype.js 1.3.4 (MIT).
 - **Not covered**: the Sativus Gourd name, signature and logo, and the atelier artwork shown on the site.
 
 Sources for the tools named here: [After Effects: working with variable font axes](https://helpx.adobe.com/after-effects/desktop/variable-font-axes/work-with-variable-font-axes/working-with-variable-font-axes.html), [After Effects expressions: variable fonts (26.0)](https://ae-expressions.docsforadobe.dev/text/variable-fonts/), [After Effects: import SVG files](https://helpx.adobe.com/after-effects/desktop/import-files/import-svg-files/import-svg-files.html), [MDN: font-variation-settings](https://developer.mozilla.org/en-US/docs/Web/CSS/font-variation-settings).
