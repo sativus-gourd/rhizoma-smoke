@@ -1,9 +1,20 @@
-/*! SG Rhizoma Engine (embed) v19.19, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v19.20, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
  *  Not covered: the Sativus Gourd name, signature and logo.
- *  Bundles opentype.js 1.3.4 (MIT, Frederik De Bleser and contributors), so the logo makes no request to any third party.
+ *
+ *  Bundled: opentype.js 1.3.4, so the logo makes no request to any third party. Its licence, which asks that this notice travel with every copy:
+ *    The MIT License (MIT). Copyright (c) 2020 Frederik De Bleser.
+ *    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
+ *    (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
+ *    publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+ *    subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or
+ *    substantial portions of the Software.
+ *    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ *    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ *    FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ *    WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  *  Script tag:   <script src="https://sativus-gourd.github.io/rhizoma-smoke/embed/sg-rhizoma.js" defer></script>
  *                <h1 data-sg-rhizoma="smoke">Cultivate your garden</h1>
@@ -1988,7 +1999,7 @@
       customElements.define('sg-rhizoma', SGRhizomaElement);
     }
     const API = {
-      version: '19.19',
+      version: '19.20',
       faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
       grow(el, o) { const e = typeof el === 'string' ? document.querySelector(el) : el; if (!e) throw new Error('SGRhizoma.grow: no element'); return make(e, o || {}); },
       field(el, o) { return API.grow(el, Object.assign({ field: true }, o || {})); },
@@ -2007,7 +2018,7 @@
   var SERVER = typeof window === 'undefined' || typeof document === 'undefined';       // rendered on a server: import is safe, and every call does nothing
   function inert() { var no = function () { return Promise.resolve(false); };
     return { ready: Promise.resolve(false), replay: no, setGrowth: no, climb: no, release: no, snapshot: no, redraw: function () {}, stop: function () {}, setWeight: function () {}, setColour: function () {}, remove: function () {}, growth: null, state: 'server', element: null }; }
-  var lazy = { version: '19.19', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
+  var lazy = { version: '19.20', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow: function (el, o) { return SERVER ? inert() : get().grow(el, o); }, field: function (el, o) { return SERVER ? inert() : get().field(el, o); },
     config: function (c) { return SERVER ? undefined : get().config(c); }, scan: function () { if (!SERVER) get().scan(); } };
 

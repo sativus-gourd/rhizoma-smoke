@@ -1,6 +1,6 @@
 # Rhizoma Smoke
 
-The SG Rhizoma Engine and the SG Rhizoma Typeface Family by Sativus Gourd, led by SG Smoke.
+The SG Rhizoma Engine and Typeface Family by Sativus Gourd, led by SG Smoke and SG Roses.
 Built on [Rhizoma](https://github.com/dabinkiim/Rhizoma), the growing type system by Dabin Kim.
 
 **Website:** https://sativus-gourd.github.io/rhizoma-smoke/
@@ -90,7 +90,7 @@ any site.
   Dabin Kim, CC BY-SA 4.0, and is offered under the same licence. Credit Dabin Kim and Sativus Gourd where you use it.
 - Fonts: SIL Open Font License 1.1. Latin from IM Fell English Roman by Igino Marini (Reserved Font Name
   "IM FELL English Roman"), Hangul from Song Myung by the Song Myung Project Authors.
-- Interface fonts: Libre Caslon Text and Libre Franklin (OFL). Libraries: opentype.js (bundled in the embed), Paper.js, JSZip (MIT).
+- Interface fonts: Libre Caslon Text and Libre Franklin (OFL). Libraries: opentype.js (bundled in the embed, with its MIT notice in the banner of `sg-rhizoma.js` and `sg-rhizoma.mjs`), Paper.js, JSZip (MIT).
 - Not covered: the Sativus Gourd name, signature and logo, the atelier artwork and the site's text are
   © 2026 Sativus Gourd and their respective owners. All rights reserved.
 

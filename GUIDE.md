@@ -363,7 +363,7 @@ Recent versions of After Effects import SVG as shape layers. The roots are fille
 ## Credits and licences
 
 - **Fonts** (the downloads and the web fonts): SIL Open Font License 1.1. Use them in any work, commercial included.
-- **The embed** (`docs/embed/sg-rhizoma.js` and `sg-rhizoma.mjs`): the SG Rhizoma Engine, adapted from Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0. Credit Dabin Kim and Sativus Gourd where you use it, and share changes to the script under the same licence. It bundles opentype.js 1.3.4 (MIT).
+- **The embed** (`docs/embed/sg-rhizoma.js` and `sg-rhizoma.mjs`): the SG Rhizoma Engine, adapted from Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0. Credit Dabin Kim and Sativus Gourd where you use it, and share changes to the script under the same licence. It bundles opentype.js 1.3.4 (MIT); the licence text sits in the banner of both files, so keep the banner when you minify or bundle (minifiers keep a `/*!` comment, or move it to a licence file, and either is fine).
 - **Not covered**: the Sativus Gourd name, signature and logo, and the atelier artwork shown on the site.
 
 Sources for the tools named here: [After Effects: working with variable font axes](https://helpx.adobe.com/after-effects/desktop/variable-font-axes/work-with-variable-font-axes/working-with-variable-font-axes.html), [After Effects expressions: variable fonts (26.0)](https://ae-expressions.docsforadobe.dev/text/variable-fonts/), [After Effects: import SVG files](https://helpx.adobe.com/after-effects/desktop/import-files/import-svg-files/import-svg-files.html), [MDN: font-variation-settings](https://developer.mozilla.org/en-US/docs/Web/CSS/font-variation-settings).
