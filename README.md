@@ -55,17 +55,15 @@ The heading grows when it first comes into view, with the same engine and motion
 From a script: `SGRhizoma.grow(element, { face: 'drag', seed: 33, growth: '2-18' })` returns a controller with `ready`, `replay()`, `setGrowth(n)`, `climb(n, { seconds })`, `release()`, `snapshot()`, `setWeight()`, `setColour()`, `redraw()`, `stop()` and `remove()`. The element `<sg-rhizoma face="roses" field climb="20" seconds="40">Roses</sg-rhizoma>` does the same with attributes, and fires `sg:ready`, `sg:level`, `sg:settled`, `sg:released` and `sg:error`.
 
 ### Fill a section or the screen, and keep growing
-In field mode the canvas fills the element with no border, on a desktop and on a phone, and the roots run to the edges and past them. `setGrowth` and `climb` continue a growth that is on screen: the roots already grown stay, the tips go on and new roots set out. `release()` withdraws the roots and leaves the word, for an entry that a click opens. [docs/embed/entry.html](docs/embed/entry.html) is that entry, live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html.
+In field mode the canvas fills the element with no border, on a desktop and on a phone, and the roots run to the edges and past them. `setGrowth` and `climb` continue a growth that is on screen: the roots already grown stay, the tips go on and new roots set out. `release()` withdraws the roots and leaves the word, for an entry that a click opens. Two working pages show it: [the entry](docs/embed/entry.html), and [an example with a heading and a field](docs/embed/index.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html and https://sativus-gourd.github.io/rhizoma-smoke/embed/.
 
-- The heading keeps its text for screen readers, search and copying; the grown word is drawn over it.
-- Roots reach past the text, so give the heading room.
+- The heading keeps its text for screen readers, search and copying; the grown word is drawn over it. If the fonts or the build fail, it stays as text and `sg:error` fires.
+- A heading's roots reach past its text, so give it room.
 - Reduced motion shows the finished growth at once.
 - Hangul loads Song Myung only when a heading needs it.
-- If the fonts or the build fail, the heading stays as text and `sg:error` fires. The script makes no request to any host but your own: opentype.js is bundled in it.
+- The script makes no request to a third party: opentype.js is bundled in it, and the fonts load from the folder beside it.
 - To host it yourself, copy `docs/embed/sg-rhizoma.js` (or `sg-rhizoma.mjs`, with `sg-rhizoma.d.mts` for TypeScript) with `docs/fonts/im-fell-english.woff` and
   `docs/fonts/song-myung-korean.woff`, keeping the folders, or point it at your fonts with `SGRhizoma.config({ base: '/path/' })`. In a bundled app, put `fonts/` in `public/`.
-
-Example: [docs/embed/index.html](docs/embed/index.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/. More in [GUIDE.md](GUIDE.md): growing on hover, room around a heading, weight on phones, fields, climbs and each framework.
 
 ### Set text in the fonts
 ```html

@@ -783,7 +783,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   <figcaption>SG Smoke growing, steps 0, 40, 100 and 185.</figcaption>
   <div class="web col" id="web">
     <h3>On the Web</h3>
-    <p>One script grows a heading as it scrolls into view, or fills a screen with roots that climb until a click opens the page. It is about 310 KB, calls no third party, and runs in plain HTML, React, Next.js, Vue, Nuxt, Svelte, SvelteKit, Astro and Angular, each tested.</p>
+    <p>One script grows a heading as it scrolls into view, or fills a screen with roots that climb until a click opens the page. It is about 320 KB, calls no third party, and runs in plain HTML, React, Next.js, Vue, Nuxt, Svelte, SvelteKit, Astro and Angular, each tested.</p>
     <pre class="snip"><code id="web-code">&lt;script src="https://sativus-gourd.github.io/rhizoma-smoke/embed/sg-rhizoma.js" defer&gt;&lt;/script&gt;
 &lt;h1 data-sg-rhizoma="smoke"&gt;Cultivate your garden&lt;/h1&gt;
 &lt;sg-rhizoma face="roses" field climb="20" seconds="40"&gt;Roses&lt;/sg-rhizoma&gt;</code></pre>
@@ -854,7 +854,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     <li>Voltaire, <em>Candide</em> (1759). Astrid Lindgren, <em>Karlsson-on-the-Roof</em>, quoted as the epigraph to Kafka on Waterloo Shore.</li>
     <li>Not covered by these licences: the Sativus Gourd name, signature and logo, the atelier artwork shown here (including the 담배 피는 여자 / Women Who Smoke lockup and the Kafka on Waterloo Shore page) and the text of this site are © 2026 Sativus Gourd and their respective owners. All rights reserved.</li>
   </ul>
-  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v19.20-beta" target="_blank" rel="noopener" aria-label="Release notes for version 19.20 beta">v19.20 beta</a></p>
+  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v19.21-beta" target="_blank" rel="noopener" aria-label="Release notes for version 19.21 beta">v19.21 beta</a></p>
 </footer>
 
 <section class="signoff wrap" aria-label="Sativus Gourd">
@@ -1150,6 +1150,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   const DEFAULTS = {
     stage: 10, weight: 4.0, weightUnits: null, length: 1.5, chaos: 0.8, branch: 0.007,
     seed: 1, taper: 0, taperPow: 1, minWidth: 0,
+    keepWidth: null,       // v19.21: null draws a growing root with its width run over the part shown (as before). A number draws it at the width it will have
+                           // when finished, so nothing drawn changes as the tip runs on; that many steps behind the tip ease to a point, and that point shortens to
+                           // nothing as the root finishes. Drawing only: growth never reads it. Set per draw by the caller (the embed, the tool), never by a seed.
     lineWeight: 1,         // a multiplier on every root's drawn width (outline, draw, SVG); growth never reads it, so a seed grows the same shape at any weight
     seedFrom: 'fill',      // 'fill' (original), 'edge' (outline, leaves along the normal) or 'both'
     edgeSpacing: 30,       // units between outline samples
@@ -1625,10 +1628,11 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     // step, and widths run over the length shown. A whole nVis draws exactly as before.
     const n = Math.ceil(nf - 1e-9); let s = s0;
     if (n - nf > 1e-9) { const a = s0[n - 2], b = s0[n - 1], f = 1 - (n - nf); s = s0.slice(0, n); s[n - 1] = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }; }
-    const k = exitIndex(o, R, s0), carries = !!(o.branchFit && R._kids && R._kids.some(C => !C.burn && C.at + (R._pre || 0) <= nf - 1));
+    const nib = o.keepWidth, keep = nib != null && nVis != null && nf < s0.length - 1e-9, nW = keep ? s0.length : nf;   // keep: the widths of the finished root
+    const k = exitIndex(o, R, s0), carries = !!(o.branchFit && R._kids && R._kids.some(C => !C.burn && C.at + (R._pre || 0) <= nW - 1));
     const lw = R.burn || o.lineWeight == null ? 1 : o.lineWeight;
     const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * K;
-    const wf = R.burn ? charWidth : (k < 0 && !carries ? widthAt : (o2, R2, i, m) => Math.max(o2.minWidth, rawWidth(o2, R2, i, m, s0), carries ? carryAt(o2, R2, i, nf) : 0));
+    const wf = R.burn ? charWidth : (k < 0 && !carries ? widthAt : (o2, R2, i, m) => Math.max(o2.minWidth, rawWidth(o2, R2, i, m, s0), carries ? carryAt(o2, R2, i, nW) : 0));
     const L = [], Rr = [];
     let lim = null; const hs = [];
     if (o.bend) {                                   // the radius of turning at each step, the tightest of its neighbours
@@ -1644,7 +1648,8 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       const p0 = s[Math.max(0, i - 1)], p1 = s[Math.min(n - 1, i + 1)];
       let dx = p1.x - p0.x, dy = p1.y - p0.y; const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
       if (i > 0) run += Math.hypot(s[i].x - s[i - 1].x, s[i].y - s[i - 1].y);
-      let h = wf(o, R, i, nf) / 2;
+      let h = wf(o, R, i, nW) / 2;
+      if (keep && nib > 0 && !R.burn) { const a = Math.min(1, (s0.length - nf) / nib); if (a > 0) { const d = Math.max(0, nf - 1 - i), g = Math.min(1, (d + 0.15 * nib) / nib); h = Math.max(h * (1 - a * (1 - g)), Math.min(h, o.minWidth / 2)); } }
       if (lw > 1) { if (i === 0) { let L = 0; for (let j = 1; j < s0.length; j++) L += Math.hypot(s0[j].x - s0[j - 1].x, s0[j].y - s0[j - 1].y); ramp = Math.min(2 * h, 0.3 * L); } const t = ramp > 0 ? Math.min(1, run / ramp) : 1; h *= 1 + (lw - 1) * t * t * (3 - 2 * t); }
       else if (lw !== 1) h = Math.max(h * lw, o.minWidth / 2); if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); hs.push(h);
       L.push([s[i].x - dy * h, s[i].y + dx * h]); Rr.push([s[i].x + dy * h, s[i].y - dx * h]);
@@ -2018,7 +2023,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   // when growing, so one seed grows one shape at any weight. A scene carries its face's own weight (sc.lw); a view may set
   // its own through the colour it draws with (col.lw), as the tool's slider does.
   const lwOf = (sc, col) => col && col.lw != null ? col.lw : sc && sc.lw != null ? sc.lw : 1;
-  const withLW = (sc, lw, fn) => { const o = sc.o, was = o.lineWeight; o.lineWeight = lw; try { return fn(); } finally { o.lineWeight = was; } };
+  const withLW = (sc, lw, fn, keep = null) => { const o = sc.o, was = o.lineWeight, wasK = o.keepWidth; o.lineWeight = lw; o.keepWidth = keep; try { return fn(); } finally { o.lineWeight = was; o.keepWidth = wasK; } };
+  // v19.21: a root that is growing is drawn at its finished width, its last KEEP_NIB steps easing to a point. A colour carries it as col.keep.
+  const KEEP_NIB = 12;
   function ownW(o, R, i, it) { const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K, n = R.segs.length, t = o.taper ? 1 - o.taper * (i / Math.max(n - 1, 1)) : 1; return base * R.thick * Math.max(t, 0.02) * swell(i, leaves(R, smoothed(R), it)); }
   function envAt(R, i, step) {
     let w = 0; if (!R._env) return 0;
@@ -2064,7 +2071,15 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     if (o.simplify) shape = simp(shape, o.simplify);
     return shape;
   }
-  function drawOriginal(ctx, scene, step, ink, pick, letters = true, lw = 1) {
+  // the width of step i of a root that is nf steps long on screen. keep (a number, or null): a growing root is drawn at the width it
+  // will have when finished, with that many steps behind its tip easing to a point (v19.21); null runs the taper over what is shown
+  function segWidth(scene, it, R, k, i, nf, step, keep) {
+    const om = it.o || scene.o, len = R.segs.length, fin = keep != null && step != null && nf < len - 1e-9;
+    let wv = Math.max(widthVis(om, R, i, fin ? len : nf) * swell(i, k), envOf(R, it, scene.o, i, fin ? null : step));
+    if (fin && keep > 0) { const a = Math.min(1, (len - nf) / keep); if (a > 0) { const d = Math.max(0, nf - 1 - i), g = Math.min(1, (d + 0.15 * keep) / keep); wv = Math.max(Math.min(wv, om.minWidth), wv * (1 - a * (1 - g))); } }
+    return wv;
+  }
+  function drawOriginal(ctx, scene, step, ink, pick, letters = true, lw = 1, keep = null) {
     const buckets = new Map();
     for (const it of scene.items) {
       for (const R of it.roots) {
@@ -2073,7 +2088,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
         if (!(nf > 1 + 1e-6)) continue;                                  // a hair past its first point is not yet a step
         const s = smoothed(R), k = leaves(R, s, it), n = Math.ceil(nf - 1e-9);   // the last step drawn may be part way
         for (let i = 1; i < n; i++) {
-          const wv = Math.max(widthVis(it.o || scene.o, R, i, nf) * swell(i, k), envOf(R, it, scene.o, i, step));
+          const wv = segWidth(scene, it, R, k, i, nf, step, keep);
           const key = Math.max(2, Math.round(wv / 3) * 3) * lw;
           let p = buckets.get(key); if (!p) { p = new Path2D(); buckets.set(key, p); }
           const a = s[i - 1], c = s[i], f = i === n - 1 && n - nf > 1e-9 ? 1 - (n - nf) : 1;
@@ -2368,10 +2383,10 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   // the same; a frame late in a big growth costs a fraction of what it did, so scrolling past a growing figure stays smooth.
   function allRoots(sc) { return sc.kind === 'smoke' ? sc.items.flatMap(it => it.roots) : sc.roots; }
   function drawPart(ctx, sc, step, col, pick, letters) {
-    const lw = lwOf(sc, col);
-    if (sc.kind === 'smoke') drawOriginal(ctx, sc, step, col.ink, pick, letters, lw);
+    const lw = lwOf(sc, col), keep = col.keep != null ? col.keep : null;
+    if (sc.kind === 'smoke') drawOriginal(ctx, sc, step, col.ink, pick, letters, lw, keep);
     else if (sc.kind === 'rhizoma') drawRhizoma(ctx, sc, step, col.ink, pick, letters, null, lw);
-    else withLW(sc, lw, () => S2.draw(ctx, pick ? { o: sc.o, insts: letters ? sc.insts : [], roots: sc.roots.filter(pick), clock: sc.clock } : sc, step, col.ink, col.ground));
+    else withLW(sc, lw, () => S2.draw(ctx, pick ? { o: sc.o, insts: letters ? sc.insts : [], roots: sc.roots.filter(pick), clock: sc.clock } : sc, step, col.ink, col.ground), keep);
   }
   // a dot on every tip still growing, in the scene's tipColour (05's side-by-side), a little wider than its root: the eye follows
   // how tips move, and sees which roots are still growing, while the root stays readable under it (0.6 px plus 0.3 of its width;
@@ -2836,7 +2851,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     sig.style.setProperty('--sig-r', Math.max(0, Math.round(w - right)) + 'px');
   }
   const title = player(titleCv, 230, 8, true, placeSig, 0.7);    // the title blossoms a little slower than the rest: roots take their time
-  function toolCol() { const c = COLOURS[st.colour]; return st.w == null ? c : { ink: c.ink, ground: c.ground, lw: st.w }; }
+  function toolCol() { const c = COLOURS[st.colour]; return st.w == null ? { ink: c.ink, ground: c.ground, keep: KEEP_NIB } : { ink: c.ink, ground: c.ground, lw: st.w, keep: KEEP_NIB }; }   // the tool and its recordings draw a growing root at its finished width
   function inkColours() { const cs = getComputedStyle(document.documentElement); const ink = cs.getPropertyValue('--ink').trim(), ground = cs.getPropertyValue('--ground').trim(); return { ink, ground }; }
 
   // ---------- tool
@@ -3351,7 +3366,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   $('home').addEventListener('click', e => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); resetPage(); });
 
   // the build checks listen here (the page's own use of it: none)
-  if (window.__rsLab) window.__rsLab({ cached, grow, fit, drawPart, svgOf, lwOf, allRoots, COLOURS, FACE_LW, FONT_SEEDS, LABEL, get fonts() { return FONTS; } });
+  if (window.__rsLab) window.__rsLab({ cached, grow, fit, drawPart, smokeWidth: (sc, it, R, i, nf, step, keep) => segWidth(sc, it, R, leaves(R, smoothed(R), it), i, nf, step, keep), KEEP_NIB, svgOf, lwOf, allRoots, COLOURS, FACE_LW, FONT_SEEDS, LABEL, get fonts() { return FONTS; } });
   // ---------- boot
   Promise.all(['fonts/im-fell-english.woff', 'fonts/song-myung-korean.woff'].map(u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.arrayBuffer(); })))
     .then(bufs => {

@@ -1,4 +1,4 @@
-/*! SG Rhizoma Engine (embed) v19.20, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v19.21, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
@@ -315,6 +315,9 @@ function build(HERE) {
     const DEFAULTS = {
       stage: 10, weight: 4.0, weightUnits: null, length: 1.5, chaos: 0.8, branch: 0.007,
       seed: 1, taper: 0, taperPow: 1, minWidth: 0,
+      keepWidth: null,       // v19.21: null draws a growing root with its width run over the part shown (as before). A number draws it at the width it will have
+                             // when finished, so nothing drawn changes as the tip runs on; that many steps behind the tip ease to a point, and that point shortens to
+                             // nothing as the root finishes. Drawing only: growth never reads it. Set per draw by the caller (the embed, the tool), never by a seed.
       lineWeight: 1,         // a multiplier on every root's drawn width (outline, draw, SVG); growth never reads it, so a seed grows the same shape at any weight
       seedFrom: 'fill',      // 'fill' (original), 'edge' (outline, leaves along the normal) or 'both'
       edgeSpacing: 30,       // units between outline samples
@@ -790,10 +793,11 @@ function build(HERE) {
       // step, and widths run over the length shown. A whole nVis draws exactly as before.
       const n = Math.ceil(nf - 1e-9); let s = s0;
       if (n - nf > 1e-9) { const a = s0[n - 2], b = s0[n - 1], f = 1 - (n - nf); s = s0.slice(0, n); s[n - 1] = { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }; }
-      const k = exitIndex(o, R, s0), carries = !!(o.branchFit && R._kids && R._kids.some(C => !C.burn && C.at + (R._pre || 0) <= nf - 1));
+      const nib = o.keepWidth, keep = nib != null && nVis != null && nf < s0.length - 1e-9, nW = keep ? s0.length : nf;   // keep: the widths of the finished root
+      const k = exitIndex(o, R, s0), carries = !!(o.branchFit && R._kids && R._kids.some(C => !C.burn && C.at + (R._pre || 0) <= nW - 1));
       const lw = R.burn || o.lineWeight == null ? 1 : o.lineWeight;
       const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * K;
-      const wf = R.burn ? charWidth : (k < 0 && !carries ? widthAt : (o2, R2, i, m) => Math.max(o2.minWidth, rawWidth(o2, R2, i, m, s0), carries ? carryAt(o2, R2, i, nf) : 0));
+      const wf = R.burn ? charWidth : (k < 0 && !carries ? widthAt : (o2, R2, i, m) => Math.max(o2.minWidth, rawWidth(o2, R2, i, m, s0), carries ? carryAt(o2, R2, i, nW) : 0));
       const L = [], Rr = [];
       let lim = null; const hs = [];
       if (o.bend) {                                   // the radius of turning at each step, the tightest of its neighbours
@@ -809,7 +813,8 @@ function build(HERE) {
         const p0 = s[Math.max(0, i - 1)], p1 = s[Math.min(n - 1, i + 1)];
         let dx = p1.x - p0.x, dy = p1.y - p0.y; const len = Math.hypot(dx, dy) || 1; dx /= len; dy /= len;
         if (i > 0) run += Math.hypot(s[i].x - s[i - 1].x, s[i].y - s[i - 1].y);
-        let h = wf(o, R, i, nf) / 2;
+        let h = wf(o, R, i, nW) / 2;
+        if (keep && nib > 0 && !R.burn) { const a = Math.min(1, (s0.length - nf) / nib); if (a > 0) { const d = Math.max(0, nf - 1 - i), g = Math.min(1, (d + 0.15 * nib) / nib); h = Math.max(h * (1 - a * (1 - g)), Math.min(h, o.minWidth / 2)); } }
         if (lw > 1) { if (i === 0) { let L = 0; for (let j = 1; j < s0.length; j++) L += Math.hypot(s0[j].x - s0[j - 1].x, s0[j].y - s0[j - 1].y); ramp = Math.min(2 * h, 0.3 * L); } const t = ramp > 0 ? Math.min(1, run / ramp) : 1; h *= 1 + (lw - 1) * t * t * (3 - 2 * t); }
         else if (lw !== 1) h = Math.max(h * lw, o.minWidth / 2); if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); hs.push(h);
         L.push([s[i].x - dy * h, s[i].y + dx * h]); Rr.push([s[i].x + dy * h, s[i].y - dx * h]);
@@ -1163,7 +1168,9 @@ function build(HERE) {
     // when growing, so one seed grows one shape at any weight. A scene carries its face's own weight (sc.lw); a view may set
     // its own through the colour it draws with (col.lw), as the tool's slider does.
     const lwOf = (sc, col) => col && col.lw != null ? col.lw : sc && sc.lw != null ? sc.lw : 1;
-    const withLW = (sc, lw, fn) => { const o = sc.o, was = o.lineWeight; o.lineWeight = lw; try { return fn(); } finally { o.lineWeight = was; } };
+    const withLW = (sc, lw, fn, keep = null) => { const o = sc.o, was = o.lineWeight, wasK = o.keepWidth; o.lineWeight = lw; o.keepWidth = keep; try { return fn(); } finally { o.lineWeight = was; o.keepWidth = wasK; } };
+    // v19.21: a root that is growing is drawn at its finished width, its last KEEP_NIB steps easing to a point. A colour carries it as col.keep.
+    const KEEP_NIB = 12;
     function ownW(o, R, i, it) { const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K, n = R.segs.length, t = o.taper ? 1 - o.taper * (i / Math.max(n - 1, 1)) : 1; return base * R.thick * Math.max(t, 0.02) * swell(i, leaves(R, smoothed(R), it)); }
     function envAt(R, i, step) {
       let w = 0; if (!R._env) return 0;
@@ -1209,7 +1216,15 @@ function build(HERE) {
       if (o.simplify) shape = simp(shape, o.simplify);
       return shape;
     }
-    function drawOriginal(ctx, scene, step, ink, pick, letters = true, lw = 1) {
+    // the width of step i of a root that is nf steps long on screen. keep (a number, or null): a growing root is drawn at the width it
+    // will have when finished, with that many steps behind its tip easing to a point (v19.21); null runs the taper over what is shown
+    function segWidth(scene, it, R, k, i, nf, step, keep) {
+      const om = it.o || scene.o, len = R.segs.length, fin = keep != null && step != null && nf < len - 1e-9;
+      let wv = Math.max(widthVis(om, R, i, fin ? len : nf) * swell(i, k), envOf(R, it, scene.o, i, fin ? null : step));
+      if (fin && keep > 0) { const a = Math.min(1, (len - nf) / keep); if (a > 0) { const d = Math.max(0, nf - 1 - i), g = Math.min(1, (d + 0.15 * keep) / keep); wv = Math.max(Math.min(wv, om.minWidth), wv * (1 - a * (1 - g))); } }
+      return wv;
+    }
+    function drawOriginal(ctx, scene, step, ink, pick, letters = true, lw = 1, keep = null) {
       const buckets = new Map();
       for (const it of scene.items) {
         for (const R of it.roots) {
@@ -1218,7 +1233,7 @@ function build(HERE) {
           if (!(nf > 1 + 1e-6)) continue;                                  // a hair past its first point is not yet a step
           const s = smoothed(R), k = leaves(R, s, it), n = Math.ceil(nf - 1e-9);   // the last step drawn may be part way
           for (let i = 1; i < n; i++) {
-            const wv = Math.max(widthVis(it.o || scene.o, R, i, nf) * swell(i, k), envOf(R, it, scene.o, i, step));
+            const wv = segWidth(scene, it, R, k, i, nf, step, keep);
             const key = Math.max(2, Math.round(wv / 3) * 3) * lw;
             let p = buckets.get(key); if (!p) { p = new Path2D(); buckets.set(key, p); }
             const a = s[i - 1], c = s[i], f = i === n - 1 && n - nf > 1e-9 ? 1 - (n - nf) : 1;
@@ -1513,17 +1528,18 @@ function build(HERE) {
     // the same; a frame late in a big growth costs a fraction of what it did, so scrolling past a growing figure stays smooth.
     function allRoots(sc) { return sc.kind === 'smoke' ? sc.items.flatMap(it => it.roots) : sc.roots; }
     function drawPart(ctx, sc, step, col, pick, letters) {
-      const lw = lwOf(sc, col);
-      if (sc.kind === 'smoke') drawOriginal(ctx, sc, step, col.ink, pick, letters, lw);
+      const lw = lwOf(sc, col), keep = col.keep != null ? col.keep : null;
+      if (sc.kind === 'smoke') drawOriginal(ctx, sc, step, col.ink, pick, letters, lw, keep);
       else if (sc.kind === 'rhizoma') drawRhizoma(ctx, sc, step, col.ink, pick, letters, null, lw);
-      else withLW(sc, lw, () => S2.draw(ctx, pick ? { o: sc.o, insts: letters ? sc.insts : [], roots: sc.roots.filter(pick), clock: sc.clock } : sc, step, col.ink, col.ground));
+      else withLW(sc, lw, () => S2.draw(ctx, pick ? { o: sc.o, insts: letters ? sc.insts : [], roots: sc.roots.filter(pick), clock: sc.clock } : sc, step, col.ink, col.ground), keep);
     }
-    // a dot on every tip still growing, in the scene's tipColour (05's side-by-side), as wide as its root: the eye follows how
-    // tips move, and sees which roots are still growing, the heavy ones or the fine ones
+    // a dot on every tip still growing, in the scene's tipColour (05's side-by-side), a little wider than its root: the eye follows
+    // how tips move, and sees which roots are still growing, while the root stays readable under it (0.6 px plus 0.3 of its width;
+    // v19.19 drew 1.2 px plus 0.55)
     function tipDots(ctx, sc, step, rCss, s, lw = 1) {
       if (!sc.tipColour || step == null || step >= sc.total) return;
       ctx.fillStyle = sc.tipColour;
-      const one = (R, S, ox, oy, w) => { const r = (rCss * 0.5 + 0.55 * w * s) / s; const nf = sc.clock ? sc.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1); if (!(nf > 1 + 1e-6) || nf >= R.segs.length - 1e-6) return;
+      const one = (R, S, ox, oy, w) => { const r = (rCss * 0.25 + 0.3 * w * s) / s; const nf = sc.clock ? sc.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1); if (!(nf > 1 + 1e-6) || nf >= R.segs.length - 1e-6) return;
         const n = Math.ceil(nf - 1e-9), f = n - nf > 1e-9 ? 1 - (n - nf) : 1, a = S[n - 2], c = S[n - 1];
         ctx.beginPath(); ctx.arc(a.x + (c.x - a.x) * f + ox, a.y + (c.y - a.y) * f + oy, r, 0, 2 * Math.PI); ctx.fill(); };
       if (sc.kind === 'smoke') sc.items.forEach(it => { const o = it.o || sc.o, base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K; it.roots.forEach(R => one(R, smoothed(R), it.x, it.y, base * R.thick * lw)); });
@@ -1540,7 +1556,7 @@ function build(HERE) {
       const W = Math.round(w * dpr), H = Math.round(h * dpr), key = [W, H, T.join(','), col.ink, lwOf(sc, col)].join('|');
       if (cache.sc !== sc || cache.key !== key) {
         if (!cache.cv) cache.cv = document.createElement('canvas');
-        cache.cv.width = W; cache.cv.height = H; cache.sc = sc; cache.key = key; cache.done = new Set(); cache.bk = new Map();
+        cache.cv.width = W; cache.cv.height = H; cache.sc = sc; cache.key = key; cache.done = new Set(); cache.bk = new Map(); cache.ghost = null;
         const c = cache.cv.getContext('2d'); c.setTransform(...T); drawPart(c, sc, null, col, () => false, true);
       }
       if (sc.kind === 'rhizoma') {
@@ -1550,8 +1566,14 @@ function build(HERE) {
       }
       const fresh = roots.filter(R => !cache.done.has(R) && (sc.clockEnd ? sc.clockEnd(R) : R.birth + R.segs.length - 1) <= step);
       if (fresh.length) { const c = cache.cv.getContext('2d'); c.setTransform(...T); const f = new Set(fresh); drawPart(c, sc, null, col, R => f.has(R), false); fresh.forEach(R => cache.done.add(R)); }
+      // 05's side-by-side: the finished growth shows faintly behind (drawn once into its own bitmap), and a root is in its pane's
+      // colour while it grows and turns to ink when it stops
+      if (sc.ghost) {
+        if (!cache.ghost) { cache.ghost = document.createElement('canvas'); cache.ghost.width = W; cache.ghost.height = H; const g = cache.ghost.getContext('2d'); g.setTransform(...T); drawPart(g, sc, null, col, null, false); }
+        ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = sc.ghost; ctx.drawImage(cache.ghost, 0, 0); ctx.globalAlpha = 1;
+      }
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(cache.cv, 0, 0);
-      ctx.setTransform(...T); drawPart(ctx, sc, step, col, R => !cache.done.has(R), false);
+      ctx.setTransform(...T); drawPart(ctx, sc, step, sc.liveInk ? Object.assign({}, col, { ink: sc.liveInk }) : col, R => !cache.done.has(R), false);
       tipDots(ctx, sc, step, 2.4, v.s, lwOf(sc, col));
     }
     function svgOf(sc, ink, mode, name, lw = lwOf(sc)) {
@@ -1733,7 +1755,10 @@ function build(HERE) {
       // line weight: a number (1 is the v19.16 look, 0.5 to 2), or fine, earthy (the typeface's own, the default) or heavy
       const wOf = v => { if (v == null || v === '') return null; const s = String(v).toLowerCase(); if (s === 'earthy') return null; const pre = LW_PRE[face] || LW_PRE.ANY; if (pre[s] != null) return pre[s]; const n = parseFloat(s); return Number.isFinite(n) ? Math.max(0.5, Math.min(2, n)) : null; };
       let weight = wOf(pick('weight'));
-      const col = () => weight == null ? { ink, ground } : { ink, ground, lw: weight };
+      // v19.21: the growth that plays from nothing (and the release that follows it) draws each root at the width it will have when
+      // finished, so nothing drawn gets wider as its tip runs on. A growth continued over roots already drawn does not: those roots
+      // were drawn narrower and have to widen (the guide, 1.3).
+      const col = vw => { const c = weight == null ? { ink, ground } : { ink, ground, lw: weight }; if (vw && vw === cur) c.keep = KEEP_NIB; return c; };
   
       if (el._sgr && el._sgr.remove) el._sgr.remove();
       const was = { color: el.style.color, fill: el.style.webkitTextFillColor, position: el.style.position, minHeight: el.style.minHeight };
@@ -1790,7 +1815,7 @@ function build(HERE) {
         if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
         return d;
       }
-      const paintTo = (g, step, useCache, clear) => paint(g, W, H, dprNow(), view, step, col(), 0, 0, clear !== false, useCache ? cache : undefined, v);
+      const paintTo = (g, step, useCache, clear) => paint(g, W, H, dprNow(), view, step, col(view), 0, 0, clear !== false, useCache ? cache : undefined, v);
       const render = (step, useCache) => paintTo(ctx, step, useCache);
   
       // frames: timed by the clock and not by frames, a dropped frame is caught up (to two frames' worth), as the page's growths are
@@ -1847,7 +1872,7 @@ function build(HERE) {
                 if (from && face !== 'RHIZOMA' && from !== B) out.con = continuation(from, B);
                 if (out.con && !out.con.quiet && cur) {
                   const G = geom(B), k = {}; scratch = scratch || document.createElement('canvas'); scratch.width = scratch.height = 1;
-                  paint(scratch.getContext('2d'), G.w, G.h, dprNow(), out.con.view, out.con.s0, col(), 0, 0, true, k, G.v); out.cache = k;
+                  paint(scratch.getContext('2d'), G.w, G.h, dprNow(), out.con.view, out.con.s0, col(out.con.view), 0, 0, true, k, G.v); out.cache = k;
                 }
                 ok(out);
               } catch (e) { no(e); }
@@ -1998,7 +2023,7 @@ function build(HERE) {
       customElements.define('sg-rhizoma', SGRhizomaElement);
     }
     const API = {
-      version: '19.20',
+      version: '19.21',
       faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
       grow(el, o) { const e = typeof el === 'string' ? document.querySelector(el) : el; if (!e) throw new Error('SGRhizoma.grow: no element'); return make(e, o || {}); },
       field(el, o) { return API.grow(el, Object.assign({ field: true }, o || {})); },
@@ -2016,7 +2041,7 @@ function build(HERE) {
   var SERVER = typeof window === 'undefined' || typeof document === 'undefined';       // rendered on a server: import is safe, and every call does nothing
   function inert() { var no = function () { return Promise.resolve(false); };
     return { ready: Promise.resolve(false), replay: no, setGrowth: no, climb: no, release: no, snapshot: no, redraw: function () {}, stop: function () {}, setWeight: function () {}, setColour: function () {}, remove: function () {}, growth: null, state: 'server', element: null }; }
-  var lazy = { version: '19.20', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
+  var lazy = { version: '19.21', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow: function (el, o) { return SERVER ? inert() : get().grow(el, o); }, field: function (el, o) { return SERVER ? inert() : get().field(el, o); },
     config: function (c) { return SERVER ? undefined : get().config(c); }, scan: function () { if (!SERVER) get().scan(); } };
 
