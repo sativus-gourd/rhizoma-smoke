@@ -345,7 +345,7 @@ The engine records what it plays, as transparent PNG frames or as a video.
 | Format | PNG frames, transparent, or Video, in real time |
 | Frame rate | 24, 25, 30 or 60 frames a second (60 to begin with) |
 | Size | 1920 × 1080 (to begin with), or 1080 × 1920 for a vertical cut; for PNG frames also 3840 × 2160 (4K) and 2160 × 3840 |
-| Speed | ×1 (to begin with), ×0.5, ×0.25 or ×0.1: the same growth, slower |
+| Speed | ×0.1, ×0.25, ×0.5 or ×1 (to begin with): the same growth, slower |
 | Hold | For a video of both: 0, 1.5 (to begin with), 3 or 5 seconds on the finished growth |
 | Frames go | Into zips (to begin with) or, in Chrome and Edge, straight into a folder you choose |
 
