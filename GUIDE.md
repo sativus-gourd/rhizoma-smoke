@@ -1,6 +1,6 @@
 # Using the growth: on a website, in After Effects, on video
 
-The SG Rhizoma growth leaves this site in five forms. Pick the one that fits the work:
+Pick the form that fits the work:
 
 | You want | Use | Moves like the site |
 |---|---|---|
@@ -10,13 +10,13 @@ The SG Rhizoma growth leaves this site in five forms. Pick the one that fits the
 | Frames or a clip for any editor | Record in the SG Rhizoma Engine on the site | Yes: exactly as it plays on screen |
 | A still, a print, a mask | SVG from the SG Rhizoma Engine | The finished growth |
 
-One difference runs through all of it. The SG Rhizoma Engine grows each root on a clock of its own: the thick roots set out first, a branch starts when its parent's tip reaches it, and every occurrence of a letter grows differently. The fonts carry one growth for each look of a character (a Latin letter has three looks, a Hangul syllable one), and their Growth axis lengthens every root together, from the bare letter at 0 to the full growth at 100. For the engine's motion, use the embed or a recording; for type you can set, edit and animate per letter, use the fonts.
+The engine grows each root on a clock of its own: the thick roots first, a branch when its parent's tip reaches it, and every letter differently. A font carries one growth for each look of a character, and its Growth axis lengthens every root at once, from the bare letter at 0 to the full growth at 100. For the engine's motion, use the embed or a recording; for type you can set, edit and animate letter by letter, use the fonts.
 
 ---
 
 ## 1. On a website: the embed
 
-The live engine, in one script or one module. A heading keeps its text for screen readers, search and copying; the growth is drawn over it. The same engine fills a section or the whole screen, continues a growth that is already on screen, and runs in the major front-end stacks (section 1.5).
+The live engine in one script or one module. A heading keeps its text for screen readers, search and copying; the growth is drawn over it.
 
 ### 1.1 A heading
 
@@ -26,7 +26,7 @@ The live engine, in one script or one module. A heading keeps its text for scree
 <h1 data-sg-rhizoma="roses" data-seed="202">Roses</h1>
 ```
 
-The heading grows when a fifth of it comes into view, once.
+The heading grows once, when a fifth of it comes into view.
 
 | Attribute | Does | Default |
 |---|---|---|
@@ -46,13 +46,13 @@ The heading grows when a fifth of it comes into view, once.
 | `data-dpr` | the highest pixel ratio drawn | `2` |
 | `data-autoplay` | `false` draws nothing until you call `replay()`, `setGrowth()` or `climb()` | on |
 
-**Finding a seed.** Type your text into the SG Rhizoma Engine on the site, press Randomise until a growth holds, and copy the number from the Seed field. The same text, face, growth and seed grow the same shape in the embed.
+**Finding a seed.** Grow your text in the engine on the site until a growth holds, then press Copy embed code: it carries the face, seed, growth, weight and colours. The same text, face, growth and seed grow the same shape anywhere.
 
-**Line weight.** The width of every root is a multiplier, as in the original Rhizoma's Line Weight slider. A face grows with the weight that suits it: SG Smoke at 1.5 (its roots rise above the word), SG Roses at 1.25 (its roots lie over the word, and heavier begins to fill the letters), and SG Rhizoma V2, Drag, Flame and Tangle at 1, which is V2's original setting. `fine` and `heavy` are the face's lighter and heavier presets (SG Smoke 1 and 2, SG Roses 1 and 1.5, the others 0.75 and 1.5). The weight changes only how wide the roots are: the same seed grows the same shape at any weight, so you can set it after you have found a seed. At high growth the roots fill the space round the letters, so SG Smoke's own weight eases from 1.5 (growth 12 and below) to 1.4 at growth 14, 1.35 at 16 and 1.3 from 18; SG Roses holds 1.25. These limits come from 5,832 test renders: nine scenes in ten stay clear of the point where roots begin to fill the letters. Growths made before v19.17 were drawn at 1: use `data-weight="1"` to match them.
+**Line weight.** Root width is a multiplier. Each face grows at the weight that suits it: SG Smoke 1.5, SG Roses 1.25, the others 1, with `fine` and `heavy` as its lighter and heavier presets. The weight changes only the width, so a seed grows the same shape at any weight. At high growth SG Smoke eases its own weight down, to 1.3 from growth 18, so its roots do not fill the letters. Growths made before v19.17 were drawn at 1: `data-weight="1"` matches them.
 
-**Room.** Roots reach past the text, above and below, and at high growth well beyond it. Give the heading padding: about half its font size above and below at growth 10, and more for SG Roses and SG Rhizoma V2 above 15, where the growth spreads to several times the height of the word. A field (next) has no such limit: it clips at its own edge.
+**Room.** Roots reach past the text. Give a heading padding, about half its font size above and below at growth 10, and more for SG Roses and SG Rhizoma V2 above 15. A field (section 1.2) clips at its own edge instead.
 
-**From a script.** `SGRhizoma.grow(element, options)` grows at once and returns a controller. The options are the attributes without `data-`, plus `text` to grow a text other than the element's own.
+**From a script.** `SGRhizoma.grow(element, options)` grows at once and returns a controller. The options are the attributes without `data-`, plus `text` for a text other than the element's own.
 
 ```html
 <script>
@@ -64,9 +64,9 @@ The heading grows when a fifth of it comes into view, once.
 </script>
 ```
 
-The controller: `ready` (a promise, true at the first frame), `replay({ seconds })`, `setGrowth(n)`, `climb(n, { seconds })`, `release({ seconds })`, `snapshot({ type })`, `setWeight(w)`, `setColour(c)`, `redraw()`, `stop()`, `remove()`, and `growth`, `state` and `element` to read. Each method that takes time returns a promise that is true when it has finished and false when something replaced it.
+The controller: `ready` (a promise, true at the first frame), `replay({ seconds })`, `setGrowth(n)`, `climb(n, { seconds })`, `release({ seconds })`, `snapshot({ type })`, `setWeight(w)`, `setColour(c)`, `redraw()`, `stop()`, `remove()`, and `growth`, `state` and `element` to read. A method that takes time returns a promise: true when it finishes, false when something replaced it.
 
-**Cost on the visitor's device.** The growth is computed and drawn in the visitor's browser. At growth 10 a heading is light on a phone. At growth 20, SG Roses and SG Rhizoma V2 grow over a thousand roots and play at 15 to 20 frames a second in our test at a quarter of desktop speed, a stand-in for a mid-range phone; keep those for one hero word on a page, and try it on the phones your visitors use. A climb (section 1.3) draws less: roots that have finished are kept as a picture, and only the growing tips are drawn each frame. Visitors who ask for reduced motion see the finished growth at once.
+**On a phone.** Growth 10 is light. At growth 20, SG Roses and SG Rhizoma V2 grow over a thousand roots and play at 15 to 20 frames a second at a quarter of desktop speed, our stand-in for a mid-range phone: keep them for one hero word, and try them on your visitors' phones. Reduced motion shows the finished growth at once.
 
 ### 1.2 A field: a section or the whole screen
 
@@ -77,26 +77,22 @@ The controller: `ready` (a promise, true at the first frame), `replay({ seconds 
             style="display:block; height:100vh; background:#0A0807; color:#EBE6D7; font-size:56px">Roses</sg-rhizoma>
 ```
 
-In a field the canvas fills the element edge to edge, with no border, on a desktop and on a phone. The word sits in the middle at one size, half the element's width (four fifths below 640 px, and never taller than 42% of its height), and the roots run out to the edges and past them: the element clips them, so the picture is not shrunk to keep them in. The size does not change as the growth rises. SG Roses at growth 18 reaches about one word's width from the word on each side, and at growth 20 about two, so a screen fills without further settings.
+The canvas fills the element edge to edge. The word sits in the middle at half the element's width (four fifths below 640 px), and the roots run out past the edges, where the element clips them. SG Roses at growth 20 reaches about two words' width on each side of the word, enough to fill a screen.
 
-- The element's background is the ground, and its text colour is the ink.
-- `fixed` makes the canvas the screen itself: it stays fixed to the viewport, whatever the element's size. Use it for an entry.
-- The pixel ratio is capped at 2 (`dpr` changes that) and drops to 1.5, and no lower, when frames keep running slow, so the growth keeps its pace on a weak phone and the roots stay sharp.
-- A resize refits the same growth to the new size without growing it again. Painting stops while the element is off screen. Reduced motion shows the finished frame.
+- The element's background is the ground; its text colour is the ink.
+- `fixed` makes the canvas the screen itself, whatever the element's size. Use it for an entry.
+- The pixel ratio is capped at 2 (`dpr`) and drops to 1.5 when frames run slow, so the growth keeps its pace and the roots stay sharp.
+- A resize refits the growth without growing it again. Painting stops while the element is off screen.
 
 ### 1.3 Continue a growth
 
-`setGrowth(14)` takes the growth on screen to 14. `climb(20, { seconds: 40 })` takes it to 20 over 40 seconds, as one growth: every tip moves at one speed from the first frame to the last, with no steps to stall at. `climb` and `seconds` as attributes or options with nothing drawn yet grow the word straight to that growth, from nothing, in those seconds. This is what an entry should use: nothing is drawn twice, and every root is drawn at the width it will keep from its first step, its tip easing to a point over its last 12 steps, so no root goes from thin to thick as it grows (SG Rhizoma V2 draws one width end to end already). With a `growth` also given, the word grows to that first and then climbs on from it.
+`setGrowth(14)` takes the growth on screen to 14. `climb(20, { seconds: 40 })` takes it to 20 over 40 seconds, every tip at one steady speed. With nothing drawn yet, `climb` grows the word from nothing to that growth, which is what an entry should use: nothing is drawn twice, and every root keeps the width it starts with. With a `growth` as well, the word grows to that first and climbs on from it.
 
-Measured on SG Roses (the word ROSES, growth 12 in 14 seconds, leaving out the tips and the places where roots join), a root drawn is 0.1% wider on average in the finished word, and under 1% of them widen by a third or more. Beyond its last 12 steps no root of the five faces is drawn at any width but its finished one.
+**The speed.** The seconds are shared evenly over the growth's steps: SG Roses to 20 in 40 seconds moves its tips about 44 px a second at a word 640 px wide. The site's own headings grow four to eight times as fast.
 
-**The speed.** A growth is a number of steps (for the word ROSES at growth 20: SG Roses 657, SG Smoke 442, SG Drag 567, SG Flame 657, SG Tangle 697) and the seconds you give are shared out evenly over them. SG Roses to 20 in 40 seconds is 16 steps a second, about 44 px a second at a word 640 px wide; in 25 seconds it is 26 steps a second. The growths of the page's own headings run at about 70 to 130 steps a second.
+At a higher growth, SG Smoke, SG Roses, SG Drag, SG Flame and SG Tangle keep every root they had and add more, so the roots on screen stay and grow on, and the last frame is the growth you would get from nothing. A root that carries on is drawn at the width of its longer reach, so roots already drawn swell as their tips run on; the first growth of an entry does not. SG Rhizoma V2, a lower growth, and any growth after `release()` play whole.
 
-At a higher growth, SG Smoke, SG Roses, SG Drag, SG Flame and SG Tangle keep every root they had, carry some tips further and add roots of their own. Continuing a growth that is already drawn shows exactly that: the roots already grown stay where they are, the stopped tips go on, and the new roots set out. The last frame is the picture you would get by growing that growth from nothing; the test checks it to the pixel on all five faces.
-
-Continuing is the one case where a root already drawn gets wider: a root that goes on is drawn along its whole length at the width of its longer reach, so it swells as its tip runs on. Measured from one growth to the next (SG Roses, growth 12 to 20): where a root had stopped it ends up 1.6 to 1.9 times as wide, and half way along its length 1.1 to 1.25 times. That is how continuing draws today; the first growth of the entry, from nothing, does not do it. SG Rhizoma V2 grows a new plant at each growth and has nothing to carry on, so it plays the new growth whole. A lower growth also plays whole. After `release()` the next growth plays whole from the word.
-
-A growth is built in one piece on the page's thread, and the heading stays in the page until its first frame is drawn. For a climb from nothing that is one build, before the first frame, and none after it. In our tests, a fixed field on a 390 px phone screen at pixel ratio 3, climbing to 18 over 20 seconds:
+A growth is built on the page's thread before its first frame. On a 390 px phone screen at pixel ratio 3, climbing to 18 over 20 seconds:
 
 | Face | First frame, full speed | First frame, a quarter of desktop speed | Frames at a quarter of desktop speed (median, slowest 5%) |
 |---|---|---|---|
@@ -107,7 +103,7 @@ A growth is built in one piece on the page's thread, and the heading stays in th
 | SG Drag | 0.8 s | 2.3 s | 50 ms, 83 ms |
 | SG Tangle | 1.4 s | 13.5 s | 33 ms, 83 ms |
 
-At full speed every face holds 60 frames a second, with no frame over 50 ms. At a quarter of desktop speed the frames are 15 a second for SG Roses, 20 for SG Smoke, SG Flame and SG Drag, and 30 to 60 for SG Tangle and SG Rhizoma V2, and the growth takes 1.2 to 1.9 times as long as asked, because it is timed by the clock and a frame that runs long is caught up by only two frames' worth. The figures come from a two-core cloud machine; on a slower day the same machine gave about twice the times, so read them as an order of magnitude. A climb that starts from a growth already drawn builds the end of the climb in one piece, as it begins. For a climb on a phone, choose SG Smoke, SG Roses, SG Flame or SG Rhizoma V2; SG Tangle to 18 suits a desktop only, or a `setGrowth` to a lower growth.
+At full speed every face holds 60 frames a second. For a climb on a phone, choose SG Smoke, SG Roses, SG Flame or SG Rhizoma V2; SG Tangle to 18 is for a desktop.
 
 ### 1.4 Events, release and snapshot
 
@@ -121,25 +117,25 @@ Events fire on the element and bubble, so one listener on `document` hears every
 | `sg:released` | `release()` has withdrawn the roots | `{ growth }` |
 | `sg:error` | the fonts, the build or the drawing failed, and the heading is back | `{ stage, error }` |
 
-**`release({ seconds })`** withdraws the roots, the last grown first, and leaves the word; 1.1 seconds unless you say otherwise. Where drawing backwards is too heavy for the device, it fades the canvas out in the same time. Reduced motion cuts at once. `sg:released` fires when it is done.
+**`release({ seconds })`** withdraws the roots, the last grown first, and leaves the word, in 1.1 seconds unless you say otherwise. Where drawing backwards is too heavy for the device, the canvas fades out in the same time. Reduced motion cuts at once.
 
-**`snapshot()`** returns the current scene at its finished growth as a PNG `Blob`, transparent unless you pass `{ background: true }`, or as an SVG string with `{ type: 'svg' }`. Stills for a scroll can come from it: grow an element at the growth you want with `autoplay: false`, take the snapshot and remove the element.
+**`snapshot()`** returns the finished growth as a PNG `Blob`, transparent unless you pass `{ background: true }`, or as an SVG string with `{ type: 'svg' }`. For stills, grow an element with `autoplay: false`, take the snapshot and remove the element.
 
-**Fail-soft.** The heading text stays visible until the first frame is drawn, and stays visible while the fonts load. If the fonts do not load, or the build or a frame fails, the canvas is removed, the heading is as it was, `sg:error` fires and `ready` resolves to false. The script makes no request to a third party: opentype.js 1.3.4 (MIT) is bundled inside it, and the fonts load from beside the script (or from your site's `/fonts/`, section 1.5).
+**Fail-soft.** The heading text shows until the first frame is drawn. If the fonts, the build or a frame fail, the canvas goes, the heading is as it was, `sg:error` fires and `ready` resolves to false. The script makes no request to a third party: opentype.js 1.3.4 (MIT) is bundled in it, and the fonts load from beside the script (or from your site's `/fonts/`, section 1.5).
 
 ### 1.5 In your stack
 
 Three ways in, one engine:
 
-- **A script tag**, for a plain page, WordPress, Webflow, Squarespace, Shopify and any other that lets you add a script and some HTML. Put it in the head with `defer`, at the end of the body, with `async`, or add it after the page has loaded: all work. Use `data-sg-rhizoma` or `<sg-rhizoma>`.
-- **A module**, `docs/embed/sg-rhizoma.mjs`: `import SGRhizoma, { grow } from './sg-rhizoma.mjs'`. Importing it on a server is safe, and every call there does nothing and returns an inert controller, so a server-rendered component may import it. Grow in the browser: in an effect, `onMounted`, an action or a script.
-- **The element** `<sg-rhizoma>`: attributes in (`face`, `seed`, `growth`, `colour`, `ground`, `scale`, `weight`, `text`, `field`, `fixed`, `size`, `dpr`, `pace`, `climb`, `seconds`, `replay`, `autoplay`), events out, methods on the element (`el.climb(20)`, `el.release()`, `el.snapshot()`, `el.ready`). The `growth`, `weight` and `colour` attributes are live: set one and the word follows. Removing the element removes the canvas.
+- **A script tag**, for a plain page, WordPress, Webflow, Squarespace, Shopify or any other that takes a script and some HTML: in the head with `defer`, at the end of the body, with `async`, or after the page has loaded. Use `data-sg-rhizoma` or `<sg-rhizoma>`.
+- **A module**, `docs/embed/sg-rhizoma.mjs`: `import SGRhizoma, { grow } from './sg-rhizoma.mjs'`. On a server every call does nothing and returns an inert controller, so a server-rendered component may import it. Grow in the browser: in an effect, `onMounted`, an action or a script.
+- **The element** `<sg-rhizoma>`: attributes in (`face`, `seed`, `growth`, `colour`, `ground`, `scale`, `weight`, `text`, `field`, `fixed`, `size`, `dpr`, `pace`, `climb`, `seconds`, `replay`, `autoplay`), events out, methods on the element (`el.climb(20)`, `el.release()`, `el.snapshot()`, `el.ready`). Set `growth`, `weight` or `colour` and the word follows. Removing the element removes the canvas.
 
 For TypeScript, put `sg-rhizoma.d.mts` beside the module: it types the options, the controller and the events.
 
-**Where the files go.** Copy `docs/embed/sg-rhizoma.mjs` (and `sg-rhizoma.d.mts`) into your source folder and the `docs/fonts/` folder into your public folder, so that `/fonts/im-fell-english.woff` is served by your site. The script looks for the fonts above itself when you load the file as it is (`/embed/sg-rhizoma.js` reads `/fonts/`), and at the site root when a bundler has renamed it; either falls back to the other, and `SGRhizoma.config({ base: '/assets/sg-rhizoma/' })` fixes one place. Serve the fonts from your own site or from a host that sends CORS headers, as GitHub Pages does.
+**Where the files go.** Copy `docs/embed/sg-rhizoma.mjs` (and `sg-rhizoma.d.mts`) into your source folder and `docs/fonts/` into your public folder, so that your site serves `/fonts/im-fell-english.woff`. Loaded as it is, the script looks for the fonts above itself (`/embed/sg-rhizoma.js` reads `/fonts/`); renamed by a bundler, at the site root; either falls back to the other, and `SGRhizoma.config({ base: '/assets/sg-rhizoma/' })` fixes one place. Serve the fonts from your own site or from a host that sends CORS headers, as GitHub Pages does.
 
-Each recipe below is the code of a test app, built and run in a real browser: React 19.3 (StrictMode on), Next.js 16.4 (webpack and Turbopack, server rendered), Vue 3.5, Nuxt 4.5, Svelte 5.57, SvelteKit 2.70, Astro 5.18 and Angular 21.2 (strict TypeScript). Each grows the word, climbs, unmounts without leaving a canvas, mounts again, resizes, makes no request off the site and logs no error. The `<sg-rhizoma>` element was run in React, Vue, Svelte and Angular too.
+Each recipe below is a tested app: React 19 (StrictMode), Next.js 16 (webpack and Turbopack), Vue 3.5, Nuxt 4, Svelte 5, SvelteKit 2, Astro 5 and Angular 21 (strict TypeScript). Each grows the word, climbs, unmounts without leaving a canvas, mounts again and resizes, with no request off the site and no error.
 
 **React** (and Next.js, with `'use client'` as the first line of the hook file):
 
@@ -163,9 +159,9 @@ export function Hero() {
 }
 ```
 
-In Next.js the server sends the heading in its HTML, and the browser grows it once the page has loaded. Put `fonts/` in `public/`. The element works in React 19 as `<sg-rhizoma face="roses" field="" climb="20">Roses</sg-rhizoma>` after `import './sg-rhizoma.mjs'`; give a boolean attribute an empty string.
+In Next.js the server sends the heading in its HTML and the browser grows it once the page has loaded. Put `fonts/` in `public/`. In React 19 the element works as `<sg-rhizoma face="roses" field="" climb="20">Roses</sg-rhizoma>` after `import './sg-rhizoma.mjs'`; give a boolean attribute an empty string.
 
-**Vue 3** (and Nuxt 4: the same component, with `fonts/` in `public/`; the dynamic import in `onMounted` keeps the server from running it):
+**Vue 3** (and Nuxt 4: the same component, with `fonts/` in `public/`; the dynamic import in `onMounted` keeps it off the server):
 
 ```vue
 <script setup>
@@ -180,7 +176,7 @@ onBeforeUnmount(() => { dead = true; if (ctrl) ctrl.remove(); ctrl = null; });
 <template><div ref="el" class="hero">Roses</div></template>
 ```
 
-To use the element, tell the compiler it is not a Vue component: in `vite.config.js`, `vue({ template: { compilerOptions: { isCustomElement: tag => tag === 'sg-rhizoma' } } })`; in `nuxt.config.ts`, `vue: { compilerOptions: { isCustomElement: t => t === 'sg-rhizoma' } }`.
+For the element, tell the compiler it is not a Vue component: in `vite.config.js`, `vue({ template: { compilerOptions: { isCustomElement: tag => tag === 'sg-rhizoma' } } })`; in `nuxt.config.ts`, `vue: { compilerOptions: { isCustomElement: t => t === 'sg-rhizoma' } }`.
 
 **Svelte 5 and SvelteKit** (an action; in SvelteKit keep the two files in `src/lib` and the fonts in `static/fonts`):
 
@@ -208,7 +204,7 @@ export function rhizoma(node, options) {
 </script>
 ```
 
-**Angular** (standalone component; `sg-rhizoma.d.mts` beside the module gives it types):
+**Angular** (a standalone component; `sg-rhizoma.d.mts` beside the module gives it types):
 
 ```ts
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
@@ -229,11 +225,11 @@ export class Hero implements AfterViewInit, OnDestroy {
 
 For the element in Angular, add `schemas: [CUSTOM_ELEMENTS_SCHEMA]` to the component that uses it and `import './sg-rhizoma.mjs'` once.
 
-Every recipe has the same shape: import in the browser after the component is mounted, keep the controller, call `remove()` when the component goes, and ignore an import that arrives after it has gone (the `dead` flag), which is what StrictMode and fast route changes produce.
+Every recipe has one shape: import in the browser once the component is mounted, keep the controller, call `remove()` when the component goes, and ignore an import that arrives after it has gone (the `dead` flag), as StrictMode and fast route changes produce.
 
 ### 1.6 An entry: SG Roses fills the screen, a click opens the site
 
-The word grows across the whole screen, as one growth at one steady speed. A click starts the music, the roots withdraw, the entry disappears and the page behind it opens, for instance as an infinite scroll of stills.
+The word grows across the whole screen at one steady speed. A click starts the music, the roots withdraw, and the page behind the entry opens.
 
 ```html
 <section id="entry"><div id="rose">ROSES</div></section>
@@ -251,11 +247,9 @@ The word grows across the whole screen, as one growth at one steady speed. A cli
 </script>
 ```
 
-A working example is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html: SG Roses fills the screen, and a click withdraws the roots and then grows the word again from nothing, with `replay()` where a real site would open its page. A word made with `climb` replays that climb over the same `seconds`, so the second time is as slow as the first. It can be tried as often as you like.
+The working example is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html: a click withdraws the roots and grows the word again from nothing, where a real site would open its page. A click at any moment withdraws the roots from where they stand, at the width they have.
 
-Two choices are yours: the length of the climb (`seconds`, and with it the speed of the tips, see 1.3), and whether the entry runs to growth 20 or stops earlier, where a phone has more room to spare. A click at any moment withdraws the roots from the growth as it stands: the roots do not jump to their full growth first, and they keep their width as they go (on SG Roses, 1% of the roots that remain 0.6 seconds into the release are narrower by 15% or more).
-
-We measured a 390 px phone screen at pixel ratio 3, slowed to a quarter of desktop speed, growing SG Roses to 18 over 20 seconds: the first frame after 0.6 s, and frames at a median of 67 ms (15 a second). At full speed the frames were 60 a second. We have not yet run it on a physical phone.
+Two choices are yours: the length of the climb (`seconds`, and with it the speed of the tips, section 1.3), and whether it runs to growth 20 or stops earlier, which leaves a phone more room.
 
 ---
 
@@ -285,11 +279,11 @@ h1 {
 h2 { font-family: "SG Rhizoma Roses Variable", serif; font-weight: 700; }   /* the Weight axis: 100 thin, 400 regular, 900 black */
 ```
 
-**Weight.** The `wght` axis scales the line weight of the Latin letters, from half of the face's own at 100 to twice it at 900, so 400 is the face as the site draws it. Hangul keeps one weight at every setting. The static fonts are at 400. Browsers set headings in bold, which is weight 700, so a heading in a variable face now takes the axis at 700 where it used to be faked bold; `font-weight: 400` keeps it regular.
+**Weight.** The `wght` axis scales the line weight of the Latin letters from half the face's own at 100 to twice it at 900; Hangul keeps one weight. The static fonts are at 400. Browsers set headings bold, at 700, so a heading in a variable face takes the axis at 700: `font-weight: 400` keeps it regular.
 
-**Alternates.** Every face, static and variable, has two alternate looks of its Latin letters. The `calt` feature, which browsers apply by default, steps each letter through the three looks as a run of text goes on, so a repeated letter does not repeat its shape. A space, or any character without alternates, starts the cycle again. `font-feature-settings: "calt" 0` turns it off.
+**Alternates.** Each Latin letter has three looks. The `calt` feature, on by default, steps through them along a run of text, so a repeated letter changes shape. A space starts the cycle again, and `font-feature-settings: "calt" 0` turns it off.
 
-**Animating the axis.** Browsers animate `font-variation-settings` like any other property. Two ways in:
+**Animating the axis.** Browsers animate `font-variation-settings` like any other property:
 
 ```css
 /* grows on hover */
@@ -316,9 +310,9 @@ The curve `cubic-bezier(.42, 0, .58, 1)` is the one the site grows by.
 </script>
 ```
 
-**How the fonts move.** Each variable font is built from six stages of one growth (0, 20, 40, 60, 80 and 100; SG Roses adds 120 and 140), and the axis blends between them. Every root lengthens at once from where it starts, with a slight change of speed at each stage. For the engine's own motion, use the embed.
+**How the fonts move.** A variable font blends stages of one growth (0 to 100; SG Roses on to 140), so every root lengthens at once. For the engine's own motion, use the embed.
 
-**Size.** As WOFF2, a Latin face is 0.45 to 1.3 MB and a Latin variable face 1.7 to 3.5 MB: both carry the two alternate looks, and the variable ones the Weight axis too. The Hangul files run from 1.2 to 6.1 MB and load only when the page sets Hangul.
+**Size.** As WOFF2, a Latin face is 0.45 to 1.3 MB, a Latin variable face 1.7 to 3.5 MB, and a Hangul file 1.2 to 6.1 MB, loaded only when the page sets Hangul.
 
 ---
 
@@ -330,20 +324,20 @@ After Effects animates variable font axes from version 26.0 (January 2026), the 
 2. Make a text layer and set it in the face, for instance SG Rhizoma Roses Variable.
 3. In the Character panel, set Growth to 0: the bare letter.
 4. Add an animator: Animate > Variable Font Axes > Growth. Set the animator's Growth to 100.
-5. The animator comes with a Range Selector. Keyframe its **End** from 0% to 100% over two to four seconds, and ease the keyframes. With the selector's Shape at Square and Smoothness at 100% (under Advanced, as they come), each letter grows as the end of the range passes over it, one after another, in reading order.
+5. The animator comes with a Range Selector. Keyframe its **End** from 0% to 100% over two to four seconds, and ease the keyframes. With the selector's Shape at Square and Smoothness at 100% (under Advanced, as they come), each letter grows as the end of the range passes over it, in reading order.
 
-For one growth across the whole word, skip the animator and keyframe Growth in the Character panel, 0 to 100. A Wiggly Selector on the Growth animator makes the growth breathe in and out, letter by letter: a good fit for SG Flame. Try one word before a whole piece.
+For one growth across the whole word, keyframe Growth in the Character panel instead, 0 to 100. A Wiggly Selector on the Growth animator makes the growth breathe in and out, letter by letter: a good fit for SG Flame.
 
-In a font, a Latin letter has three looks and each look carries one growth, so repeated letters grow in at most three ways, and an app that does not apply contextual alternates grows them all alike. For a growth that differs at every letter, record from the engine (section 4).
+A Latin letter has three looks in a font, each with one growth, so repeated letters grow in at most three ways, and in an app without contextual alternates all alike. For a growth that differs at every letter, record from the engine (section 4).
 
 ---
 
 ## 4. On video: record from the SG Rhizoma Engine
 
-The SG Rhizoma Engine at the top of the site records what it plays, as transparent PNG frames (up to 4K) or as a clip.
+The engine records what it plays, as transparent PNG frames or as a video.
 
-1. Type the text, choose the face, the colour (Void, Bone, or your own from the colour picker, which also holds the Slate, Oxide and Indigo plates and keeps your pair in the browser), the growth, the line weight and the seed. The up and down buttons beside the Growth ramp raise or lower the whole growth by one, and the left and right buttons under the Weight bar make the roots lighter or heavier by a step (hold one to keep going). Under Plant, the seed comes first; press Replay until the growth is the one you want. **Release** shows how the roots withdraw and leave the word.
-2. Press **Record**, the red-dot button under the preview (every picture button names itself when you hover it). Its panel opens right under the buttons, beside the About text on a wide screen and above it on a narrow one, and moves nothing above it. Choose the take, the format, the frame rate, the size and the speed (and, where they apply, the hold and where the frames go), then press the button under them.
+1. Set the text, face, colour, growth, weight and seed, and press Replay until the growth is the one you want. Release shows how the roots withdraw.
+2. Press **Record**, the red dot under the preview, make your choices and press the button under them.
 
 | Choice | Options |
 |---|---|
@@ -355,48 +349,46 @@ The SG Rhizoma Engine at the top of the site records what it plays, as transpare
 | Hold | For a video of both: 0, 1.5 (to begin with), 3 or 5 seconds on the finished growth |
 | Frames go | Into zips (to begin with) or, in Chrome and Edge, straight into a folder you choose |
 
-**PNG frames** are the format for an editor. One zip comes down with a folder for each part: `grow/` runs from the bare word to the finished growth, and `release/` from the finished growth back to the bare word, each as numbered frames (`frame_00000.png` on). A README in the zip (in the first zip, when there are several) gives the frame rate, the length of each part and the settings, so the same frames can be made again. The ground is transparent and the roots are solid ink, so the frames lie over footage with no blend mode.
+**PNG frames** are for an editor. A take holds `grow/`, from the bare word to the finished growth, and `release/`, back to the bare word, as numbered frames, with a README that gives its settings so the same frames can be made again. The ground is transparent and the roots solid, so the frames lie over footage with no blend mode.
 
-Import each folder as an image sequence at the frame rate you chose, hold the last frame of `grow/` for as long as the cut needs, then play `release/`. The release eases in and out, so its first and last few frames can look alike. The growth takes the time it takes on screen (1.6 to 5 seconds) and the release 1.4 seconds, so a take at 60 frames a second is 180 to 390 frames. The frames are made in your browser, with nothing sent anywhere; at 1920 × 1080 and 30 frames a second the heaviest growths (SG Roses near 20) come to about 50 MB and take ten to fifteen seconds on a desktop, and twice that at 60.
+Import each folder as an image sequence at the frame rate you chose, hold the last frame of `grow/` for as long as the cut needs, then play `release/`. The frames are made in your browser, with nothing sent anywhere.
 
-**Speed.** ×0.5, ×0.25 and ×0.1 slow the growth and the release for slow motion: the same growth over two, four or ten times the frames, and every frame still moves. Replay, Play and Release on the page follow the speed you choose, so you can watch a take before you record it; typing, a new seed or another face still grows at the page's own pace. A slow take is long (SG Smoke at ×0.1 and 60 frames a second is about 1,900 frames), so the line under the choices says how many zips it will come in before you start.
+**Speed.** ×0.5, ×0.25 and ×0.1 give the same growth over two, four or ten times the frames, for slow motion. Replay, Play and Release on the page follow the speed, so you can watch a take before you record it.
 
-**Into a folder.** In Chrome and Edge, choose the folder picture under Frames go, press Render frames and pick a folder: the frames are written into it one by one, in a folder named for the take with `grow/`, `release/` and the README. There are no zips to unzip and no download prompts, and a long 4K take holds nothing large in memory. Cancel keeps the frames already written. Other browsers save zips, and so does a page shown inside another page.
+**Into a folder.** In Chrome and Edge, choose the folder under Frames go: Render frames asks for a folder and writes the frames into it as they are drawn, with no zips. Cancel keeps what is written.
 
-**4K.** Choose 3840 × 2160 (or 2160 × 3840 for a vertical cut) for frames at four times the pixels. They are the 1920 × 1080 composition at twice the scale, so a 4K frame lines up with the 1080p one. A 4K take needs more time and more memory than a 1080p one, most of all with a heavy growth, so use a desktop with other tabs closed. In our tests the heaviest take, SG Roses at growth 20 (193 frames at 4K and 30 frames a second), came to about 119 MB in one zip and took under 40 seconds, and at 60 frames a second (385 frames) about 237 MB in two zips in about the same time; a slower computer takes longer.
+**4K.** 3840 × 2160 and 2160 × 3840 are the 1080p composition at twice the scale, so a 4K frame lines up with the 1080p one. A heavy 4K take wants a desktop with other tabs closed: SG Roses at growth 20 and 60 frames a second comes to about 237 MB. A take over 120 MB comes in several zips (`name_part1.zip`, `name_part2.zip` and so on), saved one after another; unzip them into one folder and the frame numbers carry on. If the browser runs out of memory, the panel says so.
 
-The frames come in zips of about 120 MB at most, saved one after another (a browser may ask to allow several downloads): `name_part1.zip`, `name_part2.zip` and so on. Unzip them all into one folder: the folder names are the same, the frame numbers carry on, and the README is in the first zip. A take that fits stays one zip. If the browser cannot make 4K frames, most likely for want of memory, the panel says so and the 1920 × 1080 size is still there. Video is recorded at 1920 × 1080 at most.
-
-**Video** records in real time, as the engine plays: the growth, then 1.5 seconds on the finished growth (or the hold you choose), then the release if you chose it. At a slower speed it takes that much longer to record. Keep the tab in front while it records: a tab in the background stops drawing, so the recording stops and nothing is saved.
+**Video** records in real time: the growth, the hold, then the release. Keep its tab in front, since a tab in the background stops drawing; the recording then stops and nothing is saved. Video stays at 1920 × 1080.
 
 - **Format:** MP4 in browsers that record it (recent Chrome and Safari), WebM in others, such as Firefox. If your editor will not open a WebM file, record in Chrome or Safari, or use the frames.
 - **Ground:** the colour's own ground, solid. A clip has no transparency.
 
-**Putting a video over footage.** Record in **Bone** (light roots on near-black) and set the clip's blend mode to **Screen**: the black falls away and the roots stay, in After Effects, Premiere Pro, DaVinci Resolve and Final Cut Pro alike. For dark roots over light footage, record in Bone, invert the clip, and set it to **Multiply**. The Void ground is paper, not white, so a Void clip set to Multiply tints what lies under it. The frames need none of this.
+**Putting a video over footage.** Record in **Bone** (light roots on near-black) and set the clip's blend mode to **Screen**: the black falls away and the roots stay, in After Effects, Premiere Pro, DaVinci Resolve and Final Cut Pro alike. For dark roots over light footage, record in Bone, invert the clip, and set it to **Multiply**. The Void ground is paper, not white, so a Void clip set to Multiply tints what lies under it.
 
-**Recording well.** A video is recorded in real time, so for the heaviest growths (SG Roses and SG Rhizoma V2 near 20) record on a desktop computer with other tabs closed, so no frame is dropped. Frames are drawn one by one and never drop one, on any machine.
+**Recording well.** A video of a heavy growth (SG Roses or SG Rhizoma V2 near 20) wants a desktop with other tabs closed, or it drops frames. PNG frames never drop one.
 
 ---
 
 ## 5. Stills and vectors: SVG
 
-Under the engine's canvas, after Record, four more picture buttons (hover for the name):
+Beside Record, under the preview (hover for the name):
 
-- **Copy layered SVG**: roots and letters as separate shapes, in two groups, `GROWTH` and `GLYPH`. Paste into Illustrator or Figma to recolour roots and letters apart, or to move a root.
+- **Copy layered SVG**: roots and letters as separate shapes, in two groups, `GROWTH` and `GLYPH`, to recolour them apart in Illustrator or Figma, or to move a root.
 - **Copy united SVG**: roots and letters as one shape, for a cutter, a stamp, a mask or a single fill.
-- **Copy embed code**: the snippet that grows what is on screen on a web page (section 1): the face, seed, growth, weight, colours and text, ready to paste.
+- **Copy embed code**: the snippet that grows what is on screen on a web page (section 1).
 - **Save SVG**: the united shape as a file.
 
-The line weight is part of the picture, so it goes into the file name and the SVG's group name (`rhizoma-smoke_SG-Roses_seed202_growth12-12_weight1.25.svg`): with the text, the face, the growth and the seed, it finds the same growth again.
+The file name carries the face, seed, growth and weight (`rhizoma-smoke_SG-Roses_seed202_growth12-12_weight1.25.svg`), so with the text it finds the same growth again.
 
-Recent versions of After Effects import SVG as shape layers. The roots are filled outlines, so the SVG holds the finished growth: use it for stills, prints and masks, and a recording or the variable fonts for motion.
+Recent versions of After Effects import SVG as shape layers. The roots are filled outlines, so an SVG holds the finished growth: use it for stills, prints and masks, and a recording or the variable fonts for motion.
 
 ---
 
 ## Credits and licences
 
 - **Fonts** (the downloads and the web fonts): SIL Open Font License 1.1. Use them in any work, commercial included.
-- **The embed** (`docs/embed/sg-rhizoma.js` and `sg-rhizoma.mjs`): the SG Rhizoma Engine, adapted from Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0. Credit Dabin Kim and Sativus Gourd where you use it, and share changes to the script under the same licence. It bundles opentype.js 1.3.4 (MIT); the licence text sits in the banner of both files, so keep the banner when you minify or bundle (minifiers keep a `/*!` comment, or move it to a licence file, and either is fine).
-- **Not covered**: the Sativus Gourd name, signature and logo, and the atelier artwork shown on the site.
+- **The embed** (`docs/embed/sg-rhizoma.js` and `sg-rhizoma.mjs`): the SG Rhizoma Engine, adapted from Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0. Credit Dabin Kim and Sativus Gourd where you use it, and share changes to the script under the same licence. It bundles opentype.js 1.3.4 (MIT), whose licence sits in the banner of both files: keep the banner when you minify or bundle (minifiers keep a `/*!` comment).
+- **Not covered**: the Sativus Gourd name, signature and logo, and the atelier's artwork on the site.
 
-Sources for the tools named here: [After Effects: working with variable font axes](https://helpx.adobe.com/after-effects/desktop/variable-font-axes/work-with-variable-font-axes/working-with-variable-font-axes.html), [After Effects expressions: variable fonts (26.0)](https://ae-expressions.docsforadobe.dev/text/variable-fonts/), [After Effects: import SVG files](https://helpx.adobe.com/after-effects/desktop/import-files/import-svg-files/import-svg-files.html), [MDN: font-variation-settings](https://developer.mozilla.org/en-US/docs/Web/CSS/font-variation-settings).
+Sources: [After Effects: working with variable font axes](https://helpx.adobe.com/after-effects/desktop/variable-font-axes/work-with-variable-font-axes/working-with-variable-font-axes.html), [After Effects expressions: variable fonts (26.0)](https://ae-expressions.docsforadobe.dev/text/variable-fonts/), [After Effects: import SVG files](https://helpx.adobe.com/after-effects/desktop/import-files/import-svg-files/import-svg-files.html), [MDN: font-variation-settings](https://developer.mozilla.org/en-US/docs/Web/CSS/font-variation-settings).
