@@ -335,8 +335,8 @@ In a font, a Latin letter has three looks and each look carries one growth, so r
 
 The SG Rhizoma Engine at the top of the site records what it plays, as transparent PNG frames (up to 4K) or as a clip.
 
-1. Type the text, choose the face, the colour, the growth, the line weight and the seed. Press Replay until the growth is the one you want; the up and down buttons beside the Growth ramp raise or lower the whole growth by one (hold one to keep going). **Release** shows how the roots withdraw and leave the word.
-2. Press **Record**, the first button under the preview. Its panel opens beneath the buttons and moves nothing above it. Choose the take, the format, the frame rate and the size, then press the button under them.
+1. Type the text, choose the face, the colour (Void, Bone, or your own from the colour picker, which also holds the Slate, Oxide and Indigo plates and keeps your pair in the browser), the growth, the line weight and the seed. The up and down buttons beside the Growth ramp raise or lower the whole growth by one, and the left and right buttons under the Weight bar make the roots lighter or heavier by a step (hold one to keep going). Under Plant, the seed comes first; press Replay until the growth is the one you want. **Release** shows how the roots withdraw and leave the word.
+2. Press **Record**, the red-dot button under the preview (every picture button names itself when you hover it). Its panel opens right under the buttons, beside the About text on a wide screen and above it on a narrow one, and moves nothing above it. Choose the take, the format, the frame rate and the size, then press the button under them.
 
 | | Choices |
 |---|---|
@@ -349,7 +349,7 @@ The SG Rhizoma Engine at the top of the site records what it plays, as transpare
 
 Import each folder as an image sequence at the frame rate you chose, hold the last frame of `grow/` for as long as the cut needs, then play `release/`. The release eases in and out, so its first and last few frames can look alike. The growth takes the time it takes on screen (1.6 to 5 seconds) and the release 1.4 seconds, so a take at 30 frames a second is 90 to 200 frames. The frames are made in your browser, with nothing sent anywhere; at 1920 × 1080 the heaviest growths (SG Roses near 20) come to about 50 MB and take ten to fifteen seconds on a desktop.
 
-**4K.** Choose 3840 × 2160 (or 2160 × 3840 for a vertical cut) for frames at four times the pixels. They are the 1920 × 1080 composition at twice the scale, so a 4K frame lines up with the 1080p one. A 4K take needs more time and more memory than a 1080p one, most of all with a heavy growth, so use a desktop with other tabs closed. The frames come in zips of about 120 MB at most, saved one after another (a browser may ask to allow several downloads): `name_part1.zip`, `name_part2.zip` and so on. Unzip them all into one folder: the folder names are the same, the frame numbers carry on, and the README is in the first zip. A take that fits stays one zip. If the browser cannot make 4K frames, most likely for want of memory, the panel says so and the 1920 × 1080 size is still there. Video is recorded at 1920 × 1080 at most.
+**4K.** Choose 3840 × 2160 (or 2160 × 3840 for a vertical cut) for frames at four times the pixels. They are the 1920 × 1080 composition at twice the scale, so a 4K frame lines up with the 1080p one. A 4K take needs more time and more memory than a 1080p one, most of all with a heavy growth, so use a desktop with other tabs closed. In our tests the heaviest take, SG Roses at growth 20 (193 frames at 4K), came to about 119 MB in one zip and took under 40 seconds; a slower computer takes longer. The frames come in zips of about 120 MB at most, saved one after another (a browser may ask to allow several downloads): `name_part1.zip`, `name_part2.zip` and so on. Unzip them all into one folder: the folder names are the same, the frame numbers carry on, and the README is in the first zip. A take that fits stays one zip. If the browser cannot make 4K frames, most likely for want of memory, the panel says so and the 1920 × 1080 size is still there. Video is recorded at 1920 × 1080 at most.
 
 **Video** records in real time, as the engine plays: the growth, then 1.5 seconds on the finished growth, then the release if you chose it.
 
@@ -368,7 +368,7 @@ If your editor will not open a WebM file, record in Chrome or Safari, or use the
 
 ## 5. Stills and vectors: SVG
 
-Under the engine's canvas, after Record:
+Under the engine's canvas, after Record, four more picture buttons (hover for the name):
 
 - **Copy layered SVG**: roots and letters as separate shapes, in two groups, `GROWTH` and `GLYPH`. Paste into Illustrator or Figma to recolour roots and letters apart, or to move a root.
 - **Copy united SVG**: roots and letters as one shape, for a cutter, a stamp, a mask or a single fill.

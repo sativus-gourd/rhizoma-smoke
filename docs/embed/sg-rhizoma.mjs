@@ -1,4 +1,4 @@
-/*! SG Rhizoma Engine (embed) v19.23, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v19.24, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
@@ -1055,6 +1055,7 @@ function build(HERE) {
       slate:  { ink: '#A5C6D2', ground: '#1C2322' },
       oxide:  { ink: '#E59A60', ground: '#713840' },
       indigo: { ink: '#B4785F', ground: '#0C123A' },
+      custom: { ink: '#C8B6E2', ground: '#1F1A2B' },     // the visitor's own pair (kept on the device); the other five are fixed
     };
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const S2 = LOCAL_G.RhizomaSmoke, S1 = LOCAL_G.RhizomaLab;
@@ -2079,7 +2080,7 @@ function build(HERE) {
       customElements.define('sg-rhizoma', SGRhizomaElement);
     }
     const API = {
-      version: '19.23',
+      version: '19.24',
       faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
       grow(el, o) { const e = typeof el === 'string' ? document.querySelector(el) : el; if (!e) throw new Error('SGRhizoma.grow: no element'); return make(e, o || {}); },
       field(el, o) { return API.grow(el, Object.assign({ field: true }, o || {})); },
@@ -2097,7 +2098,7 @@ function build(HERE) {
   var SERVER = typeof window === 'undefined' || typeof document === 'undefined';       // rendered on a server: import is safe, and every call does nothing
   function inert() { var no = function () { return Promise.resolve(false); };
     return { ready: Promise.resolve(false), replay: no, setGrowth: no, climb: no, release: no, snapshot: no, redraw: function () {}, stop: function () {}, setWeight: function () {}, setColour: function () {}, remove: function () {}, growth: null, state: 'server', element: null }; }
-  var lazy = { version: '19.23', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
+  var lazy = { version: '19.24', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow: function (el, o) { return SERVER ? inert() : get().grow(el, o); }, field: function (el, o) { return SERVER ? inert() : get().field(el, o); },
     config: function (c) { return SERVER ? undefined : get().config(c); }, scan: function () { if (!SERVER) get().scan(); } };
 
