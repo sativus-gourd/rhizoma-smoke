@@ -1,4 +1,4 @@
-/*! SG Rhizoma Engine (embed) v19.21, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v19.22, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
@@ -24,7 +24,7 @@
  *  colour, scale, weight (0.5 to 2, or fine, earthy, heavy), replay (click to grow again), field (fill the element with the grown
  *  word in the middle), fixed (the element is the screen), size (the word's share of the width, in a field), climb and seconds
  *  (rise to a growth over a time), pace, dpr, autoplay.
- *  The controller: ready, replay(), setGrowth(n), climb(n, { seconds }), release(), snapshot(), setWeight(), setColour(), stop(), remove().
+ *  The controller: ready, replay({ seconds }), setGrowth(n), climb(n, { seconds }), release(), snapshot(), setWeight(), setColour(), stop(), remove().
  *  Events on the element: sg:ready, sg:level, sg:settled, sg:released, sg:error.
  */
 function build(HERE) {
@@ -343,6 +343,8 @@ function build(HERE) {
       growth: null,          // { from, to } on Rhizoma's growth-stage scale (0 to 20, 10 = the face as tuned): growth rises or falls letter by letter
                              // growth.scale [below, above]: how far this face moves per step of growth either side of 10
       inset: 0,              // an outline root starts this many base half-widths inside its letter, so its round end stays in the stroke
+      flatStart: 0,          // degrees: a root that would be drawn from a place off to one side of its heading, turning more than this at once,
+                             // starts flat at its real start instead, when its full width there lies inside the stroke (no spur, no notch)
       hold: 0,               // steps over which an outline root's turning eases in: it leaves its letter before it wanders
       bend: 0,               // a root is drawn no wider than this many times its radius of turning (no knots where it turns tight)
       twirl: null,           // { p, turns, r0, r1, min } now and then a root curls on itself, a spiral from radius r0 to r1 (SG Drag)
@@ -717,6 +719,7 @@ function build(HERE) {
         const geo = letter(R.inst.info), ix = R.inst.x, iy = R.inst.y, a = p[0], b = p[1];
         const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * K, r = base * R.thick * (1 + (o.fillet ? o.fillet.amp : 0)) * (R.inst.wmul || 1) * 0.5;
         const deep = (x, y, h) => inside(geo, x - ix, y - iy) && inside(geo, x + h - ix, y - iy) && inside(geo, x - h - ix, y - iy) && inside(geo, x - ix, y + h - iy) && inside(geo, x - ix, y - h - iy);
+        R._butt = false;
         if (!deep(a.x, a.y, r * 0.7)) {
           const L = Math.hypot(b.x - a.x, b.y - a.y) || 1, ux = (a.x - b.x) / L, uy = (a.y - b.y) / L;
           let best = null, bs = Infinity;
@@ -725,7 +728,16 @@ function build(HERE) {
             const sc = d * (1 + 0.6 * (1 - (cx * ux + cy * uy)));       // nearest, and the way it came from
             if (sc < bs && deep(x, y, r * 0.7)) { bs = sc; best = { x, y }; }
           }
-          if (best) { p.unshift(best, { x: (best.x + a.x) / 2, y: (best.y + a.y) / 2 }); pre = 2; }
+          if (best) {
+            // The nearest deep place can lie off to one side of the way the root heads. Drawn from there, the root would turn sharply
+            // in its first steps: the ribbon pinches at the turn and a spur of it shows beside the stroke, with a notch under the
+            // spur. When the root's full width at its real start lies inside the stroke, it starts there with a flat end instead.
+            const bx = b.x - a.x, by = b.y - a.y, tx = a.x - best.x, ty = a.y - best.y, lb = Math.hypot(bx, by) || 1, lt = Math.hypot(tx, ty) || 1;
+            const nxb = -by / lb, nyb = bx / lb;
+            if (o.flatStart && (bx * tx + by * ty) / (lb * lt) < Math.cos(o.flatStart * Math.PI / 180)
+                && [-1, -0.5, 0, 0.5, 1].every(f => inside(geo, a.x + nxb * r * f - ix, a.y + nyb * r * f - iy))) R._butt = true;
+            else { p.unshift(best, { x: (best.x + a.x) / 2, y: (best.y + a.y) / 2 }); pre = 2; }
+          }
         }
       }
       for (let k = 0; k < o.smooth; k++) {
@@ -820,7 +832,7 @@ function build(HERE) {
         L.push([s[i].x - dy * h, s[i].y + dx * h]); Rr.push([s[i].x + dy * h, s[i].y - dx * h]);
       }
       const cap = (p, q, h) => { const ang = Math.atan2(p.y - q.y, p.x - q.x) - Math.PI / 2, out = []; for (let k = 1; k < 8; k++) { const a = ang + Math.PI * k / 8; out.push([p.x + Math.cos(a) * h, p.y + Math.sin(a) * h]); } return out; };
-      return [...Rr, ...cap(s[n - 1], s[n - 2], hs[n - 1]), ...L.reverse(), ...cap(s[0], s[1], hs[0])];
+      return [...Rr, ...cap(s[n - 1], s[n - 2], hs[n - 1]), ...L.reverse(), ...(R._butt ? [] : cap(s[0], s[1], hs[0]))];   // _butt: a flat start (flatStart)
     }
     function polyD(pts) { return 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z'; }
   
@@ -1027,7 +1039,7 @@ function build(HERE) {
   
     global.RhizomaSmoke = { U, K, DEFAULTS, opts, findGlyph, glyphByName, layout, grow, draw, outline, pathOf, guardHangul, polyD, widthAt, svg, unitedPaths, simplified, buildFont, growInstances, fillPoints, edgePoints, letter, hash2, mulberry32 };
   })(LOCAL_G);
-    const PRESETS = {"SMOKE": {"stage": 8, "weightUnits": 40, "taper": 0.85, "chaos": 0.25, "chaosRamp": 4, "drift": {"angle": -90, "pull": 0.05}, "length": 2.0, "hangulDensity": 0.45, "engine": "v1"}, "DRAG": {"stage": 10, "weightUnits": 40, "taper": 0.8, "chaos": 0.2, "flow": {"scale": 900, "strength": 0.2, "turns": 1.4}, "length": 1.7, "seedFrom": "edge", "emerge": 0.8, "edgeBoost": 2.2, "connect": 24, "seek": 0.04, "sense": 150, "hangulDensity": 0.45, "minWidth": 6, "smooth": 3, "fillet": {"amp": 0.12, "tau": 8}, "inset": 0.7, "hold": 5, "bend": 0.9, "minContour": 160, "stagger": 36, "taperPow": 1.7, "twirl": {"p": 0.005, "turns": [1, 1.6], "r0": [200, 380], "r1": 0.45, "min": 14, "max": 1, "follow": true}, "branchFit": 1}, "FLAME": {"stage": 9, "weightUnits": 46, "taper": 1, "taperPow": 0.6, "chaos": 0.5, "chaosRamp": 2, "drift": {"angle": -90, "pull": 0.16}, "length": 0.7, "branch": 0.006, "branchRamp": 1.5, "seedFrom": "edge", "emerge": 0.8, "facing": {"angle": -90, "spread": 70}, "edgeBoost": 3, "hangulDensity": 0.45, "minWidth": 6, "smooth": 3, "fillet": {"amp": 0.12, "tau": 8}, "inset": 0.7, "hold": 5, "bend": 0.9, "minContour": 160, "stagger": 36, "branchFit": 1}, "ROOT": {"stage": 8, "weightUnits": 40, "taper": 0.75, "chaos": 0.8, "seedFrom": "edge", "emerge": 0.6, "prune": {"top": 820, "bottom": 300, "side": 30}, "hangulDensity": 0.45, "minWidth": 6, "smooth": 3, "fillet": {"amp": 0.12, "tau": 8}, "hangulGuard": {"side": 30, "tick": 150, "straight": 0.85}, "inset": 0.7, "hold": 5, "bend": 0.9, "minContour": 160, "stagger": 36, "branchFit": 1}, "TANGLE": {"stage": 14, "weightUnits": 44, "taper": 0.2, "chaos": 0.8, "branch": 0.012, "length": 2.2, "seedFrom": "both", "emerge": 0.5, "connect": 26, "connectSelf": true, "fuseAge": 30, "seek": 0.06, "sense": 200, "maxSteps": 400, "prune": {"top": 1100, "bottom": 700, "side": 400, "soft": 260, "pull": 0.25, "jitter": 0.3, "loop": 0.15}, "hangulDensity": 0.45, "minWidth": 6, "smooth": 3, "fillet": {"amp": 0.12, "tau": 8}, "inset": 0.7, "hold": 5, "bend": 0.9, "minContour": 160, "stagger": 36, "branchFit": 1}};
+    const PRESETS = {"SMOKE": {"stage": 8, "weightUnits": 40, "taper": 0.85, "chaos": 0.25, "chaosRamp": 4, "drift": {"angle": -90, "pull": 0.05}, "length": 2.0, "hangulDensity": 0.45, "engine": "v1"}, "DRAG": {"stage": 10, "weightUnits": 40, "taper": 0.8, "chaos": 0.2, "flow": {"scale": 900, "strength": 0.2, "turns": 1.4}, "length": 1.7, "seedFrom": "edge", "emerge": 0.8, "edgeBoost": 2.2, "connect": 24, "seek": 0.04, "sense": 150, "hangulDensity": 0.45, "minWidth": 6, "smooth": 3, "fillet": {"amp": 0.12, "tau": 8}, "inset": 0.7, "hold": 5, "bend": 0.9, "minContour": 160, "stagger": 36, "taperPow": 1.7, "twirl": {"p": 0.005, "turns": [1, 1.6], "r0": [200, 380], "r1": 0.45, "min": 14, "max": 1, "follow": true}, "branchFit": 1}, "FLAME": {"stage": 9, "weightUnits": 46, "taper": 1, "taperPow": 0.6, "chaos": 0.5, "chaosRamp": 2, "drift": {"angle": -90, "pull": 0.16}, "length": 0.7, "branch": 0.006, "branchRamp": 1.5, "seedFrom": "edge", "emerge": 0.8, "facing": {"angle": -90, "spread": 70}, "edgeBoost": 3, "hangulDensity": 0.45, "minWidth": 6, "smooth": 3, "fillet": {"amp": 0.12, "tau": 8}, "inset": 0.7, "hold": 5, "bend": 0.9, "minContour": 160, "stagger": 36, "branchFit": 1}, "ROOT": {"stage": 8, "weightUnits": 40, "taper": 0.75, "chaos": 0.8, "seedFrom": "edge", "emerge": 0.6, "prune": {"top": 820, "bottom": 300, "side": 30}, "hangulDensity": 0.45, "minWidth": 6, "smooth": 3, "fillet": {"amp": 0.12, "tau": 8}, "hangulGuard": {"side": 30, "tick": 150, "straight": 0.85}, "inset": 0.7, "hold": 5, "bend": 0.9, "minContour": 160, "stagger": 36, "branchFit": 1, "flatStart": 60}, "TANGLE": {"stage": 14, "weightUnits": 44, "taper": 0.2, "chaos": 0.8, "branch": 0.012, "length": 2.2, "seedFrom": "both", "emerge": 0.5, "connect": 26, "connectSelf": true, "fuseAge": 30, "seek": 0.06, "sense": 200, "maxSteps": 400, "prune": {"top": 1100, "bottom": 700, "side": 400, "soft": 260, "pull": 0.25, "jitter": 0.3, "loop": 0.15}, "hangulDensity": 0.45, "minWidth": 6, "smooth": 3, "fillet": {"amp": 0.12, "tau": 8}, "inset": 0.7, "hold": 5, "bend": 0.9, "minContour": 160, "stagger": 36, "branchFit": 1}};
     const NAMES = { SMOKE: 'SG Smoke', DRAG: 'SG Drag', ROOT: 'SG Roses', RHIZOMA: 'SG Rhizoma V2', FLAME: 'SG Flame', TANGLE: 'SG Tangle' };
     // each face's growth, fitted to Rhizoma's scale: [below 10, above 10, share of the rise above 10 that goes to line weight,
     // how far the bounds a face keeps its roots in open by 20 (units; SG Roses and SG Tangle)]. 10 is each face as tuned, the
@@ -1904,8 +1916,14 @@ function build(HERE) {
       const cancel = () => { gen++; queue.splice(0).forEach(t => t.done(false)); nextPrep = null; };
   
       // ---- the controller
-      function replay() {                                                // grow again from nothing, at the current growth
-        return built.then(ok => { if (!ok || !cur || !alive) return false; cancel(); stopRaf(); rel = null; released = false; mode = 'idle';  ctx.clearRect(0, 0, cv.width, cv.height); layout(cur); cache = {}; return new Promise(r => startPlay(cur, 0, playSecs(cur.total), { done: r })); });
+      function replay(opt) {                                             // grow again from nothing, at the current growth; an element made with `climb` that stands at the growth it climbed to replays that climb at its own seconds
+        opt = opt || {};
+        return built.then(ok => {
+          if (!ok || !cur || !alive) return false; cancel(); stopRaf(); rel = null; released = false; mode = 'idle'; ctx.clearRect(0, 0, cv.width, cv.height); layout(cur); cache = {};
+          const again = climbTo != null && lv === Math.max(0, Math.min(20, Math.round(climbTo)));
+          const secs = opt.seconds != null && +opt.seconds > 0 ? +opt.seconds : again ? climbSecs : playSecs(cur.total);
+          return new Promise(r => startPlay(cur, 0, secs, { done: r }));
+        });
       }
       function setGrowth(g, opt) {                                       // continue to growth g (a number), or play it whole if it is lower, or V2
         opt = opt || {}; const n = typeof g === 'number' ? g : levelOf(growthOf(g));
@@ -2014,7 +2032,7 @@ function build(HERE) {
         }
         get ready() { return this._c ? this._c.ready : Promise.resolve(false); }
         get controller() { return this._c; }
-        replay() { return this._c ? this._c.replay() : Promise.resolve(false); }
+        replay(o) { return this._c ? this._c.replay(o) : Promise.resolve(false); }
         setGrowth(g, o) { return this._c ? this._c.setGrowth(g, o) : Promise.resolve(false); }
         climb(t, o) { return this._c ? this._c.climb(t, o) : Promise.resolve(false); }
         release(o) { return this._c ? this._c.release(o) : Promise.resolve(false); }
@@ -2023,7 +2041,7 @@ function build(HERE) {
       customElements.define('sg-rhizoma', SGRhizomaElement);
     }
     const API = {
-      version: '19.21',
+      version: '19.22',
       faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
       grow(el, o) { const e = typeof el === 'string' ? document.querySelector(el) : el; if (!e) throw new Error('SGRhizoma.grow: no element'); return make(e, o || {}); },
       field(el, o) { return API.grow(el, Object.assign({ field: true }, o || {})); },
@@ -2041,7 +2059,7 @@ function build(HERE) {
   var SERVER = typeof window === 'undefined' || typeof document === 'undefined';       // rendered on a server: import is safe, and every call does nothing
   function inert() { var no = function () { return Promise.resolve(false); };
     return { ready: Promise.resolve(false), replay: no, setGrowth: no, climb: no, release: no, snapshot: no, redraw: function () {}, stop: function () {}, setWeight: function () {}, setColour: function () {}, remove: function () {}, growth: null, state: 'server', element: null }; }
-  var lazy = { version: '19.21', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
+  var lazy = { version: '19.22', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow: function (el, o) { return SERVER ? inert() : get().grow(el, o); }, field: function (el, o) { return SERVER ? inert() : get().field(el, o); },
     config: function (c) { return SERVER ? undefined : get().config(c); }, scan: function () { if (!SERVER) get().scan(); } };
 

@@ -1,4 +1,4 @@
-/* SG Rhizoma Engine (embed) v19.21, types. https://github.com/sativus-gourd/rhizoma-smoke */
+/* SG Rhizoma Engine (embed) v19.22, types. https://github.com/sativus-gourd/rhizoma-smoke */
 declare namespace SGRhizoma {
   type Face = 'smoke' | 'roses' | 'v2' | 'rhizoma' | 'drag' | 'flame' | 'tangle';
   type Growth = number | string | { from: number; to: number };
@@ -44,7 +44,8 @@ declare namespace SGRhizoma {
     readonly growth: number | null;
     readonly state: 'idle' | 'grow' | 'prep' | 'release' | 'failed' | 'removed';
     readonly element: HTMLElement;
-    replay(): Promise<boolean>;
+    /** Grows the word again from nothing at its growth. A word made with `climb` plays that climb again over the same seconds. */
+    replay(options?: { seconds?: number }): Promise<boolean>;
     /** Continues the growth to n; a lower n plays that growth whole. */
     setGrowth(n: number | string, options?: { seconds?: number }): Promise<boolean>;
     /** Rises to growth n over the given seconds, as one growth: the roots on screen stay and every tip moves at one speed. */
