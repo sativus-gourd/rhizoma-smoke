@@ -7,8 +7,8 @@ Built on [Rhizoma](https://github.com/dabinkiim/Rhizoma), the growing type syste
 **Guide:** [GUIDE.md](GUIDE.md), for the growth on a website (a heading, a field, a whole-screen entry, and recipes for React, Next.js, Vue, Nuxt, Svelte, SvelteKit, Astro, Angular and plain pages), in After Effects and on video
 
 Type into the SG Rhizoma Engine and watch the letters grow, every root on a clock of its own, the thickest first and the
-finest last. Let growth rise or fall through a text, bring any growth back from its seed, save it as SVG or video, and
-download the fonts. Leave the page open and it keeps growing.
+finest last. Let growth rise or fall through a text, bring any growth back from its seed, save it as SVG, copy its embed code, record it as transparent PNG frames (up to 4K) or as video,
+and download the fonts. Leave the page open and it keeps growing.
 
 ## The SG Rhizoma Typeface Family
 - Core: SG Smoke, SG Roses, SG Rhizoma V2
@@ -83,7 +83,7 @@ installable fonts' own, unchanged. [GUIDE.md](GUIDE.md) shows how to animate the
 Hangul, seeds that bring any growth back, growth that rises or falls letter by letter, variable fonts with Growth and Weight axes,
 growth fitted to each face, roots that start on the outline and leave their stroke cleanly, roots that join across letters
 and lines, drift, taper, turbulence and a current that curls, roots drawn as smooth curves, roots that each grow at a pace
-of their own (the thickest first), multi-line setting, fonts that set as running text, video recording, and an embed for
+of their own (the thickest first), multi-line setting, fonts that set as running text, transparent frames and video, and an embed for
 any site.
 
 ## Credits and licences

@@ -1,4 +1,4 @@
-/*! SG Rhizoma Engine (embed) v19.22, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v19.23, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
@@ -931,8 +931,10 @@ function build(HERE) {
         const kids = pp.className === 'CompoundPath' ? pp.children : [pp];
         for (const k of kids) {
           if (!k.segments.length) continue;
-          const s0 = k.segments[0].point; op.moveTo(s0.x, -s0.y);
-          for (const c of k.curves) { const h1 = c.point1.add(c.handle1), h2 = c.point2.add(c.handle2); op.bezierCurveTo(h1.x, -h1.y, h2.x, -h2.y, c.point2.x, -c.point2.y); }
+          // whole units, so that each step the font writer stores is the exact difference of two points: left fractional, the writer rounds every step
+          // on its own, the pen drifts from where the outline puts it, and every contour after a long one sits displaced (up to 50 units, 12 at the median)
+          const R = Math.round, s0 = k.segments[0].point; op.moveTo(R(s0.x), R(-s0.y));
+          for (const c of k.curves) { const h1 = c.point1.add(c.handle1), h2 = c.point2.add(c.handle2); op.bezierCurveTo(R(h1.x), R(-h1.y), R(h2.x), R(-h2.y), R(c.point2.x), R(-c.point2.y)); }
           op.closePath();
         }
         const spec = { name, advanceWidth: adv, path: op };
@@ -1609,8 +1611,22 @@ function build(HERE) {
     // a growth plays two steps a sixtieth of a second, which suits most, held to at least 1.6 s so a small growth (SG Flame's
     // 한, a card's word) has time to set out, grow and settle, and to at most 5 s so a huge one (SG Rhizoma V2 at 20) never drags
     const playSecs = T => Math.max(1.6, Math.min(5, T / 120));
+    // a take: the steps of a play, one list for the frames, the video and the Release button. Growing, frame k of F is at step
+    // total * k / F, so frame 0 is the bare word and the last the finished growth. Releasing, the roots withdraw last grown first over
+    // RELEASE_SECS on the embed's ease: frame j of R is at step total * (1 - ease(j / R)), so the first is one frame past the finished
+    // growth and the last is the bare word. A release taken alone starts with the finished growth, so it stands by itself.
+    const RELEASE_SECS = 1.4, HOLD_SECS = 1.5;      // the entry's length (the embed's default is 1.1); the hold the video keeps
+    const ease = u => u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u);
+    function takePlan(total, fps, kind) {
+      const F = Math.max(1, Math.round(playSecs(total) * fps)), R = Math.max(1, Math.round(RELEASE_SECS * fps)), grow = [], release = [];
+      if (kind !== 'release') for (let k = 0; k <= F; k++) grow.push(k === F ? total : total * k / F);
+      if (kind === 'release') release.push(total);
+      if (kind !== 'grow') for (let j = 1; j <= R; j++) release.push(j === R ? 0 : total * (1 - ease(j / R)));
+      return { growSecs: playSecs(total), releaseSecs: RELEASE_SECS, grow, release };
+    }
     function player(cv, emMax, pad, transparent, after, pace = 1) {
-      let sc = null, col = null, step = 0, pos = 0, raf = 0, done = null; const cache = {};
+      let sc = null, col = null, step = 0, pos = 0, raf = 0, done = null, fadeEl = null; const cache = {};
+      const clearFade = () => { if (fadeEl) { fadeEl.remove(); fadeEl = null; } };
       const finish = () => { if (raf) { raf = 0; growing--; } const f = done; done = null; if (f) f(); };
       // how long a growth plays (playSecs). Timed by the clock, not by frames: as long on a 120 Hz screen as on a 60 Hz one, and a
       // dropped frame is caught up (up to two frames' worth) so the roots keep their speed. Steps are not rounded: tips move every frame.
@@ -1618,12 +1634,34 @@ function build(HERE) {
         pos += sc.total / (playSecs(sc.total) * 60) * pace * dt / (1000 / 60); step = Math.min(sc.total, pos); odd = !odd; if (odd && step < sc.total && performance.now() - scrollAt < 200) { raf = requestAnimationFrame(frame); return; } const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent, cache); if (step < sc.total) raf = requestAnimationFrame(frame); else finish(); }
       return {
         play(s, c, fin) {
-          sc = s; col = c; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } done = fin || null; if (after) after();
+          sc = s; col = c; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = fin || null; if (after) after();
           if (reduce) { step = s.total; const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent); finish(); return; }
           step = 0; pos = 0; lastT = 0; cache.sc = null; growing++; raf = requestAnimationFrame(frame);
         },
         redraw() { if (sc && !raf) { const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent); } if (after) after(); },
         stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } },
+        // the roots withdraw from where the growth is (part way through a play, or finished), last grown first, and the word stays.
+        // Drawing backwards has no cache of finished roots, so on a device too slow for it (the first four frames average over
+        // 55 ms, the embed's rule) the finished picture fades out over the bare word instead. Reduced motion cuts.
+        release(secs, fin) {
+          if (!sc) { if (fin) fin(); return; }
+          const s0 = step; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = null; if (after) after();
+          const g2 = cv.getContext('2d'), draw = st => { const d = sizeCanvas(cv); paint(g2, d.w, d.h, d.dpr, sc, st, col(), emMax, pad, transparent); };
+          if (reduce || !(secs > 0) || !(s0 > 0)) { step = 0; draw(0); if (fin) fin(); return; }
+          const t0 = performance.now(); let n = 0, slow = 0; growing++;
+          const fade = left => {
+            raf = 0; growing--; const ov = document.createElement('canvas'); ov.width = cv.width; ov.height = cv.height; ov.getContext('2d').drawImage(cv, 0, 0); ov.className = 'relfade'; ov.setAttribute('aria-hidden', 'true');
+            Object.assign(ov.style, { left: cv.offsetLeft + 'px', top: cv.offsetTop + 'px', width: cv.offsetWidth + 'px', height: cv.offsetHeight + 'px', opacity: '1', transitionDuration: Math.max(0.2, left).toFixed(2) + 's' });
+            step = 0; draw(0); cv.parentNode.appendChild(ov); fadeEl = ov; void ov.offsetWidth; ov.style.opacity = '0';
+            setTimeout(() => { if (fadeEl === ov) { clearFade(); if (fin) fin(); } }, Math.max(200, left * 1000));
+          };
+          const f = now => {
+            const u = Math.min(1, (now - t0) / (secs * 1000)); step = s0 * (1 - ease(u)); const c0 = performance.now(); draw(step); if (++n <= 4) slow += performance.now() - c0;
+            if (n === 4 && slow / 4 > 55 && u < 1) { fade(secs * (1 - u)); return; }
+            if (u < 1) raf = requestAnimationFrame(f); else { raf = 0; growing--; step = 0; draw(0); if (fin) fin(); }
+          };
+          raf = requestAnimationFrame(f);
+        },
         get scene() { return sc; },
       };
     }
@@ -2041,7 +2079,7 @@ function build(HERE) {
       customElements.define('sg-rhizoma', SGRhizomaElement);
     }
     const API = {
-      version: '19.22',
+      version: '19.23',
       faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
       grow(el, o) { const e = typeof el === 'string' ? document.querySelector(el) : el; if (!e) throw new Error('SGRhizoma.grow: no element'); return make(e, o || {}); },
       field(el, o) { return API.grow(el, Object.assign({ field: true }, o || {})); },
@@ -2059,7 +2097,7 @@ function build(HERE) {
   var SERVER = typeof window === 'undefined' || typeof document === 'undefined';       // rendered on a server: import is safe, and every call does nothing
   function inert() { var no = function () { return Promise.resolve(false); };
     return { ready: Promise.resolve(false), replay: no, setGrowth: no, climb: no, release: no, snapshot: no, redraw: function () {}, stop: function () {}, setWeight: function () {}, setColour: function () {}, remove: function () {}, growth: null, state: 'server', element: null }; }
-  var lazy = { version: '19.22', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
+  var lazy = { version: '19.23', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow: function (el, o) { return SERVER ? inert() : get().grow(el, o); }, field: function (el, o) { return SERVER ? inert() : get().field(el, o); },
     config: function (c) { return SERVER ? undefined : get().config(c); }, scan: function () { if (!SERVER) get().scan(); } };
 

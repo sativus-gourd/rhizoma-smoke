@@ -7,7 +7,7 @@ The SG Rhizoma growth leaves this site in five forms. Pick the one that fits the
 | A heading, a section or a whole screen that grows on a web page | The embed, `docs/embed/sg-rhizoma.js` or `.mjs` | Yes: the same engine, every root on its own clock |
 | Text set in the fonts, on the web | The web fonts, `docs/webfonts/` | The variable fonts grow on their Growth axis |
 | Moving type in After Effects | The variable fonts, from Download on the site | On the Growth axis, keyframed |
-| A clip for any editor | Record in the SG Rhizoma Engine on the site | Yes: exactly as it plays on screen |
+| Frames or a clip for any editor | Record in the SG Rhizoma Engine on the site | Yes: exactly as it plays on screen |
 | A still, a print, a mask | SVG from the SG Rhizoma Engine | The finished growth |
 
 One difference runs through all of it. The SG Rhizoma Engine grows each root on a clock of its own: the thick roots set out first, a branch starts when its parent's tip reaches it, and every occurrence of a letter grows differently. The fonts carry one growth for each look of a character (a Latin letter has three looks, a Hangul syllable one), and their Growth axis lengthens every root together, from the bare letter at 0 to the full growth at 100. For the engine's motion, use the embed or a recording; for type you can set, edit and animate per letter, use the fonts.
@@ -333,32 +333,46 @@ In a font, a Latin letter has three looks and each look carries one growth, so r
 
 ## 4. On video: record from the SG Rhizoma Engine
 
-The SG Rhizoma Engine at the top of the site records what it plays.
+The SG Rhizoma Engine at the top of the site records what it plays, as transparent PNG frames (up to 4K) or as a clip.
 
-1. Type the text, choose the face, the colour, the growth, the line weight and the seed. Press Replay until the growth is the one you want.
-2. Press **Record**. The engine plays the growth from the first root to the last on a canvas of its own and saves the file.
+1. Type the text, choose the face, the colour, the growth, the line weight and the seed. Press Replay until the growth is the one you want; the up and down buttons beside the Growth ramp raise or lower the whole growth by one (hold one to keep going). **Release** shows how the roots withdraw and leave the word.
+2. Press **Record**, the first button under the preview. Its panel opens beneath the buttons and moves nothing above it. Choose the take, the format, the frame rate and the size, then press the button under them.
+
+| | Choices |
+|---|---|
+| Take | Grow, Release, or Grow then release |
+| Format | PNG frames, transparent, or Video, in real time |
+| Frame rate | 24, 25, 30 or 60 frames a second (30 to begin with) |
+| Size | 1920 × 1080 (to begin with), or 1080 × 1920 for a vertical cut; for PNG frames also 3840 × 2160 (4K) and 2160 × 3840 |
+
+**PNG frames** are the format for an editor. One zip comes down with a folder for each part: `grow/` runs from the bare word to the finished growth, and `release/` from the finished growth back to the bare word, each as numbered frames (`frame_00000.png` on). A README in the zip (in the first zip, when there are several) gives the frame rate, the length of each part and the settings, so the same frames can be made again. The ground is transparent and the roots are solid ink, so the frames lie over footage with no blend mode.
+
+Import each folder as an image sequence at the frame rate you chose, hold the last frame of `grow/` for as long as the cut needs, then play `release/`. The release eases in and out, so its first and last few frames can look alike. The growth takes the time it takes on screen (1.6 to 5 seconds) and the release 1.4 seconds, so a take at 30 frames a second is 90 to 200 frames. The frames are made in your browser, with nothing sent anywhere; at 1920 × 1080 the heaviest growths (SG Roses near 20) come to about 50 MB and take ten to fifteen seconds on a desktop.
+
+**4K.** Choose 3840 × 2160 (or 2160 × 3840 for a vertical cut) for frames at four times the pixels. They are the 1920 × 1080 composition at twice the scale, so a 4K frame lines up with the 1080p one. A 4K take needs more time and more memory than a 1080p one, most of all with a heavy growth, so use a desktop with other tabs closed. The frames come in zips of about 120 MB at most, saved one after another (a browser may ask to allow several downloads): `name_part1.zip`, `name_part2.zip` and so on. Unzip them all into one folder: the folder names are the same, the frame numbers carry on, and the README is in the first zip. A take that fits stays one zip. If the browser cannot make 4K frames, most likely for want of memory, the panel says so and the 1920 × 1080 size is still there. Video is recorded at 1920 × 1080 at most.
+
+**Video** records in real time, as the engine plays: the growth, then 1.5 seconds on the finished growth, then the release if you chose it.
 
 | | |
 |---|---|
-| Size | 1920 × 1080 |
-| Frame rate | 30 frames a second |
 | Format | MP4 in browsers that record it (recent Chrome and Safari); WebM in others, such as Firefox |
-| Length | the growth as it plays on screen (1.6 to 5 seconds), then 1.5 seconds on the finished growth |
+| Ground | the colour's own ground, solid: a clip has no transparency |
 
-If your editor will not open a WebM file, record in Chrome or Safari.
+If your editor will not open a WebM file, record in Chrome or Safari, or use the frames.
 
-**Putting it over footage.** Record in **Bone** (light roots on near-black) and set the clip's blend mode to **Screen**: the black falls away and the roots stay, in After Effects, Premiere Pro, DaVinci Resolve and Final Cut Pro alike. For dark roots over light footage, record in Bone, invert the clip, and set it to **Multiply**. The Void ground is paper, not white, so a Void clip set to Multiply tints what lies under it.
+**Putting a video over footage.** Record in **Bone** (light roots on near-black) and set the clip's blend mode to **Screen**: the black falls away and the roots stay, in After Effects, Premiere Pro, DaVinci Resolve and Final Cut Pro alike. For dark roots over light footage, record in Bone, invert the clip, and set it to **Multiply**. The Void ground is paper, not white, so a Void clip set to Multiply tints what lies under it. The frames need none of this.
 
-**Recording well.** The engine records in real time. For the heaviest growths (SG Roses and SG Rhizoma V2 near 20), record on a desktop computer with other tabs closed, so no frame is dropped.
+**Recording well.** A video is recorded in real time, so for the heaviest growths (SG Roses and SG Rhizoma V2 near 20) record on a desktop computer with other tabs closed, so no frame is dropped. Frames are drawn one by one and never drop one, on any machine.
 
 ---
 
 ## 5. Stills and vectors: SVG
 
-Under the engine's canvas:
+Under the engine's canvas, after Record:
 
 - **Copy layered SVG**: roots and letters as separate shapes, in two groups, `GROWTH` and `GLYPH`. Paste into Illustrator or Figma to recolour roots and letters apart, or to move a root.
 - **Copy united SVG**: roots and letters as one shape, for a cutter, a stamp, a mask or a single fill.
+- **Copy embed code**: the snippet that grows what is on screen on a web page (section 1): the face, seed, growth, weight, colours and text, ready to paste.
 - **Save SVG**: the united shape as a file.
 
 The line weight is part of the picture, so it goes into the file name and the SVG's group name (`rhizoma-smoke_SG-Roses_seed202_growth12-12_weight1.25.svg`): with the text, the face, the growth and the seed, it finds the same growth again.
