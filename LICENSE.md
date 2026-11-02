@@ -1,10 +1,6 @@
 # Licences
 
-Which licence covers what in this repository, in plain words. This is not legal advice; the licence texts are what bind.
-
 ## The SG Rhizoma Engine (code)
-
-Covers the scripts in `docs/index.html` and `docs/embed/`.
 
 The SG Rhizoma Engine is an adaptation of [Rhizoma Engine v.01](https://github.com/dabinkiim/Rhizoma) by Dabin Kim, licensed under [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/). The adaptation by Sativus Gourd (2026) is licensed under the same terms. The changes are listed in [README.md](README.md) and at the top of each engine in the page source.
 
