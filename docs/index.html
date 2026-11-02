@@ -251,6 +251,13 @@ textarea { resize: none; }
   .wbox .wpre { justify-content: space-between; }
   .wbox .wstep .gout { min-width: 0; }
 }
+/* I-52 (v19.25): where Weight sits beside the colour chips, its buttons hang under the bar, outside the Colour row's height, as far below
+   the bar as the presets sit above it (the column's gap, .45rem). The row stops wrapping at 706 px;
+   730 px leaves room for a scrollbar, which a media query counts and the layout does not. Narrower, Weight wraps under the chips and keeps its buttons in the row. */
+@media (min-width: 730px) {
+  .wbox .gstack { position: relative; }
+  .wbox .gstack .wstep { position: absolute; left: 0; right: 0; top: calc(100% + .45rem); }
+}
 .plant .seedctl { margin: 0 .4rem 0 0; }
 .cp-plates { display: flex; gap: .7rem; padding-top: .65rem; border-top: 1px solid var(--rule); }
 div.cpick { gap: .65rem; } .cpick .cp-sv { height: 7.2rem; }
@@ -997,7 +1004,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     <li>Voltaire, <em>Candide</em> (1759). Astrid Lindgren, <em>Karlsson-on-the-Roof</em>, quoted as the epigraph to Kafka on Waterloo Shore.</li>
     <li>Not covered by these licences: the Sativus Gourd name, signature and logo, the atelier artwork shown here (including the 담배 피는 여자 / Women Who Smoke lockup and the Kafka on Waterloo Shore page) and the text of this site are © 2026 Sativus Gourd and their respective owners. All rights reserved.</li>
   </ul>
-  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v19.24-beta" target="_blank" rel="noopener" aria-label="Release notes for version 19.24 beta">v19.24 beta</a></p>
+  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v19.25-beta" target="_blank" rel="noopener" aria-label="Release notes for version 19.25 beta">v19.25 beta</a></p>
 </footer>
 
 <section class="signoff wrap" aria-label="Sativus Gourd">
@@ -3557,7 +3564,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       'Import each folder as an image sequence at ' + o.fps + ' frames a second.', '',
       'The same text, typeface, growth, weight and seed grow the same shape in any browser, so these frames can be made again: set them in the tool on the Rhizoma Smoke site (https://sativus-gourd.github.io/rhizoma-smoke/), open Record, pick PNG frames, and choose the same take, frame rate and size.',
       'The same word on a web page: ' + embedCode().split('\n')[1],
-      'SG Rhizoma Engine v19.24, Sativus Gourd, 2026.'].filter((l, k, a) => l !== '' || a[k - 1] !== '').join('\n') + '\n';
+      'SG Rhizoma Engine v19.25, Sativus Gourd, 2026.'].filter((l, k, a) => l !== '' || a[k - 1] !== '').join('\n') + '\n';
   }
   // PNG frames. A zip is built in memory, so a take is cut into parts of about 120 MB, each saved as soon as it is made: a 4K take of a heavy
   // growth comes in a few, and a 1080p take in one. Part 1 carries the README; the folder names are the same in every part, and the frame numbers
