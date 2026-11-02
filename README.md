@@ -13,15 +13,18 @@ download the fonts. Leave the page open and it keeps growing.
 ## The SG Rhizoma Typeface Family
 - Core: SG Smoke, SG Roses, SG Rhizoma V2
 - Experimental: SG Drag, SG Flame, SG Tangle
-- Variable: every core face again, as SG Smoke Variable, SG Roses Variable and SG Rhizoma V2 Variable, and SG Drag Variable and SG Flame Variable among the experiments, with a Growth axis from the bare letter (0) to the full growth (100)
+- Variable: every core face again, as SG Smoke Variable, SG Roses Variable and SG Rhizoma V2 Variable, and SG Drag Variable and SG Flame Variable among the experiments, with a Growth axis from the bare letter (0) to the full growth (100, and 140 in SG Roses Variable) and a Weight axis for the Latin letters (100 to 900)
 
 ## Fonts
 Free fonts in `docs/downloads/`, to install, and in `docs/webfonts/`, for the web. Each carries 212 Latin characters from
-IM Fell English, five ligatures and 2,897 kerning pairs. All but SG Tangle also carry Hangul: the 2,350 syllables of
-KS X 1001 and 51 jamo. SG Rhizoma V2 and SG Rhizoma V2 Variable are grown with Dabin Kim's Rhizoma at its default settings.
+IM Fell English, five ligatures and 2,897 kerning pairs, and two alternate looks of its Latin letters, figures and
+punctuation: type a run of text and the fonts step through the three looks, so a repeated letter does not repeat its shape
+(a space starts the cycle again, and `font-feature-settings: "calt" 0` turns it off). All but SG Tangle also carry
+Hangul: the 2,350 syllables of KS X 1001 and 51 jamo. SG Rhizoma V2 and SG Rhizoma V2 Variable are grown with Dabin Kim's Rhizoma at its default settings.
 SG Smoke and SG Roses are drawn at the weights the site gives them, SG Smoke at ×1.5 and SG Roses at ×1.25, so type set in
-the fonts carries the same weight of root as the site. SG Roses grows to 12 as a static font, and to 10 on the Growth axis of
-its Variable font.
+the fonts carries the same weight of root as the site. SG Roses grows to 12 as a static font; on the Growth axis of its Variable font it reaches 10 at 100,
+12 at 120 and 14 at 140. In the variable fonts the Weight axis runs from half of the face's own line weight at 100 to twice it
+at 900, with 400 as the face itself; it acts on the Latin letters, and Hangul keeps one weight.
 
 ## Use it on your site
 
@@ -52,10 +55,10 @@ The heading grows when it first comes into view, with the same engine and motion
 | `data-seconds` | how long the climb takes, and so how fast the tips move | `40` |
 | `data-pace`, `data-dpr`, `data-autoplay` | the speed, the highest pixel ratio drawn (2), whether it plays on its own | `1`, `2`, on |
 
-From a script: `SGRhizoma.grow(element, { face: 'drag', seed: 33, growth: '2-18' })` returns a controller with `ready`, `replay()`, `setGrowth(n)`, `climb(n, { seconds })`, `release()`, `snapshot()`, `setWeight()`, `setColour()`, `redraw()`, `stop()` and `remove()`. The element `<sg-rhizoma face="roses" field climb="20" seconds="40">Roses</sg-rhizoma>` does the same with attributes, and fires `sg:ready`, `sg:level`, `sg:settled`, `sg:released` and `sg:error`.
+From a script: `SGRhizoma.grow(element, { face: 'drag', seed: 33, growth: '2-18' })` returns a controller with `ready`, `replay({ seconds })`, `setGrowth(n)`, `climb(n, { seconds })`, `release()`, `snapshot()`, `setWeight()`, `setColour()`, `redraw()`, `stop()` and `remove()`. The element `<sg-rhizoma face="roses" field climb="20" seconds="40">Roses</sg-rhizoma>` does the same with attributes, and fires `sg:ready`, `sg:level`, `sg:settled`, `sg:released` and `sg:error`.
 
 ### Fill a section or the screen, and keep growing
-In field mode the canvas fills the element with no border, on a desktop and on a phone, and the roots run to the edges and past them. `setGrowth` and `climb` continue a growth that is on screen: the roots already grown stay, the tips go on and new roots set out. `release()` withdraws the roots and leaves the word, for an entry that a click opens. Two working pages show it: [the entry](docs/embed/entry.html), and [an example with a heading and a field](docs/embed/index.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html and https://sativus-gourd.github.io/rhizoma-smoke/embed/.
+In field mode the canvas fills the element with no border, on a desktop and on a phone, and the roots run to the edges and past them. `setGrowth` and `climb` continue a growth that is on screen: the roots already grown stay, the tips go on and new roots set out. `release()` withdraws the roots and leaves the word, for an entry that a click opens. Two working pages show it: [the example](docs/embed/entry.html), where a click withdraws the roots and the word grows again from nothing, and [a page with headings and a field](docs/embed/index.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html and https://sativus-gourd.github.io/rhizoma-smoke/embed/.
 
 - The heading keeps its text for screen readers, search and copying; the grown word is drawn over it. If the fonts or the build fail, it stays as text and `sg:error` fires.
 - A heading's roots reach past its text, so give it room.
@@ -77,7 +80,7 @@ Every face as WOFF2, split into Latin and Hangul so a page loads only the script
 installable fonts' own, unchanged. [GUIDE.md](GUIDE.md) shows how to animate the Growth axis with CSS, and in After Effects.
 
 ## What the SG Rhizoma Engine adds to Rhizoma
-Hangul, seeds that bring any growth back, growth that rises or falls letter by letter, variable fonts with a Growth axis,
+Hangul, seeds that bring any growth back, growth that rises or falls letter by letter, variable fonts with Growth and Weight axes,
 growth fitted to each face, roots that start on the outline and leave their stroke cleanly, roots that join across letters
 and lines, drift, taper, turbulence and a current that curls, roots drawn as smooth curves, roots that each grow at a pace
 of their own (the thickest first), multi-line setting, fonts that set as running text, video recording, and an embed for

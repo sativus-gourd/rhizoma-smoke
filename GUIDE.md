@@ -10,7 +10,7 @@ The SG Rhizoma growth leaves this site in five forms. Pick the one that fits the
 | A clip for any editor | Record in the SG Rhizoma Engine on the site | Yes: exactly as it plays on screen |
 | A still, a print, a mask | SVG from the SG Rhizoma Engine | The finished growth |
 
-One difference runs through all of it. The SG Rhizoma Engine grows each root on a clock of its own: the thick roots set out first, a branch starts when its parent's tip reaches it, and every occurrence of a letter grows differently. The fonts carry one growth per character, and their Growth axis lengthens every root together, from the bare letter at 0 to the full growth at 100. For the engine's motion, use the embed or a recording; for type you can set, edit and animate per letter, use the fonts.
+One difference runs through all of it. The SG Rhizoma Engine grows each root on a clock of its own: the thick roots set out first, a branch starts when its parent's tip reaches it, and every occurrence of a letter grows differently. The fonts carry one growth for each look of a character (a Latin letter has three looks, a Hangul syllable one), and their Growth axis lengthens every root together, from the bare letter at 0 to the full growth at 100. For the engine's motion, use the embed or a recording; for type you can set, edit and animate per letter, use the fonts.
 
 ---
 
@@ -64,7 +64,7 @@ The heading grows when a fifth of it comes into view, once.
 </script>
 ```
 
-The controller: `ready` (a promise, true at the first frame), `replay()`, `setGrowth(n)`, `climb(n, { seconds })`, `release({ seconds })`, `snapshot({ type })`, `setWeight(w)`, `setColour(c)`, `redraw()`, `stop()`, `remove()`, and `growth`, `state` and `element` to read. Each method that takes time returns a promise that is true when it has finished and false when something replaced it.
+The controller: `ready` (a promise, true at the first frame), `replay({ seconds })`, `setGrowth(n)`, `climb(n, { seconds })`, `release({ seconds })`, `snapshot({ type })`, `setWeight(w)`, `setColour(c)`, `redraw()`, `stop()`, `remove()`, and `growth`, `state` and `element` to read. Each method that takes time returns a promise that is true when it has finished and false when something replaced it.
 
 **Cost on the visitor's device.** The growth is computed and drawn in the visitor's browser. At growth 10 a heading is light on a phone. At growth 20, SG Roses and SG Rhizoma V2 grow over a thousand roots and play at 15 to 20 frames a second in our test at a quarter of desktop speed, a stand-in for a mid-range phone; keep those for one hero word on a page, and try it on the phones your visitors use. A climb (section 1.3) draws less: roots that have finished are kept as a picture, and only the growing tips are drawn each frame. Visitors who ask for reduced motion see the finished growth at once.
 
@@ -248,7 +248,7 @@ The word grows across the whole screen, as one growth at one steady speed. A cli
 </script>
 ```
 
-A working page with the sound unlock and four stills taken with `snapshot()` is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html. Two choices are yours: the length of the climb (`seconds`, and with it the speed of the tips, see 1.3), and whether the entry runs to growth 20 or stops earlier, where a phone has more room to spare. A click at any moment withdraws the roots from the growth as it stands: the roots do not jump to their full growth first, and they keep their width as they go (on SG Roses, 1% of the roots that remain 0.6 seconds into the release are narrower by 15% or more). We measured a 390 px phone screen at pixel ratio 3, slowed to a quarter of desktop speed, growing SG Roses to 18 over 20 seconds: the first frame after 0.6 s, and frames at a median of 67 ms (15 a second). At full speed the frames were 60 a second. We have not yet run it on a physical phone.
+A working example is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html: SG Roses fills the screen, and a click withdraws the roots and then grows the word again from nothing, with `replay()` where a real site would open its page. A word made with `climb` replays that climb over the same `seconds`, so the second time is as slow as the first. It can be tried as often as you like. Two choices are yours: the length of the climb (`seconds`, and with it the speed of the tips, see 1.3), and whether the entry runs to growth 20 or stops earlier, where a phone has more room to spare. A click at any moment withdraws the roots from the growth as it stands: the roots do not jump to their full growth first, and they keep their width as they go (on SG Roses, 1% of the roots that remain 0.6 seconds into the release are narrower by 15% or more). We measured a 390 px phone screen at pixel ratio 3, slowed to a quarter of desktop speed, growing SG Roses to 18 over 20 seconds: the first frame after 0.6 s, and frames at a median of 67 ms (15 a second). At full speed the frames were 60 a second. We have not yet run it on a physical phone.
 
 ---
 
@@ -260,21 +260,27 @@ Every face as WOFF2, split into Latin and Hangul, so a page loads only the scrip
 <link rel="stylesheet" href="https://sativus-gourd.github.io/rhizoma-smoke/webfonts/sg-rhizoma.css">
 ```
 
-| Family | Growth axis |
+| Family | Axes |
 |---|---|
 | `SG Rhizoma Smoke`, `SG Rhizoma Roses`, `SG Rhizoma V2`, `SG Rhizoma Drag`, `SG Rhizoma Flame`, `SG Rhizoma Tangle` | none: the growth as grown |
-| `SG Rhizoma Smoke Variable`, `SG Rhizoma Roses Variable`, `SG Rhizoma V2 Variable`, `SG Rhizoma Drag Variable`, `SG Rhizoma Flame Variable` | `GRWT`, 0 to 100 |
+| `SG Rhizoma Smoke Variable`, `SG Rhizoma V2 Variable`, `SG Rhizoma Drag Variable`, `SG Rhizoma Flame Variable` | `GRWT` (Growth), 0 to 100, and `wght` (Weight), 100 to 900 |
+| `SG Rhizoma Roses Variable` | `GRWT` (Growth), 0 to 140, and `wght` (Weight), 100 to 900 |
 
-SG Smoke and SG Roses carry the weights the site draws them at, ×1.5 and ×1.25; the other faces are drawn at ×1. The static SG Roses grows to 12, and the Growth axis of SG Roses Variable reaches 10 at 100.
+SG Smoke and SG Roses carry the weights the site draws them at, ×1.5 and ×1.25; the other faces are drawn at ×1. The static SG Roses grows to 12; the Growth axis of SG Roses Variable reaches 10 at 100, 12 at 120 and 14 at 140.
 
-A variable face shows its full growth (100) until told otherwise. Set the axis with `font-variation-settings`:
+A variable face shows its full growth (100) at its regular weight (400) until told otherwise. Set the axes with `font-variation-settings`, or the weight with `font-weight`:
 
 ```css
 h1 {
   font-family: "SG Rhizoma Roses Variable", serif;
   font-variation-settings: "GRWT" 60;
 }
+h2 { font-family: "SG Rhizoma Roses Variable", serif; font-weight: 700; }   /* the Weight axis: 100 thin, 400 regular, 900 black */
 ```
+
+**Weight.** The `wght` axis scales the line weight of the Latin letters, from half of the face's own at 100 to twice it at 900, so 400 is the face as the site draws it. Hangul keeps one weight at every setting. The static fonts are at 400. Browsers set headings in bold, which is weight 700, so a heading in a variable face now takes the axis at 700 where it used to be faked bold; `font-weight: 400` keeps it regular.
+
+**Alternates.** Every face, static and variable, has two alternate looks of its Latin letters. The `calt` feature, which browsers apply by default, steps each letter through the three looks as a run of text goes on, so a repeated letter does not repeat its shape. A space, or any character without alternates, starts the cycle again. `font-feature-settings: "calt" 0` turns it off.
 
 **Animating the axis.** Browsers animate `font-variation-settings` like any other property. Two ways in:
 
@@ -303,9 +309,9 @@ The curve `cubic-bezier(.42, 0, .58, 1)` is the one the site grows by.
 </script>
 ```
 
-**How the fonts move.** Each variable font is built from six stages of one growth (0, 20, 40, 60, 80 and 100), and the axis blends between them. Every root lengthens at once from where it starts, with a slight change of speed at each stage. For the engine's own motion, use the embed.
+**How the fonts move.** Each variable font is built from six stages of one growth (0, 20, 40, 60, 80 and 100; SG Roses adds 120 and 140), and the axis blends between them. Every root lengthens at once from where it starts, with a slight change of speed at each stage. For the engine's own motion, use the embed.
 
-**Weight.** As WOFF2, a Latin face is 0.14 to 0.45 MB and a Latin variable face 0.28 to 0.6 MB. The Hangul files run from 1.2 to 6.1 MB and load only when the page sets Hangul.
+**Size.** As WOFF2, a Latin face is 0.45 to 1.3 MB and a Latin variable face 1.7 to 3.5 MB: both carry the two alternate looks, and the variable ones the Weight axis too. The Hangul files run from 1.2 to 6.1 MB and load only when the page sets Hangul.
 
 ---
 
@@ -321,7 +327,7 @@ After Effects animates variable font axes from version 26.0 (January 2026), the 
 
 For one growth across the whole word, skip the animator and keyframe Growth in the Character panel, 0 to 100. A Wiggly Selector on the Growth animator makes the growth breathe in and out, letter by letter: a good fit for SG Flame. Try one word before a whole piece.
 
-In a font, every occurrence of a character carries the same growth, so the two o's in a word grow alike. For a growth that differs at every letter, record from the engine (section 4).
+In a font, a Latin letter has three looks and each look carries one growth, so repeated letters grow in at most three ways, and an app that does not apply contextual alternates grows them all alike. For a growth that differs at every letter, record from the engine (section 4).
 
 ---
 
