@@ -1,4 +1,4 @@
-/*! SG Rhizoma Engine (embed) v19.25, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v19.26, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
@@ -1618,24 +1618,24 @@ function build(HERE) {
     // growth and the last is the bare word. A release taken alone starts with the finished growth, so it stands by itself.
     const RELEASE_SECS = 1.4, HOLD_SECS = 1.5;      // the entry's length (the embed's default is 1.1); the hold the video keeps
     const ease = u => u < 0.5 ? 2 * u * u : 1 - 2 * (1 - u) * (1 - u);
-    function takePlan(total, fps, kind) {
-      const F = Math.max(1, Math.round(playSecs(total) * fps)), R = Math.max(1, Math.round(RELEASE_SECS * fps)), grow = [], release = [];
+    function takePlan(total, fps, kind, speed = 1) {     // speed below 1: the same steps over 1/speed as many frames (tips move part way, so no frame repeats; v1926/slowprobe.mjs)
+      const F = Math.max(1, Math.round(playSecs(total) * fps / speed)), R = Math.max(1, Math.round(RELEASE_SECS * fps / speed)), grow = [], release = [];
       if (kind !== 'release') for (let k = 0; k <= F; k++) grow.push(k === F ? total : total * k / F);
       if (kind === 'release') release.push(total);
       if (kind !== 'grow') for (let j = 1; j <= R; j++) release.push(j === R ? 0 : total * (1 - ease(j / R)));
-      return { growSecs: playSecs(total), releaseSecs: RELEASE_SECS, grow, release };
+      return { growSecs: playSecs(total) / speed, releaseSecs: RELEASE_SECS / speed, grow, release };
     }
     function player(cv, emMax, pad, transparent, after, pace = 1) {
-      let sc = null, col = null, step = 0, pos = 0, raf = 0, done = null, fadeEl = null; const cache = {};
+      let sc = null, col = null, step = 0, pos = 0, raf = 0, done = null, fadeEl = null, rate = pace; const cache = {};
       const clearFade = () => { if (fadeEl) { fadeEl.remove(); fadeEl = null; } };
       const finish = () => { if (raf) { raf = 0; growing--; } const f = done; done = null; if (f) f(); };
       // how long a growth plays (playSecs). Timed by the clock, not by frames: as long on a 120 Hz screen as on a 60 Hz one, and a
       // dropped frame is caught up (up to two frames' worth) so the roots keep their speed. Steps are not rounded: tips move every frame.
       let odd = false, lastT = 0; function frame(now) { const dt = lastT ? Math.min(34, Math.max(0, now - lastT)) : 1000 / 60; lastT = now;
-        pos += sc.total / (playSecs(sc.total) * 60) * pace * dt / (1000 / 60); step = Math.min(sc.total, pos); odd = !odd; if (odd && step < sc.total && performance.now() - scrollAt < 200) { raf = requestAnimationFrame(frame); return; } const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent, cache); if (step < sc.total) raf = requestAnimationFrame(frame); else finish(); }
+        pos += sc.total / (playSecs(sc.total) * 60) * rate * dt / (1000 / 60); step = Math.min(sc.total, pos); odd = !odd; if (odd && step < sc.total && performance.now() - scrollAt < 200) { raf = requestAnimationFrame(frame); return; } const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent, cache); if (step < sc.total) raf = requestAnimationFrame(frame); else finish(); }
       return {
-        play(s, c, fin) {
-          sc = s; col = c; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = fin || null; if (after) after();
+        play(s, c, fin, speed) {
+          rate = pace * (speed > 0 ? speed : 1); sc = s; col = c; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = fin || null; if (after) after();
           if (reduce) { step = s.total; const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent); finish(); return; }
           step = 0; pos = 0; lastT = 0; cache.sc = null; growing++; raf = requestAnimationFrame(frame);
         },
@@ -2080,7 +2080,7 @@ function build(HERE) {
       customElements.define('sg-rhizoma', SGRhizomaElement);
     }
     const API = {
-      version: '19.25',
+      version: '19.26',
       faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
       grow(el, o) { const e = typeof el === 'string' ? document.querySelector(el) : el; if (!e) throw new Error('SGRhizoma.grow: no element'); return make(e, o || {}); },
       field(el, o) { return API.grow(el, Object.assign({ field: true }, o || {})); },
@@ -2098,7 +2098,7 @@ function build(HERE) {
   var SERVER = typeof window === 'undefined' || typeof document === 'undefined';       // rendered on a server: import is safe, and every call does nothing
   function inert() { var no = function () { return Promise.resolve(false); };
     return { ready: Promise.resolve(false), replay: no, setGrowth: no, climb: no, release: no, snapshot: no, redraw: function () {}, stop: function () {}, setWeight: function () {}, setColour: function () {}, remove: function () {}, growth: null, state: 'server', element: null }; }
-  var lazy = { version: '19.25', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
+  var lazy = { version: '19.26', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow: function (el, o) { return SERVER ? inert() : get().grow(el, o); }, field: function (el, o) { return SERVER ? inert() : get().field(el, o); },
     config: function (c) { return SERVER ? undefined : get().config(c); }, scan: function () { if (!SERVER) get().scan(); } };
 

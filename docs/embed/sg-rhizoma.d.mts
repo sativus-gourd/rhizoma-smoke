@@ -1,4 +1,4 @@
-/* SG Rhizoma Engine (embed) v19.25, types. https://github.com/sativus-gourd/rhizoma-smoke */
+/* SG Rhizoma Engine (embed) v19.26, types. https://github.com/sativus-gourd/rhizoma-smoke */
 export type Face = 'smoke' | 'roses' | 'v2' | 'rhizoma' | 'drag' | 'flame' | 'tangle';
 export type Growth = number | string | { from: number; to: number };
 export interface Options {
