@@ -92,7 +92,9 @@ Measured on SG Roses (the word ROSES, growth 12 in 14 seconds, leaving out the t
 
 **The speed.** A growth is a number of steps (for the word ROSES at growth 20: SG Roses 657, SG Smoke 442, SG Drag 567, SG Flame 657, SG Tangle 697) and the seconds you give are shared out evenly over them. SG Roses to 20 in 40 seconds is 16 steps a second, about 44 px a second at a word 640 px wide; in 25 seconds it is 26 steps a second. The growths of the page's own headings run at about 70 to 130 steps a second.
 
-At a higher growth, SG Smoke, SG Roses, SG Drag, SG Flame and SG Tangle keep every root they had, carry some tips further and add roots of their own. Continuing a growth that is already drawn shows exactly that: the roots already grown stay where they are, the stopped tips go on, and the new roots set out. The last frame is the picture you would get by growing that growth from nothing; the test checks it to the pixel on all five faces. Continuing is the one case where a root already drawn gets wider: a root that goes on is drawn along its whole length at the width of its longer reach, so it swells as its tip runs on. Measured from one growth to the next (SG Roses, growth 12 to 20): where a root had stopped it ends up 1.6 to 1.9 times as wide, and half way along its length 1.1 to 1.25 times. That is how continuing draws today; the first growth of the entry, from nothing, does not do it. SG Rhizoma V2 grows a new plant at each growth and has nothing to carry on, so it plays the new growth whole. A lower growth also plays whole. After `release()` the next growth plays whole from the word.
+At a higher growth, SG Smoke, SG Roses, SG Drag, SG Flame and SG Tangle keep every root they had, carry some tips further and add roots of their own. Continuing a growth that is already drawn shows exactly that: the roots already grown stay where they are, the stopped tips go on, and the new roots set out. The last frame is the picture you would get by growing that growth from nothing; the test checks it to the pixel on all five faces.
+
+Continuing is the one case where a root already drawn gets wider: a root that goes on is drawn along its whole length at the width of its longer reach, so it swells as its tip runs on. Measured from one growth to the next (SG Roses, growth 12 to 20): where a root had stopped it ends up 1.6 to 1.9 times as wide, and half way along its length 1.1 to 1.25 times. That is how continuing draws today; the first growth of the entry, from nothing, does not do it. SG Rhizoma V2 grows a new plant at each growth and has nothing to carry on, so it plays the new growth whole. A lower growth also plays whole. After `release()` the next growth plays whole from the word.
 
 A growth is built in one piece on the page's thread, and the heading stays in the page until its first frame is drawn. For a climb from nothing that is one build, before the first frame, and none after it. In our tests, a fixed field on a 390 px phone screen at pixel ratio 3, climbing to 18 over 20 seconds:
 
@@ -190,6 +192,7 @@ export function rhizoma(node, options) {
   return { destroy() { dead = true; if (ctrl) ctrl.remove(); } };
 }
 ```
+
 ```svelte
 <script>import { rhizoma } from './rhizoma.js';</script>
 <div use:rhizoma={{ face: 'roses', field: true, climb: 20, seconds: 40 }}>Roses</div>
@@ -248,7 +251,11 @@ The word grows across the whole screen, as one growth at one steady speed. A cli
 </script>
 ```
 
-A working example is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html: SG Roses fills the screen, and a click withdraws the roots and then grows the word again from nothing, with `replay()` where a real site would open its page. A word made with `climb` replays that climb over the same `seconds`, so the second time is as slow as the first. It can be tried as often as you like. Two choices are yours: the length of the climb (`seconds`, and with it the speed of the tips, see 1.3), and whether the entry runs to growth 20 or stops earlier, where a phone has more room to spare. A click at any moment withdraws the roots from the growth as it stands: the roots do not jump to their full growth first, and they keep their width as they go (on SG Roses, 1% of the roots that remain 0.6 seconds into the release are narrower by 15% or more). We measured a 390 px phone screen at pixel ratio 3, slowed to a quarter of desktop speed, growing SG Roses to 18 over 20 seconds: the first frame after 0.6 s, and frames at a median of 67 ms (15 a second). At full speed the frames were 60 a second. We have not yet run it on a physical phone.
+A working example is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html: SG Roses fills the screen, and a click withdraws the roots and then grows the word again from nothing, with `replay()` where a real site would open its page. A word made with `climb` replays that climb over the same `seconds`, so the second time is as slow as the first. It can be tried as often as you like.
+
+Two choices are yours: the length of the climb (`seconds`, and with it the speed of the tips, see 1.3), and whether the entry runs to growth 20 or stops earlier, where a phone has more room to spare. A click at any moment withdraws the roots from the growth as it stands: the roots do not jump to their full growth first, and they keep their width as they go (on SG Roses, 1% of the roots that remain 0.6 seconds into the release are narrower by 15% or more).
+
+We measured a 390 px phone screen at pixel ratio 3, slowed to a quarter of desktop speed, growing SG Roses to 18 over 20 seconds: the first frame after 0.6 s, and frames at a median of 67 ms (15 a second). At full speed the frames were 60 a second. We have not yet run it on a physical phone.
 
 ---
 
@@ -336,9 +343,9 @@ In a font, a Latin letter has three looks and each look carries one growth, so r
 The SG Rhizoma Engine at the top of the site records what it plays, as transparent PNG frames (up to 4K) or as a clip.
 
 1. Type the text, choose the face, the colour (Void, Bone, or your own from the colour picker, which also holds the Slate, Oxide and Indigo plates and keeps your pair in the browser), the growth, the line weight and the seed. The up and down buttons beside the Growth ramp raise or lower the whole growth by one, and the left and right buttons under the Weight bar make the roots lighter or heavier by a step (hold one to keep going). Under Plant, the seed comes first; press Replay until the growth is the one you want. **Release** shows how the roots withdraw and leave the word.
-2. Press **Record**, the red-dot button under the preview (every picture button names itself when you hover it). Its panel opens right under the buttons, beside the About text on a wide screen and above it on a narrow one, and moves nothing above it. Choose the take, the format, the frame rate, the size and the speed, then press the button under them.
+2. Press **Record**, the red-dot button under the preview (every picture button names itself when you hover it). Its panel opens right under the buttons, beside the About text on a wide screen and above it on a narrow one, and moves nothing above it. Choose the take, the format, the frame rate, the size and the speed (and, where they apply, the hold and where the frames go), then press the button under them.
 
-| | Choices |
+| Choice | Options |
 |---|---|
 | Take | Grow, Release, or Grow then release |
 | Format | PNG frames, transparent, or Video, in real time |
@@ -356,16 +363,14 @@ Import each folder as an image sequence at the frame rate you chose, hold the la
 
 **Into a folder.** In Chrome and Edge, choose the folder picture under Frames go, press Render frames and pick a folder: the frames are written into it one by one, in a folder named for the take with `grow/`, `release/` and the README. There are no zips to unzip and no download prompts, and a long 4K take holds nothing large in memory. Cancel keeps the frames already written. Other browsers save zips, and so does a page shown inside another page.
 
-**4K.** Choose 3840 × 2160 (or 2160 × 3840 for a vertical cut) for frames at four times the pixels. They are the 1920 × 1080 composition at twice the scale, so a 4K frame lines up with the 1080p one. A 4K take needs more time and more memory than a 1080p one, most of all with a heavy growth, so use a desktop with other tabs closed. In our tests the heaviest take, SG Roses at growth 20 (193 frames at 4K and 30 frames a second), came to about 119 MB in one zip and took under 40 seconds, and at 60 frames a second (385 frames) about 237 MB in two zips in about the same time; a slower computer takes longer. The frames come in zips of about 120 MB at most, saved one after another (a browser may ask to allow several downloads): `name_part1.zip`, `name_part2.zip` and so on. Unzip them all into one folder: the folder names are the same, the frame numbers carry on, and the README is in the first zip. A take that fits stays one zip. If the browser cannot make 4K frames, most likely for want of memory, the panel says so and the 1920 × 1080 size is still there. Video is recorded at 1920 × 1080 at most.
+**4K.** Choose 3840 × 2160 (or 2160 × 3840 for a vertical cut) for frames at four times the pixels. They are the 1920 × 1080 composition at twice the scale, so a 4K frame lines up with the 1080p one. A 4K take needs more time and more memory than a 1080p one, most of all with a heavy growth, so use a desktop with other tabs closed. In our tests the heaviest take, SG Roses at growth 20 (193 frames at 4K and 30 frames a second), came to about 119 MB in one zip and took under 40 seconds, and at 60 frames a second (385 frames) about 237 MB in two zips in about the same time; a slower computer takes longer.
+
+The frames come in zips of about 120 MB at most, saved one after another (a browser may ask to allow several downloads): `name_part1.zip`, `name_part2.zip` and so on. Unzip them all into one folder: the folder names are the same, the frame numbers carry on, and the README is in the first zip. A take that fits stays one zip. If the browser cannot make 4K frames, most likely for want of memory, the panel says so and the 1920 × 1080 size is still there. Video is recorded at 1920 × 1080 at most.
 
 **Video** records in real time, as the engine plays: the growth, then 1.5 seconds on the finished growth (or the hold you choose), then the release if you chose it. At a slower speed it takes that much longer to record. Keep the tab in front while it records: a tab in the background stops drawing, so the recording stops and nothing is saved.
 
-| | |
-|---|---|
-| Format | MP4 in browsers that record it (recent Chrome and Safari); WebM in others, such as Firefox |
-| Ground | the colour's own ground, solid: a clip has no transparency |
-
-If your editor will not open a WebM file, record in Chrome or Safari, or use the frames.
+- **Format:** MP4 in browsers that record it (recent Chrome and Safari), WebM in others, such as Firefox. If your editor will not open a WebM file, record in Chrome or Safari, or use the frames.
+- **Ground:** the colour's own ground, solid. A clip has no transparency.
 
 **Putting a video over footage.** Record in **Bone** (light roots on near-black) and set the clip's blend mode to **Screen**: the black falls away and the roots stay, in After Effects, Premiere Pro, DaVinci Resolve and Final Cut Pro alike. For dark roots over light footage, record in Bone, invert the clip, and set it to **Multiply**. The Void ground is paper, not white, so a Void clip set to Multiply tints what lies under it. The frames need none of this.
 
