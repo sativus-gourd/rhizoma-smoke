@@ -14,6 +14,8 @@ The scripts in `docs/index.html` and `docs/embed/` adapt [Rhizoma Engine v.01](h
 - Hangul glyphs derive from Song Myung, Copyright 2018 The Song Myung Project Authors.
 - The growth outlines are © 2026 Sativus Gourd, made with the SG Rhizoma Engine.
 
+"SG Rhizoma", "SG Smoke" and "SG Roses" are Reserved Font Names: a changed version of a font takes a name of its own.
+
 ## Other fonts on the site
 
 Libre Caslon Text and Libre Franklin (`docs/fonts/ui/`), and the IM Fell English and Song Myung files the engine reads (`docs/fonts/*.woff`), stay under the SIL Open Font License 1.1, with their authors' copyright.

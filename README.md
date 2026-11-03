@@ -45,7 +45,7 @@ Hangul; seeds that bring a growth back; growth that rises or falls letter by let
 ## Credits and licences
 
 - Code: the SG Rhizoma Engine adapts Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0 like the original. Credit Dabin Kim and Sativus Gourd where you use it.
-- Fonts: SIL Open Font License 1.1. Latin from IM Fell English Roman by Igino Marini, Hangul from Song Myung.
+- Fonts: SIL Open Font License 1.1, with Reserved Font Names "SG Rhizoma", "SG Smoke" and "SG Roses". Latin from IM Fell English Roman by Igino Marini, Hangul from Song Myung.
 - Not covered: the Sativus Gourd name, signature, logo and artwork.
 
 See [LICENSE.md](LICENSE.md).

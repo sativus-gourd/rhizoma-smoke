@@ -387,7 +387,7 @@ Recent versions of After Effects import SVG as shape layers. The roots are fille
 
 ## Credits and licences
 
-- **Fonts** (the downloads and the web fonts): SIL Open Font License 1.1. Use them in any work, commercial included.
+- **Fonts** (the downloads and the web fonts): SIL Open Font License 1.1. Use them in any work, commercial included. A changed font takes a name of its own, not SG Rhizoma, SG Smoke or SG Roses.
 - **The embed** (`docs/embed/sg-rhizoma.js` and `sg-rhizoma.mjs`): the SG Rhizoma Engine, adapted from Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0. Credit Dabin Kim and Sativus Gourd where you use it, and share changes to the script under the same licence. It bundles opentype.js 1.3.4 (MIT), whose licence sits in the banner of both files: keep the banner when you minify or bundle (minifiers keep a `/*!` comment).
 - **Not covered**: the Sativus Gourd name, signature and logo, and the atelier's artwork on the site.
 
