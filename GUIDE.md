@@ -312,7 +312,7 @@ The curve `cubic-bezier(.42, 0, .58, 1)` is the one the site grows by.
 
 **How the fonts move.** A variable font blends stages of one growth (0 to 100; SG Roses on to 140), so every root lengthens at once. For the engine's own motion, use the embed.
 
-**Size.** As WOFF2, a Latin face is 0.45 to 1.3 MB, a Latin variable face 1.7 to 3.5 MB, and a Hangul file 1.2 to 6.1 MB, loaded only when the page sets Hangul.
+**Size.** As WOFF2, a Latin face is 0.5 to 1.4 MB and a Latin variable face 1.8 to 5.1 MB. A Hangul file is 1.3 to 4.1 MB, or 5.4 to 14.4 MB for a variable face, and loads only when the page sets Hangul.
 
 ---
 
@@ -357,7 +357,7 @@ Import each folder as an image sequence at the frame rate you chose, hold the la
 
 **Into a folder.** In Chrome and Edge, choose the folder under Frames go: Render frames asks for a folder and writes the frames into it as they are drawn, with no zips. Cancel keeps what is written.
 
-**4K.** 3840 × 2160 and 2160 × 3840 are the 1080p composition at twice the scale, so a 4K frame lines up with the 1080p one. A heavy 4K take wants a desktop with other tabs closed: SG Roses at growth 20 and 60 frames a second comes to about 237 MB. A take over 120 MB comes in several zips (`name_part1.zip`, `name_part2.zip` and so on), saved one after another; unzip them into one folder and the frame numbers carry on. If the browser runs out of memory, the panel says so.
+**4K.** 3840 × 2160 and 2160 × 3840 are the 1080p composition at twice the scale, so a 4K frame lines up with the 1080p one. A heavy 4K take wants a desktop with other tabs closed: SG Roses at growth 20 and 60 frames a second comes to about 250 MB. A take over 125 MB comes in several zips (`name_part1.zip`, `name_part2.zip` and so on), saved one after another; unzip them into one folder and the frame numbers carry on. If the browser runs out of memory, the panel says so.
 
 **Video** records in real time: the growth, the hold, then the release. Keep its tab in front, since a tab in the background stops drawing; the recording then stops and nothing is saved. Video stays at 1920 × 1080.
 

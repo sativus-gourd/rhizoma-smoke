@@ -15,7 +15,7 @@ Type into the engine and the letters grow, each root on a clock of its own, the 
 
 ## Fonts
 
-The fonts to install are in `docs/downloads/`, and the web fonts are in `docs/webfonts/`.
+The fonts to install are in `docs/downloads/`, and the web fonts are in `docs/webfonts/`. If you installed a 19.x version, remove it first.
 
 - The Latin comes from IM Fell English. Each letter has three looks that a run of text steps through, so a repeated letter changes shape; `font-feature-settings: "calt" 0` turns this off.
 - Every face but SG Tangle carries Hangul: the 2,350 syllables of KS X 1001.
