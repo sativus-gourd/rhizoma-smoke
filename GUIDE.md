@@ -279,7 +279,7 @@ h1 {
 h2 { font-family: "SG Rhizoma Roses Variable", serif; font-weight: 700; }   /* the Weight axis: 100 thin, 400 regular, 900 black */
 ```
 
-**Weight.** The `wght` axis scales the line weight of the Latin letters from half the face's own at 100 to twice it at 900; Hangul keeps one weight. The static fonts are at 400. Browsers set headings bold, at 700, so a heading in a variable face takes the axis at 700: `font-weight: 400` keeps it regular.
+**Weight.** The `wght` axis scales the line weight of the roots from half the face's own at 100 to twice it at 900, in Latin and Hangul alike. The static fonts are at 400. Browsers set headings bold, at 700, so a heading in a variable face takes the axis at 700: `font-weight: 400` keeps it regular.
 
 **Alternates.** Each Latin letter has three looks. The `calt` feature, on by default, steps through them along a run of text, so a repeated letter changes shape. A space starts the cycle again, and `font-feature-settings: "calt" 0` turns it off.
 
@@ -387,7 +387,7 @@ Recent versions of After Effects import SVG as shape layers. The roots are fille
 
 ## Credits and licences
 
-- **Fonts** (the downloads and the web fonts): SIL Open Font License 1.1. Use them in any work, commercial included. A changed font takes a name of its own, not SG Rhizoma, SG Smoke or SG Roses.
+- **Fonts** (the downloads and the web fonts): SIL Open Font License 1.1. Use them in any work, commercial included, and credit Sativus Gourd where you can. A changed font takes a name of its own, not SG Rhizoma, SG Smoke or SG Roses.
 - **The embed** (`docs/embed/sg-rhizoma.js` and `sg-rhizoma.mjs`): the SG Rhizoma Engine, adapted from Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0. Credit Dabin Kim and Sativus Gourd where you use it, and share changes to the script under the same licence. It bundles opentype.js 1.3.4 (MIT), whose licence sits in the banner of both files: keep the banner when you minify or bundle (minifiers keep a `/*!` comment).
 - **Not covered**: the Sativus Gourd name, signature and logo, and the atelier's artwork on the site.
 

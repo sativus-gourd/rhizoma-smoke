@@ -3,7 +3,7 @@
 The SG Rhizoma Engine and Typeface Family by Sativus Gourd, led by SG Smoke and SG Roses. Built on [Rhizoma](https://github.com/dabinkiim/Rhizoma), the growing type system by Dabin Kim.
 
 - **Website:** https://sativus-gourd.github.io/rhizoma-smoke/
-- **Guide:** [GUIDE.md](GUIDE.md), the growth on a website, in After Effects and on video
+- **Guide:** [GUIDE.md](GUIDE.md), how to use the growth on a website, in After Effects and on video
 
 Type into the engine and the letters grow, each root on a clock of its own, the thickest first. Bring any growth back from its seed, let it rise or fall through a text, save it as SVG, copy its embed code, record it as transparent PNG frames or video, and download the fonts. Leave the page open and it keeps growing.
 
@@ -15,7 +15,12 @@ Type into the engine and the letters grow, each root on a clock of its own, the 
 
 ## Fonts
 
-In `docs/downloads/` to install, and in `docs/webfonts/` for the web. The Latin comes from IM Fell English, each letter in three looks that a run of text steps through, so a repeated letter changes shape (`font-feature-settings: "calt" 0` turns it off). Every face but SG Tangle carries Hangul: the 2,350 syllables of KS X 1001. SG Smoke and SG Roses carry the weights the site draws them at, ×1.5 and ×1.25; on the Weight axis 400 is that weight, 100 half and 900 double, for the Latin letters. SG Rhizoma V2 is grown with Dabin Kim's Rhizoma at its defaults.
+The fonts to install are in `docs/downloads/`, and the web fonts are in `docs/webfonts/`.
+
+- The Latin comes from IM Fell English. Each letter has three looks that a run of text steps through, so a repeated letter changes shape; `font-feature-settings: "calt" 0` turns this off.
+- Every face but SG Tangle carries Hangul: the 2,350 syllables of KS X 1001.
+- SG Smoke and SG Roses carry the weights the site draws them at, ×1.5 and ×1.25. On the Weight axis of the Variable fonts, 400 is that weight, 100 is half and 900 is double, in Latin and Hangul alike.
+- SG Rhizoma V2 is grown with Dabin Kim's Rhizoma at default settings.
 
 ## Use it on your site
 
@@ -45,7 +50,7 @@ Hangul; seeds that bring a growth back; growth that rises or falls letter by let
 ## Credits and licences
 
 - Code: the SG Rhizoma Engine adapts Rhizoma Engine v.01 by Dabin Kim, under CC BY-SA 4.0 like the original. Credit Dabin Kim and Sativus Gourd where you use it.
-- Fonts: SIL Open Font License 1.1, with Reserved Font Names "SG Rhizoma", "SG Smoke" and "SG Roses". Latin from IM Fell English Roman by Igino Marini, Hangul from Song Myung.
+- Fonts: SIL Open Font License 1.1, with Reserved Font Names "SG Rhizoma", "SG Smoke" and "SG Roses". Latin from IM Fell English Roman by Igino Marini, Hangul from Song Myung. Credit Sativus Gourd where you can.
 - Not covered: the Sativus Gourd name, signature, logo and artwork.
 
 See [LICENSE.md](LICENSE.md).
