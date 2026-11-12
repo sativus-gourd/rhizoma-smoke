@@ -1,4 +1,4 @@
-/* SG Rhizoma Engine (embed) v1.0, types. https://github.com/sativus-gourd/rhizoma-smoke */
+/* SG Rhizoma Engine (embed) v1.1, types. https://github.com/sativus-gourd/rhizoma-smoke */
 declare namespace SGRhizoma {
   type Face = 'smoke' | 'roses' | 'v2' | 'rhizoma' | 'drag' | 'flame' | 'tangle';
   type Growth = number | string | { from: number; to: number };

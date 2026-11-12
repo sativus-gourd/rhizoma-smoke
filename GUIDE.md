@@ -1,4 +1,4 @@
-# Using the growth: on a website, in After Effects, on video
+# Using the growth: on a website, in After Effects, on video and as stills
 
 Pick the form that fits the work:
 
@@ -10,7 +10,7 @@ Pick the form that fits the work:
 | Frames or a clip for any editor | Record in the SG Rhizoma Engine on the site | Yes: exactly as it plays on screen |
 | A still, a print, a mask | SVG from the SG Rhizoma Engine | The finished growth |
 
-The engine grows each root on a clock of its own: the thick roots first, a branch when its parent's tip reaches it, and every letter differently. A font carries one growth for each look of a character, and its Growth axis lengthens every root at once, from the bare letter at 0 to the full growth at 100. For the engine's motion, use the embed or a recording; for type you can set, edit and animate letter by letter, use the fonts.
+The engine grows each root on a clock of its own: the thick roots first, a branch when its parent's tip reaches it, and every letter differently. A font carries one growth for each of a character's three looks, and its Growth axis lengthens every root at once, from the bare letter at 0 to the full growth at 100. For the engine's motion, use the embed or a recording; for type you can set, edit and animate letter by letter, use the fonts.
 
 ---
 
@@ -46,9 +46,9 @@ The heading grows once, when a fifth of it comes into view.
 | `data-dpr` | the highest pixel ratio drawn | `2` |
 | `data-autoplay` | `false` draws nothing until you call `replay()`, `setGrowth()` or `climb()` | on |
 
-**Finding a seed.** Grow your text in the engine on the site until a growth holds, then press Copy embed code: it carries the face, seed, growth, weight and colours. The same text, face, growth and seed grow the same shape anywhere.
+**Finding a seed.** Grow your text in the engine on the site until you have a growth you want to keep, then press Copy embed code: it carries the face, seed, growth, weight and colours. The same text, face, growth and seed grow the same shape anywhere.
 
-**Line weight.** Root width is a multiplier. Each face grows at the weight that suits it: SG Smoke 1.5, SG Roses 1.25, the others 1, with `fine` and `heavy` as its lighter and heavier presets. The weight changes only the width, so a seed grows the same shape at any weight. At high growth SG Smoke eases its own weight down, to 1.3 from growth 18, so its roots do not fill the letters. Growths made before v19.17 were drawn at 1: `data-weight="1"` matches them.
+**Line weight.** Root width is a multiplier. Each face grows at the weight that suits it: SG Smoke 1.5, SG Roses 1.25, the others 1, with `fine` and `heavy` as its lighter and heavier presets. The weight changes only the width, so a seed grows the same shape at any weight. At high growth SG Smoke eases its own weight down, to 1.3 from growth 18, so its roots do not fill the letters. Growths made with a beta before v19.17 were drawn at 1, and `data-weight="1"` matches them.
 
 **Room.** Roots reach past the text. Give a heading padding, about half its font size above and below at growth 10, and more for SG Roses and SG Rhizoma V2 above 15. A field (section 1.2) clips at its own edge instead.
 
@@ -125,7 +125,7 @@ Events fire on the element and bubble, so one listener on `document` hears every
 
 ### 1.5 In your stack
 
-Three ways in, one engine:
+The embed loads in three ways:
 
 - **A script tag**, for a plain page, WordPress, Webflow, Squarespace, Shopify or any other that takes a script and some HTML: in the head with `defer`, at the end of the body, with `async`, or after the page has loaded. Use `data-sg-rhizoma` or `<sg-rhizoma>`.
 - **A module**, `docs/embed/sg-rhizoma.mjs`: `import SGRhizoma, { grow } from './sg-rhizoma.mjs'`. On a server every call does nothing and returns an inert controller, so a server-rendered component may import it. Grow in the browser: in an effect, `onMounted`, an action or a script.
@@ -133,7 +133,7 @@ Three ways in, one engine:
 
 For TypeScript, put `sg-rhizoma.d.mts` beside the module: it types the options, the controller and the events.
 
-**Where the files go.** Copy `docs/embed/sg-rhizoma.mjs` (and `sg-rhizoma.d.mts`) into your source folder and `docs/fonts/` into your public folder, so that your site serves `/fonts/im-fell-english.woff`. Loaded as it is, the script looks for the fonts above itself (`/embed/sg-rhizoma.js` reads `/fonts/`); renamed by a bundler, at the site root; either falls back to the other, and `SGRhizoma.config({ base: '/assets/sg-rhizoma/' })` fixes one place. Serve the fonts from your own site or from a host that sends CORS headers, as GitHub Pages does.
+**Where the files go.** Copy `docs/embed/sg-rhizoma.mjs` (and `sg-rhizoma.d.mts`) into your source folder and `docs/fonts/` into your public folder, so that your site serves `/fonts/im-fell-english.woff`. Loaded as it is, the script looks for the fonts one folder above itself, so `/embed/sg-rhizoma.js` reads `/fonts/`. When a bundler has renamed it, it looks at the site root. Each falls back to the other, and `SGRhizoma.config({ base: '/assets/sg-rhizoma/' })` sets one place. Serve the fonts from your own site or from a host that sends CORS headers, as GitHub Pages does.
 
 Each recipe below is a tested app: React 19 (StrictMode), Next.js 16 (webpack and Turbopack), Vue 3.5, Nuxt 4, Svelte 5, SvelteKit 2, Astro 5 and Angular 21 (strict TypeScript). Each grows the word, climbs, unmounts without leaving a canvas, mounts again and resizes, with no request off the site and no error.
 
@@ -227,7 +227,7 @@ For the element in Angular, add `schemas: [CUSTOM_ELEMENTS_SCHEMA]` to the compo
 
 Every recipe has one shape: import in the browser once the component is mounted, keep the controller, call `remove()` when the component goes, and ignore an import that arrives after it has gone (the `dead` flag), as StrictMode and fast route changes produce.
 
-### 1.6 An entry: SG Roses fills the screen, a click opens the site
+### 1.6 An entry screen
 
 The word grows across the whole screen at one steady speed. A click starts the music, the roots withdraw, and the page behind the entry opens.
 
@@ -242,14 +242,14 @@ The word grows across the whole screen at one steady speed. A click starts the m
     rose.stop();                           // the growth stops where it is
     await rose.release({ seconds: 1.4 }); // the roots withdraw from there, and sg:released fires
     entry.remove();                        // the entry is gone
-    openTheSite();                         // the page behind it, the scroll of stills
+    openTheSite();                         // show the page behind it
   }, { once: true });
 </script>
 ```
 
 The working example is [docs/embed/entry.html](docs/embed/entry.html), live at https://sativus-gourd.github.io/rhizoma-smoke/embed/entry.html: a click withdraws the roots and grows the word again from nothing, where a real site would open its page. A click at any moment withdraws the roots from where they stand, at the width they have.
 
-Two choices are yours: the length of the climb (`seconds`, and with it the speed of the tips, section 1.3), and whether it runs to growth 20 or stops earlier, which leaves a phone more room.
+Two choices are yours: the length of the climb (`seconds`, and with it the speed of the tips, section 1.3), and whether it runs to growth 20 or stops earlier, which is lighter on a phone.
 
 ---
 
@@ -324,7 +324,7 @@ After Effects animates variable font axes from version 26.0 (January 2026), the 
 2. Make a text layer and set it in the face, for instance SG Rhizoma Roses Variable.
 3. In the Character panel, set Growth to 0: the bare letter.
 4. Add an animator: Animate > Variable Font Axes > Growth. Set the animator's Growth to 100.
-5. The animator comes with a Range Selector. Keyframe its **End** from 0% to 100% over two to four seconds, and ease the keyframes. With the selector's Shape at Square and Smoothness at 100% (under Advanced, as they come), each letter grows as the end of the range passes over it, in reading order.
+5. The animator comes with a Range Selector. Keyframe its **End** from 0% to 100% over two to four seconds, and ease the keyframes. With the selector's Shape at Square and Smoothness at 100% (under Advanced, both the defaults), each letter grows as the end of the range passes over it, in reading order.
 
 For one growth across the whole word, keyframe Growth in the Character panel instead, 0 to 100. A Wiggly Selector on the Growth animator makes the growth breathe in and out, letter by letter: a good fit for SG Flame.
 
@@ -337,17 +337,17 @@ A Latin letter has three looks in a font, each with one growth, so repeated lett
 The engine records what it plays, as transparent PNG frames or as a video.
 
 1. Set the text, face, colour, growth, weight and seed, and press Replay until the growth is the one you want. Release shows how the roots withdraw.
-2. Press **Record**, the red dot under the preview, make your choices and press the button under them.
+2. Press **Record**, the red dot under the preview, make your choices and press Start recording or Render frames.
 
 | Choice | Options |
 |---|---|
 | Take | Grow, Release, or Grow then release |
 | Format | PNG frames, transparent, or Video, in real time |
-| Frame rate | 24, 25, 30 or 60 frames a second (60 to begin with) |
-| Size | 1920 × 1080 (to begin with), or 1080 × 1920 for a vertical cut; for PNG frames also 3840 × 2160 (4K) and 2160 × 3840 |
-| Speed | ×0.1, ×0.25, ×0.5 or ×1 (to begin with): the same growth, slower |
-| Hold | For a video of both: 0, 1.5 (to begin with), 3 or 5 seconds on the finished growth |
-| Frames go | Into zips (to begin with) or, in Chrome and Edge, straight into a folder you choose |
+| Frame rate | 24, 25, 30 or 60 frames a second (60 by default) |
+| Size | 1920 × 1080 (the default), or 1080 × 1920 for a vertical cut; for PNG frames also 3840 × 2160 (4K) and 2160 × 3840 |
+| Speed | ×0.1, ×0.25, ×0.5 or ×1 (the default): the same growth, slower |
+| Hold | For a video of both: 0, 1.5 (the default), 3 or 5 seconds on the finished growth |
+| Frames go | Into zips (the default) or, in Chrome and Edge, straight into a folder you choose |
 
 **PNG frames** are for an editor. A take holds `grow/`, from the bare word to the finished growth, and `release/`, back to the bare word, as numbered frames, with a README that gives its settings so the same frames can be made again. The ground is transparent and the roots solid, so the frames lie over footage with no blend mode.
 
@@ -359,7 +359,7 @@ Import each folder as an image sequence at the frame rate you chose, hold the la
 
 **4K.** 3840 × 2160 and 2160 × 3840 are the 1080p composition at twice the scale, so a 4K frame lines up with the 1080p one. A heavy 4K take wants a desktop with other tabs closed: SG Roses at growth 20 and 60 frames a second comes to about 250 MB. A take over 125 MB comes in several zips (`name_part1.zip`, `name_part2.zip` and so on), saved one after another; unzip them into one folder and the frame numbers carry on. If the browser runs out of memory, the panel says so.
 
-**Video** records in real time: the growth, the hold, then the release. Keep its tab in front, since a tab in the background stops drawing; the recording then stops and nothing is saved. Video stays at 1920 × 1080.
+**Video** records in real time: the growth, the hold, then the release. Keep its tab in front, since a tab in the background stops drawing; the recording then stops and nothing is saved. Video stays at 1080p.
 
 - **Format:** MP4 in browsers that record it (recent Chrome and Safari), WebM in others, such as Firefox. If your editor will not open a WebM file, record in Chrome or Safari, or use the frames.
 - **Ground:** the colour's own ground, solid. A clip has no transparency.
