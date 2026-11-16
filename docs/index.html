@@ -841,10 +841,11 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
 .wmini path { fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2.4; }
 @media (min-width: 641px) {
   .dock .gp, .dock .wp { width: 1.75rem; height: 1.75rem; } .dock .gp[data-g="20,20"] { margin-right: 0; }
-  .dock .pic { width: 2.125rem; height: 2.125rem; } .dock .pic svg { width: 1.2rem; height: 1.2rem; }
-  .dock .cgrp { height: 2.125rem; background: var(--ground); } .dock .pic.in { width: 1.875rem; height: 1.875rem; } .dock .pic.in svg { width: 1.1rem; height: 1.1rem; }
-  .dock .seedctl { margin: 0; } .dock .seedctl .pic { height: 2.125rem; }
-  .dock .seedctl #t-seed, .dock .seedctl #t-seed:hover, .dock .seedctl #t-seed:focus { width: 3.8rem; height: 2.125rem; padding: 0 .25rem; font-size: .92rem; }
+  /* v1.1.1: the buttons that act on the picture (Plant, Save) a size up, 36 px with 21 px drawings; the copies 32 px (were 34 and 30; Miko, 16 Nov) */
+  .dock .pic { width: 2.25rem; height: 2.25rem; } .dock .pic svg { width: 1.3rem; height: 1.3rem; }
+  .dock .cgrp { height: 2.25rem; background: var(--ground); } .dock .pic.in { width: 2rem; height: 2rem; } .dock .pic.in svg { width: 1.25rem; height: 1.25rem; }
+  .dock .seedctl { margin: 0; } .dock .seedctl .pic { height: 2.25rem; }
+  .dock .seedctl #t-seed, .dock .seedctl #t-seed:hover, .dock .seedctl #t-seed:focus { width: 3.8rem; height: 2.25rem; padding: 0 .25rem; font-size: .92rem; }
   .dock .chips { gap: .4rem; flex-wrap: nowrap; } .dock .chip .cs { width: 2.25rem; height: 1.875rem; font-size: 1.1rem; }
   .dock .vfctl.wsl input { width: 13rem; }
   /* the title holds about two fifths of the first screen, so the stage begins on it (I-70) */
@@ -1290,7 +1291,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     <li>Voltaire, <em>Candide</em> (1759). Astrid Lindgren, <em>Karlsson-on-the-Roof</em>, quoted as the epigraph to Kafka on Waterloo Shore.</li>
     <li>Not covered by these licences: the Sativus Gourd name, signature and logo, the atelier artwork shown here (including the 담배 피는 여자 / Women Who Smoke lockup and the Kafka on Waterloo Shore page) and the text of this site are © 2026 Sativus Gourd and their respective owners. All rights reserved.</li>
   </ul>
-  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v1.1" target="_blank" rel="noopener" aria-label="Release notes for version 1.1">v1.1</a><button type="button" class="theme" id="theme" aria-label="Switch to light" data-tip="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.6" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 4.4a7.6 7.6 0 0 1 0 15.2z" fill="currentColor"/></svg></button></p>
+  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v1.1.1" target="_blank" rel="noopener" aria-label="Release notes for version 1.1.1">v1.1.1</a><button type="button" class="theme" id="theme" aria-label="Switch to light" data-tip="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.6" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 4.4a7.6 7.6 0 0 1 0 15.2z" fill="currentColor"/></svg></button></p>
 </footer>
 
 <section class="signoff wrap" aria-label="Sativus Gourd">
@@ -2070,7 +2071,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     R._tr = rad; R._trS = s; return rad;
   }
   function outline(o, R, nVis) {
-    const s0 = pathOf(o, R), nf = Math.min(s0.length, nVis == null ? s0.length : nVis + (R._pre || 0));   // _pre: points drawn before the first step
+    const s0 = draw.pmix ? draw.pmix(R, pathOf(o, R), nVis == null ? R.segs.length : nVis) : pathOf(o, R), nf = Math.min(s0.length, nVis == null ? s0.length : nVis + (R._pre || 0));   // _pre: points drawn before the first step
     if (!(nf > 1 + 1e-6)) return null;
     // nVis may be part way through a step (a page playing a growth smoothly): the last point then sits that far along its
     // step, and widths run over the length shown. A whole nVis draws exactly as before.
@@ -2099,12 +2100,13 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       let h = wf(o, R, i, nW) / 2;
       if (keep && nib > 0 && !R.burn) { const a = Math.min(1, (s0.length - nf) / nib); if (a > 0) { const d = Math.max(0, nf - 1 - i), g = Math.min(1, (d + 0.15 * nib) / nib); h = Math.max(h * (1 - a * (1 - g)), Math.min(h, o.minWidth / 2)); } }
       if (lw > 1) { if (i === 0) { let L = 0; for (let j = 1; j < s0.length; j++) L += Math.hypot(s0[j].x - s0[j - 1].x, s0[j].y - s0[j - 1].y); ramp = Math.min(2 * h, 0.3 * L); } const t = ramp > 0 ? Math.min(1, run / ramp) : 1; h *= 1 + (lw - 1) * t * t * (3 - 2 * t); }
-      else if (lw !== 1) h = Math.max(h * lw, o.minWidth / 2); if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); hs.push(h);
+      else if (lw !== 1) h = Math.max(h * lw, o.minWidth / 2); if (lim) h = Math.max(Math.min(h, lim[i]), Math.min(h, o.minWidth / 2)); if (draw.wmix) h = draw.wmix(R, i, nf - (R._pre || 0), h); hs.push(h);
       L.push([s[i].x - dy * h, s[i].y + dx * h]); Rr.push([s[i].x + dy * h, s[i].y - dx * h]);
     }
     const cap = (p, q, h) => { const ang = Math.atan2(p.y - q.y, p.x - q.x) - Math.PI / 2, out = []; for (let k = 1; k < 8; k++) { const a = ang + Math.PI * k / 8; out.push([p.x + Math.cos(a) * h, p.y + Math.sin(a) * h]); } return out; };
     return [...Rr, ...cap(s[n - 1], s[n - 2], hs[n - 1]), ...L.reverse(), ...(R._butt ? [] : cap(s[0], s[1], hs[0]))];   // _butt: a flat start (flatStart)
   }
+  draw.pathOf = pathOf;
   function polyD(pts) { return 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L') + 'Z'; }
 
   // ---------- canvas
@@ -2541,8 +2543,8 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       if (pick && !pick(R)) continue;
       const nf = step == null ? R.segs.length : scene.clock ? scene.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);
       if (!(nf > 1 + 1e-6)) continue;
-      const s = smoothed(R), k = leaves(R, s, it), n = Math.ceil(nf - 1e-9), w = new Float64Array(n + 1);
-      for (let i = 1; i < n; i++) w[i] = Math.max(2, segWidth(scene, it, R, k, i, nf, step, keep)) * lw;
+      const s = WPATH ? WPATH(R, smoothed(R), nf) : smoothed(R), k = leaves(R, smoothed(R), it), n = Math.ceil(nf - 1e-9), w = new Float64Array(n + 1);
+      for (let i = 1; i < n; i++) { w[i] = Math.max(2, segWidth(scene, it, R, k, i, nf, step, keep)) * lw; if (WMIX) w[i] = WMIX(R, i, nf, w[i]); }
       // one ribbon down the root (its left side out, its right side back) and a round at every point. Separate pieces between
       // the points would leave faint seams where their ends nearly coincide (measured in Skia, 12 Nov)
       let ax = 0, ay = 0, ra = 0; const Lf = [], Rt = [];
@@ -2568,10 +2570,10 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
         if (pick && !pick(R)) continue;
         const nf = step == null ? R.segs.length : scene.clock ? scene.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);
         if (!(nf > 1 + 1e-6)) continue;                                  // a hair past its first point is not yet a step
-        const s = smoothed(R), k = leaves(R, s, it), n = Math.ceil(nf - 1e-9);   // the last step drawn may be part way
+        const s = WPATH ? WPATH(R, smoothed(R), nf) : smoothed(R), k = leaves(R, smoothed(R), it), n = Math.ceil(nf - 1e-9);   // the last step drawn may be part way
         for (let i = 1; i < n; i++) {
           const wv = segWidth(scene, it, R, k, i, nf, step, keep);
-          const key = Math.max(2, Math.round(wv / 3) * 3) * lw;
+          let key = Math.max(2, Math.round(wv / 3) * 3) * lw; if (WMIX) key = WMIX(R, i, nf, key);
           let p = buckets.get(key); if (!p) { p = new Path2D(); buckets.set(key, p); }
           const a = s[i - 1], c = s[i], f = i === n - 1 && n - nf > 1e-9 ? 1 - (n - nf) : 1;
           p.moveTo(a.x + it.x, a.y + it.y); p.lineTo(a.x + (c.x - a.x) * f + it.x, a.y + (c.y - a.y) * f + it.y);
@@ -3043,6 +3045,237 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     ctx.setTransform(...T); drawPart(ctx, sc, step, col, R => !K.done.has(R), false);
     tipDots(ctx, sc, step, 2.4, cam.s, lw);
   }
+  // ---------- v1.1.1: one change of growth, whatever it does to each root (16 Nov, after Miko: "when i click between ... high left
+  // growth and high right growth ... the transition isn't at all smooth and cuts off", "the reverse growth sometimes appears
+  // unnecessarily jagged"). v1.1 carried a growth on only when every root grew, and drew one back only when every root shrank;
+  // anything else (Rise to Fall, a change part way through another) played whole from the bare word. And a growth drawn back
+  // was drawn whole on every frame, which a slow machine shows as stutter.
+  //
+  // A morph takes what is on the stage, root by root, and the new growth, root by root: a root the new growth has longer grows
+  // on, one it has shorter draws back to that length, one it does not have draws back to nothing, and its new roots grow from
+  // their letters, all at once and in the growth's own order. Roots that grow follow the new growth's clock forwards; roots that
+  // withdraw follow the clock they grew by backwards, at the same even pace, so drawing back is growing seen in reverse.
+  //
+  // A layer is a scene's view with a clock of its own: { view, stepAt(u), letters }. u runs 0 to 1 over the morph.
+
+  // A root's widths belong to its growth: the same root is a little finer in a growth where it ends sooner. So that nothing
+  // changes width at the click or at the landing, a morph blends them: a root that grows on starts with the widths it had and
+  // takes its own as it grows; a root that draws back to a shorter self takes that self's widths as it goes. WMIX (SG Smoke's
+  // segWidth) and S2.draw.wmix (the V2 outline) are the hook: (root, index, length shown, width) -> width.
+  let WMIX = null, MORPH_SLOW = 0;      // MORPH_SLOW: the fewest roots a morph had when this machine fell behind drawing it whole
+  // a still picture took ms to draw whole: over 12 ms, a morph of as many roots starts on the bitmaps
+  const morphTimed = (sc, ms) => { if (ms > 12) { const n = allRoots(sc).length; MORPH_SLOW = MORPH_SLOW ? Math.min(MORPH_SLOW, n) : n; } };
+  const NOCTX = (() => { const n = () => {}; return { beginPath: n, moveTo: n, lineTo: n, closePath: n, fill: n, stroke: n, quadraticCurveTo: n, bezierCurveTo: n, arc: n, rect: n, save: n, restore: n, setTransform: n }; })();
+  let WPATH = null;
+  const withMix = (fn, f, pfn) => { const a = WMIX, b = S2.draw.wmix, c = WPATH, d = S2.draw.pmix; WMIX = S2.draw.wmix = fn || null; WPATH = S2.draw.pmix = pfn || null; try { return f(); } finally { WMIX = a; S2.draw.wmix = b; WPATH = c; S2.draw.pmix = d; } };
+  // the widths these roots are drawn with in a view at a step (prior: the blend they are under now): Map root -> [width by index]
+  function morphWidths(view, step, col, roots, prior, zoomed) {
+    const out = new Map(), want = new Set(roots); if (!want.size) return out;
+    const rec = (R, i, nf, w) => { if (prior) w = prior(R, i, nf, w); let a = out.get(R); if (!a) out.set(R, a = []); a[i] = w; return w; };
+    const z = ZSMOOTH; ZSMOOTH = !!zoomed;      // a zoomed-in stage draws SG Smoke's widths unrounded
+    try { withMix(rec, () => drawPart(NOCTX, view, step, col, R => want.has(R), false)); } finally { ZSMOOTH = z; }
+    return out;
+  }
+  // what the stage shows of a scene's view at a step: [{ base, groups: [[{ R, nf }]] }], base being the scene the roots belong to
+  function morphState(view, step, base) {
+    const clock = view.clock || ((R, s) => Math.min(R.segs.length, s - R.birth + 1));
+    const cut = rs => rs.map(R => ({ R, nf: step == null ? R.segs.length : clock(R, step) })).filter(e => e.nf > 1 + 1e-6);
+    return { base: base || view, view, step, groups: view.kind === 'smoke' ? view.items.map(it => cut(it.roots)) : [cut(view.roots)] };
+  }
+  // the layers that take the stage (states: morphState()s) to the scene B, or null when they cannot be compared
+  function morphPlan(states, B, col, prior, zoomed) {
+    const groupsB = B.kind === 'smoke' ? B.items.map(it => it.roots) : [B.roots];
+    if (!states.length || states.some(S => S.groups.length !== groupsB.length || S.base.kind !== B.kind)) return null;
+    const key = p => Math.round(p.x * 8) + ',' + Math.round(p.y * 8), near = (p, q) => Math.abs(p.x - q.x) < 0.07 && Math.abs(p.y - q.y) < 0.07;
+    const n0 = new Map(), hide = new Set(), back = new Map();      // back: base -> Map(R -> { from, to })
+    const on = [], to = [];                                         // pairs: a root that grows on [Q, P, state, length], one that draws back to a shorter self [P, Q, state, from]
+    let grows = false;
+    for (let i = 0; i < groupsB.length; i++) {
+      const by = new Map(); for (const R of groupsB[i]) { const k = key(R.segs[0]); if (!by.has(k)) by.set(k, []); by.get(k).push(R); }
+      const used = new Set();
+      for (const S of states) for (const e of S.groups[i]) {
+        const R = e.R, n = Math.min(R.segs.length, Math.ceil(e.nf - 1e-9));
+        const Q = (by.get(key(R.segs[0])) || []).find(Q => { if (used.has(Q)) return false; const c = Math.min(n, Q.segs.length); return c >= 2 && near(Q.segs[c - 1], R.segs[c - 1]) && near(Q.segs[c >> 1], R.segs[c >> 1]); });
+        const shrink = to => { if (!back.has(S.base)) back.set(S.base, new Map()); back.get(S.base).set(R, { from: e.nf, to }); };
+        if (!Q) { shrink(1); continue; }
+        used.add(Q);
+        if (Q.segs.length >= e.nf - 1e-6) { n0.set(Q, e.nf); on.push([Q, R, S, e.nf]); } else { shrink(Q.segs.length); hide.add(Q); to.push([R, Q, S, e.nf]); }
+      }
+    }
+    const layers = [];
+    // the new growth: its roots from the length they have (or from their letters), by its own clock
+    const cB = B.clock || ((R, s) => Math.min(R.segs.length, s - R.birth + 1)), rb = [].concat(...groupsB);
+    const vB = Object.create(B); vB.clock = (R, s) => { if (hide.has(R)) return 0; const n = n0.get(R), c = cB(R, s); return n && c < n ? n : c; };
+    const moved = s => { for (const R of rb) if (!hide.has(R) && cB(R, s) > (n0.get(R) || 1) + 1e-6) return true; return false; };
+    let s0 = B.total; if (moved(B.total)) { let lo = 0, hi = B.total; while (hi - lo > 0.25) { const m = (lo + hi) / 2; if (moved(m)) hi = m; else lo = m; } s0 = lo; grows = true; }
+    // it ends when its last root is whole, not at the growth's last step
+    let s1 = B.total; if (grows) { const whole = s => rb.every(R => hide.has(R) || cB(R, s) >= R.segs.length - 1e-6); let lo = s0, hi = B.total; while (hi - lo > 0.25) { const m = (lo + hi) / 2; if (whole(m)) hi = m; else lo = m; } s1 = hi; }
+    const spanB = s1 - s0; layers.push({ view: vB, stepAt: u => u >= 1 ? B.total : s0 + spanB * u, letters: true, base: B, span: spanB, total: B.total, grow: true });
+    // what withdraws: each scene's roots by the clock they grew by, backwards
+    for (const [base, M] of back) {
+      const cA = base.clock || ((R, s) => Math.min(R.segs.length, s - R.birth + 1)), rs = [...M.keys()], T = base.total;
+      const v = Object.create(base);
+      if (base.kind === 'smoke') v.items = base.items.map(it => { const j = Object.create(it); j.roots = it.roots.filter(R => M.has(R)); return j; }); else { v.roots = rs; v.insts = []; }
+      v.clock = (R, s) => { const m = M.get(R); return m ? Math.max(m.to, Math.min(m.from, cA(R, s))) : 0; };
+      const full = s => rs.every(R => cA(R, s) >= M.get(R).from - 1e-6), none = s => rs.every(R => cA(R, s) <= M.get(R).to + 1e-6);
+      let hi = T; if (full(0)) hi = 0; else { let a = 0, b = T; for (let k = 0; k < 40 && b - a > 0.05; k++) { const m = (a + b) / 2; if (full(m)) b = m; else a = m; } hi = b; }
+      let lo = 0; if (none(hi)) lo = hi; else { let a = 0, b = hi; for (let k = 0; k < 40 && b - a > 0.05; k++) { const m = (a + b) / 2; if (none(m)) a = m; else b = m; } lo = a; }
+      layers.push({ view: v, stepAt: u => hi - (hi - lo) * u, letters: false, base, span: hi - lo, total: T, grow: false });
+    }
+    // the blend of widths and paths (prior: the blend the stage is under now, { fn, pfn })
+    const mix = new Map(), ctl = { u: 0 }, pf = prior && prior.fn, pp = prior && prior.pfn;
+    if (col) {
+      // the V2 faces may draw a root from a few points before its first step (R._pre, set when its path is first made): indices
+      // are matched by step, so `off` is how far the other root's indices run ahead of this one's
+      const pathOf = (sc, R) => sc.kind === 'smoke' ? smoothed(R) : S2.draw.pathOf(sc.o, R), pre = R => R._pre || 0;
+      const shift = (own, tgt, off) => { const n = Math.min(own.length, tgt.length - off), d = new Float64Array(Math.max(0, n) * 2); let any = false; for (let i = Math.max(0, -off); i < n; i++) { d[i * 2] = tgt[i + off].x - own[i].x; d[i * 2 + 1] = tgt[i + off].y - own[i].y; if (Math.abs(d[i * 2]) + Math.abs(d[i * 2 + 1]) > 0.02) any = true; } return any ? d : null; };
+      const slide = (w, off) => off ? Array.from({ length: Math.max(0, w.length - off) }, (_, i) => w[i + off]) : w;
+      const full = morphWidths(B, null, col, [...to.map(e => e[1]), ...on.filter(e => e[0].segs.length - e[3] < 0.5).map(e => e[0])], null, zoomed);
+      for (const S of states) {
+        // a root that grows on: from the widths and the path it has, to its own as it grows
+        const mine = on.filter(e => e[2] === S && !(e[0] === e[1] && !prior)), had = morphWidths(S.view, S.step, col, mine.map(e => e[1]), pf, zoomed);
+        for (const [Q, P, , n] of mine) { const w0 = had.get(P); if (!w0) continue; const len = Q.segs.length, room = len - n, pQ = pathOf(B, Q), pP = pathOf(S.base, P), off = pre(P) - pre(Q), w = slide(w0, off), d = shift(pQ, pp ? pp(P, pP, n) : pP, off);
+          if (room >= 0.5) mix.set(Q, { w, d, a: nf => 1 - (nf - n) / room });
+          else { const f = full.get(Q); if (d || (f && w.some((x, i) => x != null && f[i] != null && Math.abs(x - f[i]) > 0.02))) mix.set(Q, { w, d, a: () => 1 - ctl.u }); } }
+        // a root that draws back to a shorter self: to that self's widths and path as it goes (r, e: what a blend it was under had left to do)
+        const mine2 = to.filter(e => e[2] === S), was = prior ? morphWidths(S.view, S.step, col, mine2.map(e => e[0]), pf, zoomed) : null, own = prior ? morphWidths(S.view, S.step, col, mine2.map(e => e[0]), null, zoomed) : null;
+        for (const [P, Q, , from] of mine2) { const w0 = full.get(Q), m = Q.segs.length; if (!w0) continue; const pP = pathOf(S.base, P), pQ = pathOf(B, Q), off = pre(Q) - pre(P), w = slide(w0, off);
+          const a0 = was && was.get(P), b0 = own && own.get(P), r = a0 && b0 ? a0.map((x, i) => x != null && b0[i] != null ? x - b0[i] : 0) : null;
+          mix.set(P, { w, n: w.length, d: shift(pP, pQ, off), r, e: pp ? shift(pP, pp(P, pP, from), 0) : null, back: true, a: nf => (from - nf) / (from - m) }); }
+      }
+    }
+    // widths between two growths are kept to half a unit, so SG Smoke's strokes still gather into a few paths
+    const half = x => Math.round(x * 2) / 2;
+    const fn = (R, i, nf, w) => { const m = mix.get(R); if (!m) return pf ? pf(R, i, nf, w) : w; const a = Math.min(1, Math.max(0, m.a(nf)));
+      if (m.back) { const r = m.r && m.r[i] ? m.r[i] * (1 - a) : 0; if (i >= m.n) return r ? half(w + r) : w; const t = m.w[i]; return t == null || a <= 0 ? (r ? half(w + r) : w) : a >= 1 ? t : half(w + r + (t - w - r) * a); }
+      const t = m.w[i < m.w.length ? i : m.w.length - 1]; return t == null || a <= 0 ? w : a >= 1 ? t : half(w + (t - w) * a); };
+    // the path a root is drawn along: its own points, moved by the blend
+    const pfn = (R, s, nf) => { const m = mix.get(R); if (!m) return pp ? pp(R, s, nf) : s; if (!m.d && !m.e) return s; const a = Math.min(1, Math.max(0, m.a(nf)));
+      const out = s.slice(), put = (d, k) => { if (!d || !(k > 0)) return; const n = Math.min(out.length, d.length / 2); for (let i = 0; i < n; i++) { const q = out[i]; out[i] = { x: q.x + d[i * 2] * k, y: q.y + d[i * 2 + 1] * k }; } };
+      put(m.d, a); put(m.e, 1 - a); return out; };
+    if (window.__morphProbe) window.__plan = { on: on.length, to: to.length, mix: mix.size, back: [...back.values()].reduce((n, M) => n + M.size, 0), gone: [...back.values()].reduce((n, M) => n + [...M.values()].filter(e => e.to <= 1).length, 0), rootsB: rb.length, s0, s1, total: B.total };
+    return { layers, grows, shrinks: back.size > 0, mix: mix.size || prior ? { fn, pfn, ctl } : null };
+  }
+  // the pace of a morph. By the clock alone a change can open or close on a long stretch where one or two roots move; here
+  // half the time follows the clock and half follows the length of root on the move, so those stretches pass twice as fast
+  // and the busy middle a little slower. t: the share of the morph's time gone by; returns the share of its clock.
+  function morphPace(layers) {
+    const N = 64, W = new Float64Array(N + 1), rs = layers.map(L => allRoots(L.view)), at = u => layers.map((L, j) => { const s = L.stepAt(u); return rs[j].map(R => Math.max(1, L.view.clock(R, s))); });
+    let prev = at(0);
+    for (let k = 1; k <= N; k++) { const cur = at(k / N); let d = 0; for (let j = 0; j < cur.length; j++) for (let i = 0; i < cur[j].length; i++) d += Math.abs(cur[j][i] - prev[j][i]); W[k] = W[k - 1] + d; prev = cur; }
+    if (!(W[N] > 0)) return t => t;
+    const H = k => 0.5 * k / N + 0.5 * W[k] / W[N];
+    return t => { if (t <= 0) return 0; if (t >= 1) return 1; let lo = 0, hi = N; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (H(m) <= t) lo = m; else hi = m; } const a = H(lo), b = H(hi); return (lo + (b > a ? (t - a) / (b - a) : 0)) / N; };
+  }
+  // the camera of a morph: at each moment the framing that holds the letters and every root as far as it reaches a little
+  // before and a little after, smoothed; exactly the old camera at the start and the new growth's own framing at the end. It
+  // moves off from rest and comes to rest (over the first and the last sixth of the time, at least 0.35 s each), and if the stage was already moving when
+  // the change was asked for (vel: its speed then, per second, in log scale and scene x, y at the stage's centre), it carries
+  // that movement on and lets it die away over a few tenths of a second, so a click never jolts the picture.
+  function morphCam(layers, v0, box0, v1, box1, w, h, emMax, pad, secs, vel) {
+    const N = 48, pre = [];
+    for (const L of layers) {
+      const parts = L.view.kind === 'smoke' ? L.view.items.map(it => [it.roots, it.x || 0, it.y || 0]) : [[L.view.roots, 0, 0]];
+      for (const [rs, ox, oy] of parts) for (const R of rs) {
+        const S = R.segs, n = S.length, a = new Float64Array(n * 4); let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        for (let i = 0; i < n; i++) { const x = S[i].x + ox, y = S[i].y + oy; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; a[i * 4] = x0; a[i * 4 + 1] = y0; a[i * 4 + 2] = x1; a[i * 4 + 3] = y1; }
+        pre.push([L, R, a, n]);
+      }
+    }
+    const base = { x0: Math.max(box0.x0, box1.x0), y0: Math.max(box0.y0, box1.y0), x1: Math.min(box0.x1, box1.x1), y1: Math.min(box0.y1, box1.y1) };
+    const boxAt = u => { const b = { x0: base.x0, y0: base.y0, x1: base.x1, y1: base.y1 };
+      for (const [L, R, a, n] of pre) { const m = Math.min(n, Math.ceil(L.view.clock(R, L.stepAt(u)) - 1e-9)) - 1; if (m < 1) continue; const i = m * 4;
+        if (a[i] - 60 < b.x0) b.x0 = a[i] - 60; if (a[i + 1] - 60 < b.y0) b.y0 = a[i + 1] - 60; if (a[i + 2] + 60 > b.x1) b.x1 = a[i + 2] + 60; if (a[i + 3] + 60 > b.y1) b.y1 = a[i + 3] + 60; }
+      return b; };
+    const X = [], uni = (p, q) => ({ x0: Math.min(p.x0, q.x0), y0: Math.min(p.y0, q.y0), x1: Math.max(p.x1, q.x1), y1: Math.max(p.y1, q.y1) });
+    const raw = []; for (let k = 0; k <= N; k++) raw.push(boxAt(k / N));
+    for (let k = 0; k <= N; k++) { let b = raw[k]; for (let j = -4; j <= 4; j++) if (j && k + j >= 0 && k + j <= N) b = uni(b, raw[k + j]); const c = fit(w, h, { b }, emMax, pad); X.push([Math.log(c.s), (w / 2 - c.tx) / c.s, (h / 2 - c.ty) / c.s]); }   // log scale and the scene point at the stage's centre
+    const cen = v => [Math.log(v.s), (w / 2 - v.tx) / v.s, (h / 2 - v.ty) / v.s], a = cen(v0), z = cen(v1);
+    const sg = 3, r = Math.ceil(sg * 3), g = Array.from({ length: 2 * r + 1 }, (_, m) => Math.exp(-((m - r) ** 2) / (2 * sg * sg))), gs = g.reduce((x, y) => x + y, 0), S = [];
+    for (let k = 0; k <= N; k++) { const o = [0, 0, 0]; for (let m = -r; m <= r; m++) { const q = X[Math.min(N, Math.max(0, k + m))]; for (let d = 0; d < 3; d++) o[d] += g[m + r] * q[d]; } S.push(o.map(x => x / gs)); }
+    // pinned: what is left between the smoothed path's ends and the true cameras is taken up evenly along the way
+    const e0 = a.map((x, d) => x - S[0][d]), e1 = z.map((x, d) => x - S[N][d]);
+    for (let k = 0; k <= N; k++) { const t = k / N, wt = t * t * (3 - 2 * t); for (let d = 0; d < 3; d++) S[k][d] += e0[d] * (1 - wt) + e1[d] * wt; }
+    const D = Math.min(0.4, Math.max(1 / 6, 0.35 / secs)), M = 1 / (1 - D), ease = u => u < D ? M * u * u / (2 * D) : u > 1 - D ? 1 - M * (1 - u) * (1 - u) / (2 * D) : M * (u - D / 2), TAU = 0.22;
+    return u => { const f = Math.min(N, Math.max(0, ease(Math.min(1, Math.max(0, u))) * N)), k = Math.min(N - 1, f | 0), t = f - k, q = [0, 1, 2].map(d => S[k][d] + (S[k + 1][d] - S[k][d]) * t);
+      if (vel && u < 1) { const tt = u * secs, c = tt * Math.exp(-tt / TAU) * (1 - u); for (let d = 0; d < 3; d++) q[d] += vel[d] * c; }
+      const s = Math.exp(q[0]); return { s, tx: w / 2 - q[1] * s, ty: h / 2 - q[2] * s, end: u <= 1e-9 || u >= 1 - 1e-9 }; };
+  }
+  // the camera of a Release: from where the stage is to the growth's own framing (the same place unless a change was under
+  // way), eased, carrying on any movement as morphCam does
+  function morphGlide(v0, v1, w, h, secs, vel) {
+    const cen = v => [Math.log(v.s), (w / 2 - v.tx) / v.s, (h / 2 - v.ty) / v.s], a = cen(v0), z = cen(v1), TAU = 0.22;
+    if (!vel && a.every((x, d) => Math.abs(x - z[d]) < 1e-9)) return null;
+    return u => { const e = u * u * (3 - 2 * u), q = a.map((x, d) => x + (z[d] - x) * e); if (vel && u < 1) { const tt = u * secs, c = tt * Math.exp(-tt / TAU) * (1 - u); for (let d = 0; d < 3; d++) q[d] += vel[d] * c; }
+      const s = Math.exp(q[0]); return { s, tx: w / 2 - q[1] * s, ty: h / 2 - q[2] * s, end: u <= 1e-9 || u >= 1 - 1e-9 }; };
+  }
+  // is this root's picture the same from step sa to step sb of its layer? (its length, and for SG Smoke the width a branch lends it)
+  function morphStill(L, R, sa, sb) {
+    const a = L.view.clock(R, sa), b = L.view.clock(R, sb); if (!(b > 1 + 1e-6) || Math.abs(a - b) > 1e-6) return false;
+    if (R._env && R._env.length && b >= R.segs.length - 1e-9) { const lo = Math.min(sa, sb), hi = Math.max(sa, sb); for (const e of R._env) { const t = e.c._show != null ? e.c._show : e.b; if (t > lo - 1e-9 && t <= hi + 1e-9) return false; } }
+    return true;
+  }
+  // a frame of a morph. The roots whose picture does not change for the next stretch (0.1 to 0.3 s, less while the camera's
+  // scale changes fast) sit in a bitmap with the letters, drawn at the closest camera of that stretch (at the camera of rest in the first and the
+  // last), so it is shown within a few per cent of its own size; the frame copies it and draws only the roots on the move. The bitmap for the stretch after is drawn a few
+  // roots a frame while this one shows, so no frame pays for a whole picture. P: { secs, camAt(u) }; K keeps the bitmaps.
+  function paintMorph(ctx, w, h, dpr, layers, u, col, cam, K, clear, P) {
+    const T = [cam.s * dpr, 0, 0, cam.s * dpr, cam.tx * dpr, cam.ty * dpr];
+    { const w0 = lwOf(layers[0].view, col); if (P.lw == null) P.lw = w0; else if (P.mix && Math.abs(P.lw - w0) > 1e-9) P.mix = null; }   // the Weight changed under the morph: the blend was of the old widths
+    const ground = () => { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); if (clear) ctx.clearRect(0, 0, w, h); else { ctx.fillStyle = col.ground; ctx.fillRect(0, 0, w, h); } };
+    const mixed = (v, f) => { if (!P.mix) return f(); P.mix.ctl.u = v; return withMix(P.mix.fn, f, P.mix.pfn); };
+    const straight = () => { ground(); ctx.setTransform(...T); ZSMOOTH = S2.draw.smooth = !!cam.zoomed; try { mixed(u, () => { for (const L of layers) drawPart(ctx, L.view, L.stepAt(u), col, null, L.letters); }); } finally { ZSMOOTH = S2.draw.smooth = false; } };
+    // Drawn whole, a frame is exactly the still picture's drawing, so that is how a morph is drawn wherever the machine keeps up.
+    // Where it does not (three frames running that take over 12 ms to draw, or come over 40 ms apart), the morph goes over to
+    // the bitmaps below, and later morphs with as many roots start there.
+    if (K.n == null) { K.n = layers.reduce((n, L) => n + allRoots(L.view).length, 0); K.must = layers.some(L => L.view.kind === 'rhizoma' || allRoots(L.view).some(R => R.burn)); K.whole = !window.__morphChunk && !(MORPH_SLOW && K.n >= MORPH_SLOW * 0.8); }
+    if (window.__morphStraight || cam.zoomed || K.must || K.whole) { const t0 = performance.now(); straight(); const t1 = performance.now(); K.frames = (K.frames || 0) + 1; K.ms = Math.max(K.ms || 0, t1 - t0);
+      if (K.whole && !K.must) { K.over = t1 - t0 > 12 || (K.at != null && t0 - K.at > 40) ? (K.over || 0) + 1 : 0; K.at = t0; if (K.over >= 3) { K.whole = false; MORPH_SLOW = MORPH_SLOW ? Math.min(MORPH_SLOW, K.n) : K.n; } }
+      return; }
+    const W = Math.round(w * dpr), H = Math.round(h * dpr), M = Math.round(Math.max(W, H) * 0.08), lw = lwOf(layers[0].view, col), key = [W, H, col.ink, col.ground, clear, lw].join('|');
+    if (K.key !== key) { K.key = key; K.cur = K.nxt = null; }
+    const camOf = v => P.camAt ? P.camAt(v) : cam;
+    // the stretch from ua: as far as 0.3 s on, less (down to 0.1 s) if the camera's scale would change more than 3.5% in it
+    // (on a machine that draws under 25 frames a second a stretch lasts at least four frames, and the scale may change 8%)
+    const now = performance.now(); if (K.t != null) { const dt = Math.min(400, now - K.t); K.dt = K.dt == null ? dt : K.dt * 0.7 + dt * 0.3; } K.t = now;
+    const least = Math.min(0.6, Math.max(0.1, 4 * (K.dt || 0) / 1000)), lim = K.dt > 40 ? 0.08 : 0.035;
+    const stretch = ua => { let ub = Math.min(1, ua + Math.max(0.3, least) / P.secs); const sa = camOf(ua).s, far = v => { let m = 0; for (let j = 1; j <= 4; j++) m = Math.max(m, Math.abs(Math.log(camOf(ua + (v - ua) * j / 4).s / sa))); return m; };
+      if (far(ub) > lim) { let lo = Math.min(1, ua + least / P.secs), hi = ub; for (let i = 0; i < 12; i++) { const m = (lo + hi) / 2; if (far(m) > lim) hi = m; else lo = m; } ub = lo; }
+      return ub; };
+    const make = ua => { const ub = stretch(ua); let ref = camOf(ua); if (ub >= 1 - 1e-9) ref = camOf(1); else if (ua > 1e-9) for (let j = 1; j <= 4; j++) { const c = camOf(ua + (ub - ua) * j / 4); if (c.s > ref.s) ref = c; }   // at rest (the first and the last stretch) the bitmap is shown at its own size, so the picture is as sharp as the still one
+      const todo = []; let n = 0;
+      for (const L of layers) { const sa = L.stepAt(ua), sb = L.stepAt(ub), rs = allRoots(L.view).filter(R => morphStill(L, R, sa, sb)); todo.push([L, rs, sb]); n += rs.length; }
+      const cv = (K.spare && K.spare.width === W + 2 * M && K.spare.height === H + 2 * M) ? K.spare : document.createElement('canvas'); K.spare = null; cv.width = W + 2 * M; cv.height = H + 2 * M;
+      const c = cv.getContext('2d', { alpha: !!clear }); c.setTransform(1, 0, 0, 1, 0, 0); if (clear) c.clearRect(0, 0, cv.width, cv.height); else { c.fillStyle = col.ground; c.fillRect(0, 0, cv.width, cv.height); }
+      return { ua, ub, ref: { s: ref.s, tx: ref.tx, ty: ref.ty }, cv, c, todo, n, at: 0, li: 0, ri: 0, set: new Set(), done: false, t0: u }; };
+    // draw up to `count` more roots of a bitmap (the letters go in with a layer's first)
+    const bake = (B, count) => { const c = B.c; c.setTransform(B.ref.s * dpr, 0, 0, B.ref.s * dpr, B.ref.tx * dpr + M, B.ref.ty * dpr + M);
+      while (B.li < B.todo.length && count > 0) { const [L, rs, sb] = B.todo[B.li], first = B.ri === 0, take = rs.slice(B.ri, B.ri + count), pick = new Set(take);
+        if (take.length || (first && L.letters)) mixed(B.ub, () => drawPart(c, L.view, sb, col, R => pick.has(R), first && L.letters));
+        take.forEach(R => B.set.add(R)); B.ri += take.length; count -= take.length; if (B.ri >= rs.length) { B.li++; B.ri = 0; } else break; }
+      if (B.li >= B.todo.length) B.done = true; K.bakes = (K.bakes || 0) + 1; };
+    const place = B => { const r = cam.s / B.ref.s; return { r, ox: (cam.tx - r * B.ref.tx) * dpr - r * M, oy: (cam.ty - r * B.ref.ty) * dpr - r * M }; };
+    const covers = q => q.ox <= 0.5 && q.oy <= 0.5 && q.ox + q.r * (W + 2 * M) >= W - 0.5 && q.oy + q.r * (H + 2 * M) >= H - 0.5;
+    let q = K.cur && place(K.cur);
+    if (!K.cur || u > K.cur.ub + 1e-9 || u < K.cur.ua - 1e-9 || q.r > 1.1 || q.r < 0.9 || !covers(q)) {
+      // the next stretch begins: its bitmap is ready, or (the first frame, or a machine too slow to have finished it) is made now
+      if (K.nxt && u >= K.nxt.ua - 1e-9 && u <= K.nxt.ub + 1e-9 && cam.s <= K.nxt.ref.s * 1.1 && covers(place(K.nxt))) { if (K.cur) K.spare = K.cur.cv; K.cur = K.nxt; K.nxt = null; }
+      else { if (K.cur) K.spare = K.cur.cv; K.cur = make(u); K.nxt = null; K.sync = (K.sync || 0) + 1; }
+      if (!K.cur.done) bake(K.cur, 1e9);
+      q = place(K.cur);
+    }
+    // the bitmap after this one, a share a frame: all of it by the time this stretch ends, however few frames there are
+    if (K.cur.ub < 1 - 1e-9) {
+      if (!K.nxt) K.nxt = make(K.cur.ub);
+      if (!K.nxt.done) { const left = Math.max(1e-6, K.cur.ub - u), dt = Math.max(1e-6, u - (K.last == null ? u - 0.016 / P.secs : K.last)), share = Math.min(1, dt / Math.max(dt, left - 2 * dt)); bake(K.nxt, Math.max(8, Math.ceil((K.nxt.n - K.nxt.at) * share) + 1)); K.nxt.at = K.nxt.set.size; }
+    }
+    K.last = u; K.frames = (K.frames || 0) + 1;
+    if (clear) ground();
+    const snap = Math.abs(q.r - 1) < 1e-6;
+    ctx.setTransform(q.r, 0, 0, q.r, snap ? Math.round(q.ox) : q.ox, snap ? Math.round(q.oy) : q.oy); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'low'; ctx.drawImage(K.cur.cv, 0, 0);
+    ctx.setTransform(...T); const still = K.cur.set;
+    mixed(u, () => { for (const L of layers) drawPart(ctx, L.view, L.stepAt(u), col, R => !still.has(R), false); });
+  }
   // the roots as they stand at a step of a view, cut where they have got to (nf: how far, as the clock counts it)
   function snapshot(view, step) {
     const clock = view.clock || ((R, s) => Math.min(R.segs.length, s - R.birth + 1));
@@ -3051,35 +3284,69 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     return { kind: view.kind, roots: view.roots.map(cut).filter(Boolean) };
   }
   function player(cv, emMax, pad, transparent, after, pace = 1) {
-    let sc = null, col = null, step = 0, pos = 0, raf = 0, done = null, fadeEl = null, rate = pace, mv = null, slowDev = false, zv = null; const cache = {};
+    let sc = null, col = null, step = 0, pos = 0, raf = 0, done = null, fadeEl = null, rate = pace, mv = null, mo = null, slowDev = false, zv = null; const cache = {};
     // the zoom: z times the growth's own framing, with the scene point px, py at the stage's centre (null: the whole growth)
-    const viewOf = (d, base) => { if (!zv || !sc) return base || undefined; const b = base || fit(d.w, d.h, sc, emMax, pad), s = b.s * zv.z; return { s, tx: d.w / 2 - zv.px * s, ty: d.h / 2 - zv.py * s, end: base ? base.end : true, zoomed: true }; };
+    const viewOf = (d, base) => { if (!zv || !sc) return base || undefined; const b = base || fit(d.w, d.h, sc, emMax, pad), s = b.s * zv.z; return { s, tx: d.w / 2 - zv.px * s, ty: d.h / 2 - zv.py * s, end: base ? base.end : true, zoomed: zv.z > 1.0001 }; };
     const clearFade = () => { if (fadeEl) { fadeEl.remove(); fadeEl = null; } };
     const finish = () => { if (raf) { raf = 0; growing--; } const f = done; done = null; if (f) f(); };
     // how long a growth plays (playSecs). Timed by the clock, not by frames: as long on a 120 Hz screen as on a 60 Hz one, and a
     // dropped frame is caught up (up to two frames' worth) so the roots keep their speed. Steps are not rounded: tips move every frame.
     let odd = false, lastT = 0; function frame(now) { const dt = lastT ? Math.min(34, Math.max(0, now - lastT)) : 1000 / 60; lastT = now;
-      pos += sc.total / (playSecs(sc.total) * 60) * rate * dt / (1000 / 60); step = Math.min(sc.total, pos); odd = !odd; if (odd && step < sc.total && performance.now() - scrollAt < 200) { raf = requestAnimationFrame(frame); return; } const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent, cache, viewOf(d)); if (step < sc.total) raf = requestAnimationFrame(frame); else finish(); }
+      pos += sc.total / (playSecs(sc.total) * 60) * rate * dt / (1000 / 60); step = Math.min(sc.total, pos); odd = !odd; if (odd && step < sc.total && performance.now() - scrollAt < 200) { raf = requestAnimationFrame(frame); return; } const d = sizeCanvas(cv), tp = performance.now(); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent, cache, viewOf(d)); if (step < sc.total) raf = requestAnimationFrame(frame); else { morphTimed(sc, performance.now() - tp); finish(); } }
+    const sceneOf = v => { while (v && !Object.prototype.hasOwnProperty.call(v, 'kind')) v = Object.getPrototypeOf(v); return v; };
+    function morphGo(layers, secs, final, c, from, opt = {}) {
+      if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = null; mv = null; if (c) col = c; if (after) after();
+      const g2 = cv.getContext('2d'), d0 = sizeCanvas(cv), v0 = from && from.s != null ? { s: from.s, tx: from.tx, ty: from.ty } : fit(d0.w, d0.h, from || final, emMax, pad), v1 = fit(d0.w, d0.h, final, emMax, pad);
+      const b0 = { x0: (pad - v0.tx) / v0.s, y0: (pad - v0.ty) / v0.s, x1: (d0.w - pad - v0.tx) / v0.s, y1: (d0.h - pad - v0.ty) / v0.s };
+      const pace = opt.ease || morphPace(layers), L2 = layers.map(L => Object.assign({}, L, { stepAt: x => L.stepAt(pace(x)) }));
+      const camAt = opt.fixed ? morphGlide(v0, v1, d0.w, d0.h, secs, opt.vel) : morphCam(L2, v0, b0, v1, final.b, d0.w, d0.h, emMax, pad, secs, opt.vel), K = {}, P = { secs, camAt, mix: opt.mix || null };
+      const land = () => { mo = null; sc = final; step = opt.bare ? 0 : final.total; cache.sc = null; const d = sizeCanvas(cv), t = performance.now(); paint(g2, d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent, null, viewOf(d)); if (!opt.bare) morphTimed(sc, performance.now() - t); window.__morph = { frames: K.frames || 0, bakes: K.bakes || 0, sync: K.sync || 0, secs, whole: !!K.whole, ms: K.ms || 0 }; if (opt.fin) opt.fin(); };
+      sc = final; step = opt.bare ? 0 : final.total;
+      if (reduce || !(secs > 0)) { land(); return; }
+      const probe = k => { const q = window.__morphProbe; if (q) { const d = g2.getImageData(0, 0, cv.width, cv.height).data, a = new Uint8Array(d.length / 4); for (let i = 0; i < a.length; i++) a[i] = d[i * 4]; q[k] = a; } };
+      if (window.__morphProbe) { probe('before'); const d = sizeCanvas(cv); paintMorph(g2, d.w, d.h, d.dpr, L2, 0, col(), viewOf(d, v0) || v0, {}, transparent, P); probe('start'); }
+      const t0 = performance.now(), cen = (v, d) => [Math.log(v.s), (d.w / 2 - v.tx) / v.s, (d.h / 2 - v.ty) / v.s]; let last = null; growing++; mo = { layers: L2, u: 0, final, cam: v0, bare: !!opt.bare, mix: P.mix, vel: null };
+      const f = now => { const u = Math.min(1, Math.max(0, (now - t0) / (secs * 1000))), c = camAt ? camAt(u) : v0; mo.u = u; mo.cam = c; const d = sizeCanvas(cv); if (window.__morphLog) window.__morphLog.push([u, c.s, c.tx, c.ty]);
+        if (camAt) { const q = cen(c, d); if (last && now > last[0]) mo.vel = q.map((x, i) => (x - last[1][i]) / ((now - last[0]) / 1000)); last = [now, q]; }
+        paintMorph(g2, d.w, d.h, d.dpr, L2, u, col(), viewOf(d, c) || c, K, transparent, P); mo.mix = P.mix;
+        if (u < 1) { raf = requestAnimationFrame(f); return; } raf = 0; growing--; probe('end'); land(); probe('landed'); };
+      raf = requestAnimationFrame(f);
+    }
+    // what the stage shows, as morph states, and the camera it shows it under
+    const stageNow = () => { const d = sizeCanvas(cv);
+      if (mo) { if (mo.mix) mo.mix.ctl.u = mo.u; return { states: mo.layers.map(L => morphState(L.view, L.stepAt(mo.u), L.base)), cam: mo.cam, scene: mo.final, mix: mo.mix, vel: mo.vel }; }
+      if (mv) return { states: [morphState(mv.view, mv.step, sceneOf(mv.view))], cam: mv.cam, scene: mv.final };
+      return sc ? { states: [morphState(sc, step, sc)], cam: fit(d.w, d.h, sc, emMax, pad), scene: sc } : null; };
     return {
+      stageNow,
       play(s, c, fin, speed) {
-        rate = pace * (speed > 0 ? speed : 1); sc = s; col = c; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = fin || null; if (after) after();
+        mv = null; mo = null; rate = pace * (speed > 0 ? speed : 1); sc = s; col = c; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = fin || null; if (after) after();
         if (reduce) { step = s.total; const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent); finish(); return; }
         step = 0; pos = 0; lastT = 0; cache.sc = null; growing++; raf = requestAnimationFrame(frame);
       },
       redraw() { if (sc && !raf) { const d = sizeCanvas(cv); paint(cv.getContext('2d'), d.w, d.h, d.dpr, sc, step, col(), emMax, pad, transparent, null, viewOf(d)); } if (after) after(); },
       get zoom() { return zv ? zv.z : 1; },
-      // zoom to z (1: the whole growth) keeping the stage point sx, sy (CSS px) still; z at most 8
-      zoomTo(z, sx, sy) {
-        if (!sc) return; const d = sizeCanvas(cv), f = fit(d.w, d.h, sc, emMax, pad), v = viewOf(d) || f; z = Math.max(1, Math.min(8, z));
+      // zoom to z (1: the whole growth) keeping the stage point sx, sy (CSS px) still; z from 1 to 8. v1.1.1: `give` lets a
+      // gesture pass those limits a little (to 0.75 and 9.5), for the page to ease back when the gesture ends; below 1 the
+      // growth stays centred.
+      zoomTo(z, sx, sy, give) {
+        if (!sc) return; const d = sizeCanvas(cv), f = fit(d.w, d.h, sc, emMax, pad), v = viewOf(d) || f; z = give ? Math.max(0.75, Math.min(9.5, z)) : Math.max(1, Math.min(8, z));
         if (sx == null) { sx = d.w / 2; sy = d.h / 2; }
         const qx = (sx - v.tx) / v.s, qy = (sy - v.ty) / v.s, s2 = f.s * z;
-        zv = z <= 1.0001 ? null : { z, px: (d.w / 2 - (sx - qx * s2)) / s2, py: (d.h / 2 - (sy - qy * s2)) / s2 }; this.clampPan(); this.redraw();
+        zv = Math.abs(z - 1) <= 1e-4 ? null : { z, px: (d.w / 2 - (sx - qx * s2)) / s2, py: (d.h / 2 - (sy - qy * s2)) / s2 }; this.clampPan(); this.redraw();
       },
-      panBy(dx, dy) { if (!zv) return; const d = sizeCanvas(cv), f = fit(d.w, d.h, sc, emMax, pad), s2 = f.s * zv.z; zv.px -= dx / s2; zv.py -= dy / s2; this.clampPan(); this.redraw(); },
-      clampPan() { if (!zv) return; const d = sizeCanvas(cv), f = fit(d.w, d.h, sc, emMax, pad), s2 = f.s * zv.z;   // never past the whole growth's framing
+      // a drag moves the view; past the growth's framing it follows the hand less and less (at most 48 px), and panSettle
+      // gives the page what is left to ease back: call it with 1 down to 0
+      panBy(dx, dy) { if (!zv) return; const d = sizeCanvas(cv), f = fit(d.w, d.h, sc, emMax, pad), s2 = f.s * zv.z; zv.rx = (zv.rx != null ? zv.rx : zv.px) - dx / s2; zv.ry = (zv.ry != null ? zv.ry : zv.py) - dy / s2; this.clampPan(true); this.redraw(); },
+      clampPan(soft) { if (!zv) return; const d = sizeCanvas(cv), f = fit(d.w, d.h, sc, emMax, pad), s2 = f.s * zv.z;   // never past the whole growth's framing
         const x0 = (0 - f.tx) / f.s, x1 = (d.w - f.tx) / f.s, y0 = (0 - f.ty) / f.s, y1 = (d.h - f.ty) / f.s, hw = d.w / 2 / s2, hh = d.h / 2 / s2;
-        zv.px = Math.min(x1 - hw, Math.max(x0 + hw, zv.px)); zv.py = Math.min(y1 - hh, Math.max(y0 + hh, zv.py)); },
-      stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } },
+        const lim = (v, lo, hi) => lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v));
+        if (soft && zv.rx != null && !reduce) { const G = 48 / s2, sf = (r, lo, hi) => { const c = lim(r, lo, hi), e = r - c; return c + Math.sign(e) * G * (1 - Math.exp(-Math.abs(e) / (2 * G))); }; zv.px = sf(zv.rx, x0 + hw, x1 - hw); zv.py = sf(zv.ry, y0 + hh, y1 - hh); }
+        else { zv.px = lim(zv.px, x0 + hw, x1 - hw); zv.py = lim(zv.py, y0 + hh, y1 - hh); zv.rx = zv.ry = null; } },
+      panSettle() { if (!zv || zv.rx == null) return null; const px = zv.px, py = zv.py; this.clampPan(); if (!zv) return null; const hx = zv.px, hy = zv.py, ox = px - hx, oy = py - hy, me = this, z0 = zv;
+        if (Math.abs(ox) + Math.abs(oy) < 1e-9) return null; zv.px = px; zv.py = py;
+        return k => { if (zv !== z0) return false; zv.px = hx + ox * k; zv.py = hy + oy * k; me.redraw(); return true; }; },
+      stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } mv = null; mo = null; },
       // the roots withdraw from where the growth is (part way through a play, or finished), last grown first, and the word stays.
       // Drawing backwards has no cache of finished roots, so on a device too slow for it (the first four frames average over
       // 55 ms, the embed's rule) the finished picture fades out over the bare word instead. Reduced motion cuts.
@@ -3088,6 +3355,12 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
         const s0 = step; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = null; if (after) after();
         const g2 = cv.getContext('2d'), draw = st => { const d = sizeCanvas(cv); paint(g2, d.w, d.h, d.dpr, sc, st, col(), emMax, pad, transparent, null, viewOf(d)); };
         if (reduce || !(secs > 0) || !(s0 > 0)) { step = 0; draw(0); if (fin) fin(); return; }
+        { // v1.1.1: the roots on the stage, whatever they are in the middle of, draw back to the bare word as a morph (morph.js):
+          // the same ease and time as before, and only the roots on the move are drawn each frame
+          const now = stageNow(), fin0 = sceneOf(now.scene), bare = Object.create(fin0);
+          if (bare.kind === 'smoke') bare.items = fin0.items.map(it => { const j = Object.create(it); j.roots = []; return j; }); else bare.roots = [];
+          const plan = morphPlan(now.states, bare, col(), now.mix, !!zv);
+          if (plan) { morphGo(plan.layers, secs, fin0, null, now.cam, { bare: true, fixed: true, ease, fin, mix: plan.mix, vel: now.vel }); return; } }
         { const d0 = sizeCanvas(cv), cam = Object.assign(viewOf(d0) || fit(d0.w, d0.h, sc, emMax, pad), { end: true }), K = { done: new Set(), inside: true, back: { lo: 0, span: s0 } }, t0 = performance.now(); growing++;
           let last = 0, fi = 1e9;   // the first frame is drawn straight, and times the device
           const f = now => { if (last) fi = fi > 1e8 ? now - last : fi * 0.6 + (now - last) * 0.4; last = now; const u = Math.min(1, (now - t0) / (secs * 1000)); step = s0 * (1 - ease(u)); const d = sizeCanvas(cv);
@@ -3115,6 +3388,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       // picture (step sLo) and its own (sHi), under camTrack's camera. Carrying on plays at the growth's own pace; drawing back
       // takes the last grown first, on the release's ease. Lands on the final scene's own picture.
       get mv() { return mv; },
+      get mo() { return mo; },
+      get step() { return step; },
+      morph: morphGo,
       // the picture's box for a camera: what fit() would frame exactly as that camera does
       boxOf(v) { const d = sizeCanvas(cv); return { x0: (pad - v.tx) / v.s, y0: (pad - v.ty) / v.s, x1: (d.w - pad - v.tx) / v.s, y1: (d.h - pad - v.ty) / v.s }; },
       move(view, from, to, secs, final, c, small, big) {
@@ -3658,12 +3934,12 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   // ---------- zoom
   function zmCol(c) { const z = document.querySelector('.zm'); if (z && z.dataset.c !== c.ink + c.ground) { z.dataset.c = c.ink + c.ground; z.style.color = c.ink; z.style.background = c.ground; z.style.borderColor = 'color-mix(in srgb, ' + c.ink + ' 22%, ' + c.ground + ')'; } }   // the zoom wears the stage's own colours
   { const zOut = $('z-out'), zIn = $('z-in'), zFit = $('z-fit'), zVal = $('z-val'); let zr = 0;
-    const show = () => { const z = tool.zoom; zVal.textContent = Math.round(z * 100) + '%'; zVal.parentNode.classList.toggle('z1', z <= 1.0001); zOut.disabled = zFit.disabled = z <= 1.0001; zIn.disabled = z >= 7.999; cv.classList.toggle('zoomed', z > 1.0001); };
+    const show = () => { const z = tool.zoom; zVal.textContent = Math.round(Math.max(1, Math.min(8, z)) * 100) + '%'; zVal.dataset.z = z.toFixed(4); zVal.parentNode.classList.toggle('z1', z <= 1.0001); zOut.disabled = zFit.disabled = z <= 1.0001; zIn.disabled = z >= 7.999; cv.classList.toggle('zoomed', z > 1.0001); };
     const ease = u => 1 - Math.pow(1 - u, 3);
     let wheelStop = () => {};
-    function zoomAnim(z1, sx, sy) {      // the buttons and the double click: 220 ms on the site's ease, every frame drawn
+    function zoomAnim(z1, sx, sy, ms = 220) {      // the buttons and the double click: 220 ms on the site's ease, every frame drawn
       cancelAnimationFrame(zr); wheelStop(); const z0 = tool.zoom, t0 = performance.now(); if (reduce) { tool.zoomTo(z1, sx, sy); show(); return; }
-      const f = now => { const u = Math.min(1, (now - t0) / 220), z = Math.exp(Math.log(z0) + (Math.log(z1) - Math.log(z0)) * ease(u)); tool.zoomTo(z, sx, sy); show(); if (u < 1) zr = requestAnimationFrame(f); };
+      const f = now => { const u = Math.min(1, (now - t0) / ms), z = Math.exp(Math.log(z0) + (Math.log(z1) - Math.log(z0)) * ease(u)); tool.zoomTo(z, sx, sy, u < 1); show(); if (u < 1) zr = requestAnimationFrame(f); };
       zr = requestAnimationFrame(f);
     }
     window.__zoomAnim = zoomAnim;
@@ -3671,6 +3947,13 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     zIn.addEventListener('click', () => zoomAnim(Math.min(8, tool.zoom * 2)));
     zOut.addEventListener('click', () => zoomAnim(Math.max(1, tool.zoom / 2)));
     zFit.addEventListener('click', () => zoomAnim(1));
+    // v1.1.1 (after Miko, 16 Nov: zooming out to 100% "feels very rigid and stubborn ... zoom out further below 100% and when
+    // it let go or you stopped scrolling out it would automatically zoom in to the 100% so the cap doesn't feel forced"): a
+    // wheel or a pinch can pass either limit a little, less and less the further it goes (to about 82% and 975%), and the
+    // stage eases back by itself when the gesture lets up. LOG: the limits in log zoom; soft: where a target past them shows.
+    const LMAX = Math.log(8), GIVE = 0.2, soft = L => L < 0 ? -GIVE * (1 - Math.exp(L * 0.75 / GIVE)) : L > LMAX ? LMAX + GIVE * (1 - Math.exp(-(L - LMAX) * 0.75 / GIVE)) : L;
+    const settleZoom = () => { const z = tool.zoom; if (z < 0.9999 || z > 8.0001) zoomAnim(z < 1 ? 1 : 8, wx || undefined, wx ? wy : undefined, 300); };
+    let pr = 0; const settlePan = () => { const f = tool.panSettle(); if (!f) return; cancelAnimationFrame(pr); if (reduce) { f(0); return; } const t0 = performance.now(), g = now => { const u = Math.min(1, (now - t0) / 280); if (f(1 - ease(u)) && u < 1) pr = requestAnimationFrame(g); }; pr = requestAnimationFrame(g); };
     // the wheel zooms while the pointer is over the stage and has moved there, so a page that is scrolling past under a resting
     // pointer keeps scrolling; with Ctrl or Cmd held (and a trackpad pinch, which arrives that way) it always zooms. At 100% the
     // wheel down belongs to the page, and the stage stays armed while it is still under the pointer. A notch of a mouse wheel is
@@ -3678,25 +3961,35 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     let armed = false, lx, ly, lastScroll = -1e9, lastZoomWheel = -1e9, wt = 1, wr = 0, wx = 0, wy = 0;
     window.addEventListener('pointermove', e => { const moved = lx !== undefined && (e.clientX !== lx || e.clientY !== ly); lx = e.clientX; ly = e.clientY; if (e.target !== cv) armed = false; else if (moved && e.pointerType !== 'touch') armed = true; }, true);
     window.addEventListener('scroll', () => { lastScroll = performance.now(); if (armed && document.elementFromPoint(lx, ly) !== cv) armed = false; }, { passive: true });
-    let wl = 0; const wheelStep = now => { const z = tool.zoom, r = wt / z, dt = Math.max(8, Math.min(80, now - (wl || now - 16))); wl = now; if (Math.abs(Math.log(r)) < 0.004) { tool.zoomTo(wt, wx, wy); show(); wr = 0; wl = 0; return; } tool.zoomTo(z * Math.pow(r, 1 - Math.exp(-dt / 42)), wx, wy); show(); wr = requestAnimationFrame(wheelStep); };
+    // wL: the wheel's target in log zoom. Past a limit it is pulled back all the time (a time constant of 150 ms), so the stage
+    // holds out while the wheel keeps turning and comes home as the turning dies away, with no timer and no stop to feel.
+    let wl = 0, wL = 0; const wheelStep = now => { const dt = Math.max(8, Math.min(80, now - (wl || now - 16))); wl = now;
+      if (wL < 0) { wL *= Math.exp(-dt / 150); if (wL > -0.003) wL = 0; } else if (wL > LMAX) { wL = LMAX + (wL - LMAX) * Math.exp(-dt / 150); if (wL < LMAX + 0.003) wL = LMAX; }
+      const zt = Math.exp(soft(wL)), z = tool.zoom, r = zt / z, home = wL >= 0 && wL <= LMAX;
+      if (home && Math.abs(Math.log(r)) < 0.004) { tool.zoomTo(zt, wx, wy); show(); wr = 0; wl = 0; return; }
+      tool.zoomTo(z * Math.pow(r, 1 - Math.exp(-dt / 42)), wx, wy, true); show(); wr = requestAnimationFrame(wheelStep); };
     wheelStop = () => { cancelAnimationFrame(wr); wr = 0; wl = 0; };
     cv.addEventListener('wheel', e => { const held = e.ctrlKey || e.metaKey, now = performance.now();
       if (!held && (!armed || now - lastScroll < 220)) return;
-      if (!held && e.deltaY > 0 && tool.zoom <= 1.0001 && !wr) { if (now - lastZoomWheel < 260) { e.preventDefault(); lastZoomWheel = now; } return; }   // the tail of a zoom out does not start the page scrolling
+      if (!held && e.deltaY > 0 && tool.zoom <= 1.0001 && !wr && now - lastZoomWheel >= 260) return;   // at 100% a fresh wheel down is the page's; one that carries on a zoom out gives a little and comes back
       e.preventDefault(); cancelAnimationFrame(zr); lastZoomWheel = now;
       let d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1); d = Math.max(-50, Math.min(50, d));
-      const [x, y] = at(e); wx = x; wy = y; wt = Math.max(1, Math.min(8, (wr ? wt : tool.zoom) * Math.exp(-d * (held ? 0.01 : 0.006))));
-      if (reduce || Math.abs(d) < 12) { wheelStop(); tool.zoomTo(wt, x, y); show(); } else if (!wr) wr = requestAnimationFrame(wheelStep);
+      const [x, y] = at(e); wx = x; wy = y; wL = (wr ? wL : Math.log(Math.max(1, Math.min(8, tool.zoom)))) - d * (held ? 0.01 : 0.006);
+      if (reduce) { wL = Math.max(0, Math.min(LMAX, wL)); wheelStop(); tool.zoomTo(Math.exp(wL), x, y); show(); return; }
+      wL = Math.max(-1.2, Math.min(LMAX + 1.2, wL));
+      if (Math.abs(d) < 12 && wL >= 0 && wL <= LMAX) { wheelStop(); tool.zoomTo(Math.exp(wL), x, y); show(); }      // a trackpad's fine steps are followed as they come
+      else { if (Math.abs(d) < 12) { tool.zoomTo(Math.exp(soft(wL)), x, y, true); show(); } if (!wr) wr = requestAnimationFrame(wheelStep); }
     }, { passive: false });
-    let gz = 1; cv.addEventListener('gesturestart', e => { e.preventDefault(); wheelStop(); gz = tool.zoom; });          // Safari's trackpad pinch
-    cv.addEventListener('gesturechange', e => { e.preventDefault(); const [x, y] = at(e); tool.zoomTo(gz * e.scale, x, y); show(); });
+    let gz = 1; cv.addEventListener('gesturestart', e => { e.preventDefault(); wheelStop(); cancelAnimationFrame(zr); gz = Math.max(1, Math.min(8, tool.zoom)); });          // Safari's trackpad pinch
+    cv.addEventListener('gesturechange', e => { e.preventDefault(); const [x, y] = at(e); wx = x; wy = y; tool.zoomTo(reduce ? gz * e.scale : Math.exp(soft(Math.log(gz * e.scale))), x, y, !reduce); show(); });
+    cv.addEventListener('gestureend', e => { e.preventDefault(); settleZoom(); });
     cv.addEventListener('dblclick', e => { const [x, y] = at(e); zoomAnim(tool.zoom > 1.0001 ? 1 : 2.5, x, y); });
     const pts = new Map(); let pinch = null;
-    cv.addEventListener('pointerdown', e => { pts.set(e.pointerId, at(e)); if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: tool.zoom }; } else if (tool.zoom > 1.0001) { try { cv.setPointerCapture(e.pointerId); } catch (err) {} cv.classList.add('grab'); } });
+    cv.addEventListener('pointerdown', e => { pts.set(e.pointerId, at(e)); if (pts.size === 2) { const [a, b] = [...pts.values()]; cancelAnimationFrame(zr); wheelStop(); pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: Math.max(1, Math.min(8, tool.zoom)) }; } else if (tool.zoom > 1.0001) { cancelAnimationFrame(pr); try { cv.setPointerCapture(e.pointerId); } catch (err) {} cv.classList.add('grab'); } });
     cv.addEventListener('pointermove', e => { if (!pts.has(e.pointerId)) return; const p0 = pts.get(e.pointerId), p = at(e); pts.set(e.pointerId, p);
-      if (pinch && pts.size === 2) { const [a, b] = [...pts.values()]; tool.zoomTo(pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); show(); }
+      if (pinch && pts.size === 2) { const [a, b] = [...pts.values()], zz = pinch.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d; wx = (a[0] + b[0]) / 2; wy = (a[1] + b[1]) / 2; tool.zoomTo(reduce ? zz : Math.exp(soft(Math.log(zz))), wx, wy, !reduce); show(); }
       else if (tool.zoom > 1.0001) tool.panBy(p[0] - p0[0], p[1] - p0[1]); });
-    ['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; cv.classList.remove('grab'); }));
+    ['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, e => { const had = pts.delete(e.pointerId), was = pinch; if (pts.size < 2) pinch = null; cv.classList.remove('grab'); if (was && !pinch) settleZoom(); else if (had && !pts.size) settlePan(); }));
     $('t-stage').tabIndex = 0;
     $('t-stage').addEventListener('keydown', e => { const k = e.key; if (k === '+' || k === '=') zoomAnim(Math.min(8, tool.zoom * 2)); else if (k === '-') zoomAnim(Math.max(1, tool.zoom / 2)); else if (k === '0') zoomAnim(1); else return; e.preventDefault(); });
     show(); }
@@ -3717,30 +4010,27 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     $('t-stage').classList.toggle('tall', raw.indexOf('\n') >= 0);
     const g = growth(), sc = cached(text, st.face, seed(), g), was = tool.scene, same = lastRun && lastRun.text === text && lastRun.face === st.face && lastRun.seed === seed();
     lastRun = { text, face: st.face, seed: seed() };
-    let con = null, up = true;
-    const m = tool.mv, ok = same && !speed && st.face !== 'RHIZOMA' && !reduce;
-    if (ok && m && m.final !== sc) {
-      // a change while the roots still move: carried on further from the picture as it stands. Growing, the roots on the stage
-      // are the start of the new growth; drawing back further, roots go on withdrawing, last grown first, from where they are.
-      if (m.fwd && continuation(m.final, sc)) {
+    const m = tool.mv, o = tool.mo, ok = same && !speed && st.face !== 'RHIZOMA' && !reduce && was;
+    if (ok) {
+      if ((m && m.final === sc) || (o && !o.bare && o.final === sc)) { runAfter(); return; }      // already on its way there
+      // a growth that only grows on keeps v1.1's way: from a finished growth, or carried on from one still growing
+      const old = window.__moveOld;
+      if (old && m && m.fwd && continuation(m.final, sc)) {
         const D = snapshot(m.view, m.step), c2 = continuation(D, sc);
         if (c2) { tool.move(c2.view, c2.s0, sc.total, Math.max(1, playSecs(sc.total) * (sc.total - c2.s0) / sc.total), sc, toolCol, { cam: m.cam, b: tool.boxOf(m.cam) }, sc); runAfter(); return; }
-      } else if (!m.fwd && continuation(sc, m.final)) {
-        const cz = continuation(sc, m.big), X = m.big, cur = m.view, now = m.step;
-        if (cz) {
-          const clockX = X.clock || ((R, s) => Math.min(R.segs.length, s - R.birth + 1)), Dl = new Map(), rs = allRoots(X);
-          for (const R of rs) Dl.set(R, cur.clock ? cur.clock(R, now) : clockX(R, now));
-          const v2 = Object.create(X); v2.clock = (R, s) => Math.min(Dl.get(R), cz.view.clock(R, s)); v2.clockEnd = cz.view.clockEnd;
-          let lo = now, hi = X.total; const full = s => rs.every(R => clockX(R, s) >= Dl.get(R) - 1e-6);
-          if (!full(lo)) { for (let i = 0; i < 30 && hi - lo > 0.05; i++) { const q = (lo + hi) / 2; if (full(q)) hi = q; else lo = q; } } else hi = lo;
-          tool.move(v2, hi, cz.s0, Math.max(0.6, Math.min(RELEASE_SECS, RELEASE_SECS * (hi - cz.s0) / X.total)), sc, toolCol, sc, { cam: m.cam, b: tool.boxOf(m.cam) }); runAfter(); return;
-        }
+      }
+      if (old && !m && !o && !tool.playing && was !== sc && tool.step >= was.total) { const con = continuation(was, sc);
+        if (con) { tool.move(con.view, con.s0, sc.total, Math.max(1, playSecs(sc.total) * (sc.total - con.s0) / sc.total), sc, toolCol, was, sc); runAfter(); return; } }
+      // anything else is a morph from what the stage shows: roots the new growth has longer grow on, the others draw back,
+      // together. Drawing back runs at 0.6 of the time the same roots took to grow, between 0.7 and 2.6 s.
+      const now = tool.stageNow(), plan = now && (m || o || was !== sc || tool.step < was.total) ? morphPlan(now.states, sc, toolCol(), now.mix, tool.zoom > 1.0001) : null;
+      if (plan) {
+        let secs = plan.grows ? Math.max(1, playSecs(sc.total) * plan.layers[0].span / sc.total) : 0;
+        for (const L of plan.layers) if (!L.grow && L.span > 0) secs = Math.max(secs, Math.max(0.7, Math.min(2.6, 0.6 * playSecs(L.total) * L.span / L.total)));
+        tool.morph(plan.layers, secs, sc, toolCol, now.cam, { mix: plan.mix, vel: now.vel }); runAfter(); return;
       }
     }
-    if (ok && was && was !== sc && !tool.playing) { con = continuation(was, sc); if (!con) { con = continuation(sc, was); up = false; } }
-    if (con && up) tool.move(con.view, con.s0, sc.total, Math.max(1, playSecs(sc.total) * (sc.total - con.s0) / sc.total), sc, toolCol, was, sc);
-    else if (con) tool.move(con.view, was.total, con.s0, Math.max(0.6, Math.min(RELEASE_SECS, RELEASE_SECS * (was.total - con.s0) / was.total)), sc, toolCol, sc, was);
-    else tool.play(sc, toolCol, null, speed);
+    tool.play(sc, toolCol, null, speed);
     runAfter();
   }
   function runAfter() {
@@ -4161,7 +4451,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       'Import each folder as an image sequence at ' + o.fps + ' frames a second.', '',
       'The same text, typeface, growth, weight and seed grow the same shape in any browser, so these frames can be made again: set them in the tool on the Rhizoma Smoke site (https://sativus-gourd.github.io/rhizoma-smoke/), open Record, pick PNG frames, and choose the same take, frame rate, size and speed.',
       'The same word on a web page: ' + embedCode().split('\n')[1],
-      'SG Rhizoma Engine v1.1, Sativus Gourd, 2026.'].filter((l, k, a) => l !== '' || a[k - 1] !== '').join('\n') + '\n';
+      'SG Rhizoma Engine v1.1.1, Sativus Gourd, 2026.'].filter((l, k, a) => l !== '' || a[k - 1] !== '').join('\n') + '\n';
   }
   // PNG frames. A zip is built in memory, so a take is cut into parts of about 125 MB, each saved as soon as it is made: a 4K take of a heavy
   // growth comes in a few, and a 1080p take in one. Part 1 carries the README; the folder names are the same in every part, and the frame numbers
@@ -4525,7 +4815,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   $('home').addEventListener('click', e => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); resetPage(); });
 
   // the build checks listen here (the page's own use of it: none)
-  if (window.__rsLab) window.__rsLab({ paint, playSecs, takePlan, ease, RELEASE_SECS, embedCode, toolCol, REC_EM, REC_PAD, tool, st, recOpts, cached, grow, fit, drawPart, smokeWidth: (sc, it, R, i, nf, step, keep) => segWidth(sc, it, R, leaves(R, smoothed(R), it), i, nf, step, keep), KEEP_NIB, svgOf, lwOf, allRoots, COLOURS, FACE_LW, FONT_SEEDS, LABEL, get fonts() { return FONTS; } });
+  if (window.__rsLab) window.__rsLab({ paint, playSecs, takePlan, ease, RELEASE_SECS, embedCode, toolCol, REC_EM, REC_PAD, tool, st, recOpts, cached, grow, fit, drawPart, morphPlan, morphState, morphWidths, morphPace, morphCam, growth, seed, toolText, smokeWidth: (sc, it, R, i, nf, step, keep) => segWidth(sc, it, R, leaves(R, smoothed(R), it), i, nf, step, keep), KEEP_NIB, svgOf, lwOf, allRoots, COLOURS, FACE_LW, FONT_SEEDS, LABEL, get fonts() { return FONTS; } });
   // ---------- boot
   Promise.all(['fonts/im-fell-english.woff', 'fonts/song-myung-korean.woff'].map(u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.arrayBuffer(); })))
     .then(bufs => {
