@@ -1,4 +1,4 @@
-/*! SG Rhizoma Engine (embed) v1.1.1, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
+/*! SG Rhizoma Engine (embed) v1.1.2, by Sativus Gourd, 2026. https://github.com/sativus-gourd/rhizoma-smoke
  *  Built on Rhizoma Engine v.01 by Dabin Kim (https://github.com/dabinkiim/Rhizoma), CC BY-SA 4.0.
  *  This adaptation is offered under the same licence: https://creativecommons.org/licenses/by-sa/4.0/
  *  Credit Dabin Kim and Sativus Gourd where you use it, and share changes to this script under the same licence.
@@ -1376,15 +1376,15 @@ function build(HERE) {
       return (R._arc = A);
     }
     function bakeRhizoma(c, sc, step, col, roots, cache, T) {
-      c.setTransform(...T); c.strokeStyle = col.ink; c.lineCap = 'round'; c.lineJoin = 'round';
+      const lw = lwOf(sc, col); c.setTransform(...T); c.strokeStyle = col.ink; c.lineCap = 'round'; c.lineJoin = 'round';
       const gap = 32 / T[0];
       for (const R of roots) {
         if (cache.done.has(R)) continue;
         const k = cache.bk.get(R) || 0;
-        if ((sc.clockEnd ? sc.clockEnd(R) : R.birth + R.segs.length - 1) <= step) { v2Stroke(c, sc, R, k, R.segs.length); cache.done.add(R); continue; }
+        if ((sc.clockEnd ? sc.clockEnd(R) : R.birth + R.segs.length - 1) <= step) { v2Stroke(c, sc, R, k, R.segs.length, lw); cache.done.add(R); continue; }
         const nf = v2Shown(sc, R, step); if (!(nf > 1 + 1e-6)) continue;
         const n = Math.ceil(nf - 1e-9), m = n - nf > 1e-9 ? n - 2 : n - 1, A = arcOf(R);
-        if (m > k && A[m] - A[k] >= gap) { v2Stroke(c, sc, R, k, m + 1); cache.bk.set(R, m); }
+        if (m > k && A[m] - A[k] >= gap) { v2Stroke(c, sc, R, k, m + 1, lw); cache.bk.set(R, m); }
       }
     }
   
@@ -1579,7 +1579,7 @@ function build(HERE) {
       if (sc.kind === 'rhizoma') {
         bakeRhizoma(cache.cv.getContext('2d'), sc, step, col, roots, cache, T);
         ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(cache.cv, 0, 0);
-        ctx.setTransform(...T); drawRhizoma(ctx, sc, step, col.ink, R => !cache.done.has(R), false, R => cache.bk.get(R) || 0); tipDots(ctx, sc, step, 2.4, v.s); return;
+        ctx.setTransform(...T); drawRhizoma(ctx, sc, step, col.ink, R => !cache.done.has(R), false, R => cache.bk.get(R) || 0, lwOf(sc, col)); tipDots(ctx, sc, step, 2.4, v.s, lwOf(sc, col)); return;
       }
       const fresh = roots.filter(R => !cache.done.has(R) && (sc.clockEnd ? sc.clockEnd(R) : R.birth + R.segs.length - 1) <= step);
       if (fresh.length) { const c = cache.cv.getContext('2d'); c.setTransform(...T); const f = new Set(fresh); drawPart(c, sc, null, col, R => f.has(R), false); fresh.forEach(R => cache.done.add(R)); }
@@ -2082,7 +2082,7 @@ function build(HERE) {
       customElements.define('sg-rhizoma', SGRhizomaElement);
     }
     const API = {
-      version: '1.1.1',
+      version: '1.1.2',
       faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
       grow(el, o) { const e = typeof el === 'string' ? document.querySelector(el) : el; if (!e) throw new Error('SGRhizoma.grow: no element'); return make(e, o || {}); },
       field(el, o) { return API.grow(el, Object.assign({ field: true }, o || {})); },
@@ -2100,7 +2100,7 @@ function build(HERE) {
   var SERVER = typeof window === 'undefined' || typeof document === 'undefined';       // rendered on a server: import is safe, and every call does nothing
   function inert() { var no = function () { return Promise.resolve(false); };
     return { ready: Promise.resolve(false), replay: no, setGrowth: no, climb: no, release: no, snapshot: no, redraw: function () {}, stop: function () {}, setWeight: function () {}, setColour: function () {}, remove: function () {}, growth: null, state: 'server', element: null }; }
-  var lazy = { version: '1.1.1', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
+  var lazy = { version: '1.1.2', faces: ['smoke', 'roses', 'v2', 'drag', 'flame', 'tangle'],
     grow: function (el, o) { return SERVER ? inert() : get().grow(el, o); }, field: function (el, o) { return SERVER ? inert() : get().field(el, o); },
     config: function (c) { return SERVER ? undefined : get().config(c); }, scan: function () { if (!SERVER) get().scan(); } };
 

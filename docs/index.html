@@ -1291,7 +1291,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     <li>Voltaire, <em>Candide</em> (1759). Astrid Lindgren, <em>Karlsson-on-the-Roof</em>, quoted as the epigraph to Kafka on Waterloo Shore.</li>
     <li>Not covered by these licences: the Sativus Gourd name, signature and logo, the atelier artwork shown here (including the 담배 피는 여자 / Women Who Smoke lockup and the Kafka on Waterloo Shore page) and the text of this site are © 2026 Sativus Gourd and their respective owners. All rights reserved.</li>
   </ul>
-  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v1.1.1" target="_blank" rel="noopener" aria-label="Release notes for version 1.1.1">v1.1.1</a><button type="button" class="theme" id="theme" aria-label="Switch to light" data-tip="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.6" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 4.4a7.6 7.6 0 0 1 0 15.2z" fill="currentColor"/></svg></button></p>
+  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v1.1.2" target="_blank" rel="noopener" aria-label="Release notes for version 1.1.2">v1.1.2</a><button type="button" class="theme" id="theme" aria-label="Switch to light" data-tip="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.6" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 4.4a7.6 7.6 0 0 1 0 15.2z" fill="currentColor"/></svg></button></p>
 </footer>
 
 <section class="signoff wrap" aria-label="Sativus Gourd">
@@ -2698,15 +2698,15 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     return (R._arc = A);
   }
   function bakeRhizoma(c, sc, step, col, roots, cache, T) {
-    c.setTransform(...T); c.strokeStyle = col.ink; c.lineCap = 'round'; c.lineJoin = 'round';
+    const lw = lwOf(sc, col); c.setTransform(...T); c.strokeStyle = col.ink; c.lineCap = 'round'; c.lineJoin = 'round';
     const gap = 32 / T[0];
     for (const R of roots) {
       if (cache.done.has(R)) continue;
       const k = cache.bk.get(R) || 0;
-      if ((sc.clockEnd ? sc.clockEnd(R) : R.birth + R.segs.length - 1) <= step) { v2Stroke(c, sc, R, k, R.segs.length); cache.done.add(R); continue; }
+      if ((sc.clockEnd ? sc.clockEnd(R) : R.birth + R.segs.length - 1) <= step) { v2Stroke(c, sc, R, k, R.segs.length, lw); cache.done.add(R); continue; }
       const nf = v2Shown(sc, R, step); if (!(nf > 1 + 1e-6)) continue;
       const n = Math.ceil(nf - 1e-9), m = n - nf > 1e-9 ? n - 2 : n - 1, A = arcOf(R);
-      if (m > k && A[m] - A[k] >= gap) { v2Stroke(c, sc, R, k, m + 1); cache.bk.set(R, m); }
+      if (m > k && A[m] - A[k] >= gap) { v2Stroke(c, sc, R, k, m + 1, lw); cache.bk.set(R, m); }
     }
   }
 
@@ -2904,7 +2904,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     if (sc.kind === 'rhizoma') {
       bakeRhizoma(cache.cv.getContext('2d'), sc, step, col, roots, cache, T);
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(cache.cv, 0, 0);
-      ctx.setTransform(...T); drawRhizoma(ctx, sc, step, col.ink, R => !cache.done.has(R), false, R => cache.bk.get(R) || 0); tipDots(ctx, sc, step, 2.4, v.s); return;
+      ctx.setTransform(...T); drawRhizoma(ctx, sc, step, col.ink, R => !cache.done.has(R), false, R => cache.bk.get(R) || 0, lwOf(sc, col)); tipDots(ctx, sc, step, 2.4, v.s, lwOf(sc, col)); return;
     }
     const fresh = roots.filter(R => !cache.done.has(R) && (sc.clockEnd ? sc.clockEnd(R) : R.birth + R.segs.length - 1) <= step);
     if (fresh.length) { const c = cache.cv.getContext('2d'); c.setTransform(...T); const f = new Set(fresh); drawPart(c, sc, null, col, R => f.has(R), false); fresh.forEach(R => cache.done.add(R)); }
@@ -3123,8 +3123,8 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       layers.push({ view: v, stepAt: u => hi - (hi - lo) * u, letters: false, base, span: hi - lo, total: T, grow: false });
     }
     // the blend of widths and paths (prior: the blend the stage is under now, { fn, pfn })
-    const mix = new Map(), ctl = { u: 0 }, pf = prior && prior.fn, pp = prior && prior.pfn;
-    if (col) {
+    const mix = new Map(), ctl = { u: 0, k: 1 }, pf = prior && prior.fn, pp = prior && prior.pfn;
+    if (col && B.kind !== 'rhizoma') {      // (SG Rhizoma V2 keeps one width end to end and draws its roots as they are: nothing to blend)
       // the V2 faces may draw a root from a few points before its first step (R._pre, set when its path is first made): indices
       // are matched by step, so `off` is how far the other root's indices run ahead of this one's
       const pathOf = (sc, R) => sc.kind === 'smoke' ? smoothed(R) : S2.draw.pathOf(sc.o, R), pre = R => R._pre || 0;
@@ -3146,9 +3146,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     }
     // widths between two growths are kept to half a unit, so SG Smoke's strokes still gather into a few paths
     const half = x => Math.round(x * 2) / 2;
-    const fn = (R, i, nf, w) => { const m = mix.get(R); if (!m) return pf ? pf(R, i, nf, w) : w; const a = Math.min(1, Math.max(0, m.a(nf)));
-      if (m.back) { const r = m.r && m.r[i] ? m.r[i] * (1 - a) : 0; if (i >= m.n) return r ? half(w + r) : w; const t = m.w[i]; return t == null || a <= 0 ? (r ? half(w + r) : w) : a >= 1 ? t : half(w + r + (t - w - r) * a); }
-      const t = m.w[i < m.w.length ? i : m.w.length - 1]; return t == null || a <= 0 ? w : a >= 1 ? t : half(w + (t - w) * a); };
+    const fn = (R, i, nf, w) => { const m = mix.get(R); if (!m) return pf ? pf(R, i, nf, w) : w; const a = Math.min(1, Math.max(0, m.a(nf))), k = ctl.k || 1;
+      if (m.back) { const r = m.r && m.r[i] ? m.r[i] * k * (1 - a) : 0; if (i >= m.n) return r ? half(w + r) : w; const t = m.w[i] == null ? null : m.w[i] * k; return t == null || a <= 0 ? (r ? half(w + r) : w) : a >= 1 ? t : half(w + r + (t - w - r) * a); }
+      const t0 = m.w[i < m.w.length ? i : m.w.length - 1], t = t0 == null ? null : t0 * k; return t == null || a <= 0 ? w : a >= 1 ? t : half(w + (t - w) * a); };
     // the path a root is drawn along: its own points, moved by the blend
     const pfn = (R, s, nf) => { const m = mix.get(R); if (!m) return pp ? pp(R, s, nf) : s; if (!m.d && !m.e) return s; const a = Math.min(1, Math.max(0, m.a(nf)));
       const out = s.slice(), put = (d, k) => { if (!d || !(k > 0)) return; const n = Math.min(out.length, d.length / 2); for (let i = 0; i < n; i++) { const q = out[i]; out[i] = { x: q.x + d[i * 2] * k, y: q.y + d[i * 2 + 1] * k }; } };
@@ -3221,7 +3221,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   // roots a frame while this one shows, so no frame pays for a whole picture. P: { secs, camAt(u) }; K keeps the bitmaps.
   function paintMorph(ctx, w, h, dpr, layers, u, col, cam, K, clear, P) {
     const T = [cam.s * dpr, 0, 0, cam.s * dpr, cam.tx * dpr, cam.ty * dpr];
-    { const w0 = lwOf(layers[0].view, col); if (P.lw == null) P.lw = w0; else if (P.mix && Math.abs(P.lw - w0) > 1e-9) P.mix = null; }   // the Weight changed under the morph: the blend was of the old widths
+    // the Weight changed under the morph: the blend's widths were taken at the old weight, and a root's width goes with the weight,
+    // so they are scaled with it (v1.1.2; v1.1.1 dropped the blend, and the roots took their unblended widths in one frame)
+    { const w0 = lwOf(layers[0].view, col); if (P.lw == null) P.lw = w0; if (P.mix) P.mix.ctl.k = w0 / P.lw; }
     const ground = () => { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); if (clear) ctx.clearRect(0, 0, w, h); else { ctx.fillStyle = col.ground; ctx.fillRect(0, 0, w, h); } };
     const mixed = (v, f) => { if (!P.mix) return f(); P.mix.ctl.u = v; return withMix(P.mix.fn, f, P.mix.pfn); };
     const straight = () => { ground(); ctx.setTransform(...T); ZSMOOTH = S2.draw.smooth = !!cam.zoomed; try { mixed(u, () => { for (const L of layers) drawPart(ctx, L.view, L.stepAt(u), col, null, L.letters); }); } finally { ZSMOOTH = S2.draw.smooth = false; } };
@@ -3350,17 +3352,19 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       // the roots withdraw from where the growth is (part way through a play, or finished), last grown first, and the word stays.
       // Drawing backwards has no cache of finished roots, so on a device too slow for it (the first four frames average over
       // 55 ms, the embed's rule) the finished picture fades out over the bare word instead. Reduced motion cuts.
-      release(secs, fin) {
+      release(secs, fin, to) {
         if (!sc) { if (fin) fin(); return; }
-        const s0 = step; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = null; if (after) after();
+        const s0 = step, wasBare = !!(mo && mo.bare), moving = !!mo; if (raf) { cancelAnimationFrame(raf); raf = 0; growing--; } clearFade(); done = null; if (after) after();
         const g2 = cv.getContext('2d'), draw = st => { const d = sizeCanvas(cv); paint(g2, d.w, d.h, d.dpr, sc, st, col(), emMax, pad, transparent, null, viewOf(d)); };
-        if (reduce || !(secs > 0) || !(s0 > 0)) { step = 0; draw(0); if (fin) fin(); return; }
+        if (reduce || !(secs > 0) || !(s0 > 0 || moving)) { step = 0; draw(0); if (fin) fin(); return; }
         { // v1.1.1: the roots on the stage, whatever they are in the middle of, draw back to the bare word as a morph (morph.js):
           // the same ease and time as before, and only the roots on the move are drawn each frame
           const now = stageNow(), fin0 = sceneOf(now.scene), bare = Object.create(fin0);
           if (bare.kind === 'smoke') bare.items = fin0.items.map(it => { const j = Object.create(it); j.roots = []; return j; }); else bare.roots = [];
           const plan = morphPlan(now.states, bare, col(), now.mix, !!zv);
-          if (plan) { morphGo(plan.layers, secs, fin0, null, now.cam, { bare: true, fixed: true, ease, fin, mix: plan.mix, vel: now.vel }); return; } }
+          // (landing on another growth, the view follows what is left of the roots to that growth's framing, as a morph's does)
+          // (v1.1.2: a Release already under way carries on at the speed it has, so the roots do not stop and start again)
+          if (plan) { morphGo(plan.layers, secs, to || fin0, null, now.cam, { bare: true, fixed: !to, ease: wasBare ? u => 1 - (1 - u) * (1 - u) : ease, fin, mix: plan.mix, vel: now.vel }); return; } }
         { const d0 = sizeCanvas(cv), cam = Object.assign(viewOf(d0) || fit(d0.w, d0.h, sc, emMax, pad), { end: true }), K = { done: new Set(), inside: true, back: { lo: 0, span: s0 } }, t0 = performance.now(); growing++;
           let last = 0, fi = 1e9;   // the first frame is drawn straight, and times the device
           const f = now => { if (last) fi = fi > 1e8 ? now - last : fi * 0.6 + (now - last) * 0.4; last = now; const u = Math.min(1, (now - t0) / (secs * 1000)); step = s0 * (1 - ease(u)); const d = sizeCanvas(cv);
@@ -3913,7 +3917,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     // nothing is written into the page when the slider passes the tick (a line there moved the preview down); the spoken value carries it
     wIn.setAttribute('aria-valuetext', '\u00D7' + w.toFixed(2) + (w > c + 0.005 ? ', past \u00D7' + c.toFixed(2) + ', where the roots begin to fill the letters' : ''));
   }
-  wIn.addEventListener('input', () => { cancelAnimationFrame(wRaf); st.wa = null; st.w = Math.round(+wIn.value * 20) / 20; showWeight(); tool.redraw(); });
+  wIn.addEventListener('input', () => { const nw = Math.round(+wIn.value * 20) / 20, from = shownW();
+    if (!reduce && Math.abs(nw - from) > 0.2) { easeWeight(from, () => { st.w = nw; }); return; }      // v1.1.2: a jump (a click on the track) eases as the presets do
+    cancelAnimationFrame(wRaf); st.wa = null; st.w = nw; showWeight(); tool.redraw(); });
   let wRaf = 0;
   function easeWeight(from, set) {      // set: changes st.w; the stage draws its way from the width it shows to the new one
     cancelAnimationFrame(wRaf); const to = (set(), toolW()); showWeight();
@@ -3944,8 +3950,15 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     }
     window.__zoomAnim = zoomAnim;
     const at = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-    zIn.addEventListener('click', () => zoomAnim(Math.min(8, tool.zoom * 2)));
-    zOut.addEventListener('click', () => zoomAnim(Math.max(1, tool.zoom / 2)));
+    // v1.1.2: the buttons and keys step from the zoom the stage is settling on, so a press while it eases back from a give lands
+    // on 200% and not 170%; at a limit the keys answer with a small bump (out and back in 0.42 s) instead of nothing
+    const rest = () => Math.max(1, Math.min(8, tool.zoom));
+    function bump(dir) { if (reduce) return; cancelAnimationFrame(zr); wheelStop(); const zE = dir < 0 ? 1 : 8, A = dir < 0 ? -0.075 : 0.06, t0 = performance.now();
+      const f = now => { const u = Math.min(1, (now - t0) / 420), k = 6.75 * u * (1 - u) * (1 - u); tool.zoomTo(zE * Math.exp(A * k), undefined, undefined, u < 1); show(); if (u < 1) zr = requestAnimationFrame(f); };
+      zr = requestAnimationFrame(f); }
+    const stepIn = () => { const z = rest(); if (z >= 7.999) bump(1); else zoomAnim(Math.min(8, z * 2)); }, stepOut = () => { const z = rest(); if (z <= 1.0001) bump(-1); else zoomAnim(Math.max(1, z / 2)); };
+    zIn.addEventListener('click', stepIn);
+    zOut.addEventListener('click', stepOut);
     zFit.addEventListener('click', () => zoomAnim(1));
     // v1.1.1 (after Miko, 16 Nov: zooming out to 100% "feels very rigid and stubborn ... zoom out further below 100% and when
     // it let go or you stopped scrolling out it would automatically zoom in to the 100% so the cap doesn't feel forced"): a
@@ -3956,9 +3969,15 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     let pr = 0; const settlePan = () => { const f = tool.panSettle(); if (!f) return; cancelAnimationFrame(pr); if (reduce) { f(0); return; } const t0 = performance.now(), g = now => { const u = Math.min(1, (now - t0) / 280); if (f(1 - ease(u)) && u < 1) pr = requestAnimationFrame(g); }; pr = requestAnimationFrame(g); };
     // the wheel zooms while the pointer is over the stage and has moved there, so a page that is scrolling past under a resting
     // pointer keeps scrolling; with Ctrl or Cmd held (and a trackpad pinch, which arrives that way) it always zooms. At 100% the
-    // wheel down belongs to the page, and the stage stays armed while it is still under the pointer. A notch of a mouse wheel is
+    // wheel down gives and then goes to the page (v1.1.2, below), and the stage stays armed while it is still under the pointer. A notch of a mouse wheel is
     // eased over a few frames, drawn on every one.
     let armed = false, lx, ly, lastScroll = -1e9, lastZoomWheel = -1e9, wt = 1, wr = 0, wx = 0, wy = 0;
+    // v1.1.2 (Miko, 16 Nov evening: "i can't zoom out if the zoom is already at 100% (default) and only if it is higher than
+    // that"): at 100% the wheel out gives as well, and comes back. If it keeps turning, the page takes the wheel and the stage
+    // eases back while the page moves, after three notches or about 320 px. That is for a push that begins at 100%; one that
+    // began as a zoom out and runs on past 100% stays the stage's however long it is (an overshoot, even a free-spinning wheel
+    // let go, never sends the page away). A rest of 0.6 s, about the time the stage takes to come back, starts a new push; once the page has the wheel it keeps it until the wheel rests 0.7 s, so a slow reader is not caught again. With reduced motion there is no give, so the wheel out at 100% is the page's at once, as in v1.1.
+    let pull = 0, pullN = 0, pullT = -1e9, pullFresh = true, handed = -1e9;
     window.addEventListener('pointermove', e => { const moved = lx !== undefined && (e.clientX !== lx || e.clientY !== ly); lx = e.clientX; ly = e.clientY; if (e.target !== cv) armed = false; else if (moved && e.pointerType !== 'touch') armed = true; }, true);
     window.addEventListener('scroll', () => { lastScroll = performance.now(); if (armed && document.elementFromPoint(lx, ly) !== cv) armed = false; }, { passive: true });
     // wL: the wheel's target in log zoom. Past a limit it is pulled back all the time (a time constant of 150 ms), so the stage
@@ -3966,15 +3985,22 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     let wl = 0, wL = 0; const wheelStep = now => { const dt = Math.max(8, Math.min(80, now - (wl || now - 16))); wl = now;
       if (wL < 0) { wL *= Math.exp(-dt / 150); if (wL > -0.003) wL = 0; } else if (wL > LMAX) { wL = LMAX + (wL - LMAX) * Math.exp(-dt / 150); if (wL < LMAX + 0.003) wL = LMAX; }
       const zt = Math.exp(soft(wL)), z = tool.zoom, r = zt / z, home = wL >= 0 && wL <= LMAX;
-      if (home && Math.abs(Math.log(r)) < 0.004) { tool.zoomTo(zt, wx, wy); show(); wr = 0; wl = 0; return; }
+      if (home && Math.abs(Math.log(r)) < 0.001) { tool.zoomTo(zt, wx, wy); show(); wr = 0; wl = 0; return; }      // v1.1.2: the last step 0.1% (was 0.4%, a small visible snap at the end of every notch)
       tool.zoomTo(z * Math.pow(r, 1 - Math.exp(-dt / 42)), wx, wy, true); show(); wr = requestAnimationFrame(wheelStep); };
     wheelStop = () => { cancelAnimationFrame(wr); wr = 0; wl = 0; };
     cv.addEventListener('wheel', e => { const held = e.ctrlKey || e.metaKey, now = performance.now();
-      if (!held && (!armed || now - lastScroll < 220)) return;
-      if (!held && e.deltaY > 0 && tool.zoom <= 1.0001 && !wr && now - lastZoomWheel >= 260) return;   // at 100% a fresh wheel down is the page's; one that carries on a zoom out gives a little and comes back
+      if (!held && (!armed || now - lastScroll < 220)) { if (now < handed && e.deltaY > 0) handed = now + 700; return; }      // (a page that has been handed the wheel out keeps it)
+      if (!held && e.deltaY > 0 && now < handed) { handed = now + 700; return; }      // the page has the wheel out until it rests; turned back, the wheel is the stage's again
+      const raw = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1), L0 = wr ? wL : Math.log(rest());
+      if (!held && raw > 0 && L0 <= 1e-4) {      // out, at 100% or past it
+        if (reduce) return;
+        if (now - pullT > 600) { pull = 0; pullN = 0; pullFresh = now - lastZoomWheel > 600; }
+        pullT = now; const a = Math.min(120, raw); pull += a; if (a >= 40) pullN++;
+        if (pullFresh && (pullN >= 3 || pull >= 320)) { handed = now + 700; pull = pullN = 0; if (wL < 0 && !wr) wr = requestAnimationFrame(wheelStep); return; }
+      } else if (raw < 0) { pull = pullN = 0; }
       e.preventDefault(); cancelAnimationFrame(zr); lastZoomWheel = now;
-      let d = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1); d = Math.max(-50, Math.min(50, d));
-      const [x, y] = at(e); wx = x; wy = y; wL = (wr ? wL : Math.log(Math.max(1, Math.min(8, tool.zoom)))) - d * (held ? 0.01 : 0.006);
+      let d = Math.max(-50, Math.min(50, raw));
+      const [x, y] = at(e); wx = x; wy = y; wL = L0 - d * (held ? 0.01 : 0.006);
       if (reduce) { wL = Math.max(0, Math.min(LMAX, wL)); wheelStop(); tool.zoomTo(Math.exp(wL), x, y); show(); return; }
       wL = Math.max(-1.2, Math.min(LMAX + 1.2, wL));
       if (Math.abs(d) < 12 && wL >= 0 && wL <= LMAX) { wheelStop(); tool.zoomTo(Math.exp(wL), x, y); show(); }      // a trackpad's fine steps are followed as they come
@@ -3991,7 +4017,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       else if (tool.zoom > 1.0001) tool.panBy(p[0] - p0[0], p[1] - p0[1]); });
     ['pointerup', 'pointercancel'].forEach(ev => cv.addEventListener(ev, e => { const had = pts.delete(e.pointerId), was = pinch; if (pts.size < 2) pinch = null; cv.classList.remove('grab'); if (was && !pinch) settleZoom(); else if (had && !pts.size) settlePan(); }));
     $('t-stage').tabIndex = 0;
-    $('t-stage').addEventListener('keydown', e => { const k = e.key; if (k === '+' || k === '=') zoomAnim(Math.min(8, tool.zoom * 2)); else if (k === '-') zoomAnim(Math.max(1, tool.zoom / 2)); else if (k === '0') zoomAnim(1); else return; e.preventDefault(); });
+    $('t-stage').addEventListener('keydown', e => { const k = e.key; if (k === '+' || k === '=') stepIn(); else if (k === '-') stepOut(); else if (k === '0') zoomAnim(1); else return; e.preventDefault(); });
     show(); }
   function msg(t) { $('t-msg').textContent = t; $('t-msg').hidden = !t; }
   const rpBtn = $('t-replay'), REPLAY_SVG = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M4 12a8 8 0 1 0 2.4-5.7\"/><path d=\"M4 4v4.5h4.5\"/></svg>", PLAY_SVG = "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M8 5.2l10.2 6.8L8 18.8z\" fill=\"currentColor\" stroke-width=\"1.5\"/></svg>";
@@ -4010,9 +4036,14 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     $('t-stage').classList.toggle('tall', raw.indexOf('\n') >= 0);
     const g = growth(), sc = cached(text, st.face, seed(), g), was = tool.scene, same = lastRun && lastRun.text === text && lastRun.face === st.face && lastRun.seed === seed();
     lastRun = { text, face: st.face, seed: seed() };
-    const m = tool.mv, o = tool.mo, ok = same && !speed && st.face !== 'RHIZOMA' && !reduce && was;
+    if (st.face !== 'RHIZOMA' || !same) v2go = null;
+    const m = tool.mv, o = tool.mo, ok = same && !speed && !reduce && was;
     if (ok) {
-      if ((m && m.final === sc) || (o && !o.bare && o.final === sc)) { runAfter(); return; }      // already on its way there
+      if ((m && m.final === sc) || (o && !o.bare && o.final === sc) || (o && o.bare && v2go === sc)) { runAfter(); return; }      // already on its way there
+      // v1.1.2: SG Rhizoma V2 grows each growth afresh, so no root carries from one growth to the next, and a morph between two
+      // is two whole tangles at once. Instead its roots draw back into the letters as Release draws them (same time, same ease),
+      // while the view glides to the new growth's framing, and the new growth grows from there: no cut to the bare word.
+      if (st.face === 'RHIZOMA') { const go = v2go = sc; tool.release(RELEASE_SECS, () => { if (v2go === go) v2go = null; tool.play(go, toolCol, null, 0); }, go); runAfter(); return; }
       // a growth that only grows on keeps v1.1's way: from a finished growth, or carried on from one still growing
       const old = window.__moveOld;
       if (old && m && m.fwd && continuation(m.final, sc)) {
@@ -4033,6 +4064,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     tool.play(sc, toolCol, null, speed);
     runAfter();
   }
+  let v2go = null;      // the growth SG Rhizoma V2 is on its way to (v1.1.2)
   function runAfter() {
     const g = growth(), text = toolText();
     showWeight(); playMode(false);
@@ -4365,7 +4397,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   });
 
   // ---------- release: the roots withdraw from where the growth is, and the word stays
-  $('t-release').addEventListener('click', () => { if (!tool.scene || recording) return; tool.release(RELEASE_SECS / recSpeed()); playMode(true); msg(''); });
+  $('t-release').addEventListener('click', () => { if (!tool.scene || recording) return; v2go = null; tool.release(RELEASE_SECS / recSpeed()); playMode(true); msg(''); });
 
   // ---------- record: the growth, the release or both, drawn at 1920 x 1080 (or vertical) as PNG frames with a transparent ground, in a
   // zip, or as a video in real time. Frames are drawn from the step, not the clock, so every machine makes the same ones and none is dropped.
@@ -4451,7 +4483,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       'Import each folder as an image sequence at ' + o.fps + ' frames a second.', '',
       'The same text, typeface, growth, weight and seed grow the same shape in any browser, so these frames can be made again: set them in the tool on the Rhizoma Smoke site (https://sativus-gourd.github.io/rhizoma-smoke/), open Record, pick PNG frames, and choose the same take, frame rate, size and speed.',
       'The same word on a web page: ' + embedCode().split('\n')[1],
-      'SG Rhizoma Engine v1.1.1, Sativus Gourd, 2026.'].filter((l, k, a) => l !== '' || a[k - 1] !== '').join('\n') + '\n';
+      'SG Rhizoma Engine v1.1.2, Sativus Gourd, 2026.'].filter((l, k, a) => l !== '' || a[k - 1] !== '').join('\n') + '\n';
   }
   // PNG frames. A zip is built in memory, so a take is cut into parts of about 125 MB, each saved as soon as it is made: a 4K take of a heavy
   // growth comes in a few, and a 1080p take in one. Part 1 carries the README; the folder names are the same in every part, and the frame numbers
