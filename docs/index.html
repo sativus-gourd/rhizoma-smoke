@@ -1291,7 +1291,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     <li>Voltaire, <em>Candide</em> (1759). Astrid Lindgren, <em>Karlsson-on-the-Roof</em>, quoted as the epigraph to Kafka on Waterloo Shore.</li>
     <li>Not covered by these licences: the Sativus Gourd name, signature and logo, the atelier artwork shown here (including the 담배 피는 여자 / Women Who Smoke lockup and the Kafka on Waterloo Shore page) and the text of this site are © 2026 Sativus Gourd and their respective owners. All rights reserved.</li>
   </ul>
-  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v1.1.2" target="_blank" rel="noopener" aria-label="Release notes for version 1.1.2">v1.1.2</a><button type="button" class="theme" id="theme" aria-label="Switch to light" data-tip="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.6" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 4.4a7.6 7.6 0 0 1 0 15.2z" fill="currentColor"/></svg></button></p>
+  <p class="vmark"><a href="https://github.com/sativus-gourd/rhizoma-smoke/releases/tag/v1.1.3" target="_blank" rel="noopener" aria-label="Release notes for version 1.1.3">v1.1.3</a><button type="button" class="theme" id="theme" aria-label="Switch to light" data-tip="Light"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.6" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 4.4a7.6 7.6 0 0 1 0 15.2z" fill="currentColor"/></svg></button></p>
 </footer>
 
 <section class="signoff wrap" aria-label="Sativus Gourd">
@@ -2119,7 +2119,14 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       const n = step == null ? R.segs.length : scene.clock ? scene.clock(R, step) : Math.min(R.segs.length, step - R.birth + 1);   // clock: a page's own pacing
       if (!(n > 1 + 1e-6)) continue;                                   // a hair past the first point is not yet a step
       if (R.burn) { burn.push([R, n]); continue; }
+      const ok = !R.burn && n >= R.segs.length - 1e-9 && (!(draw.wmix || draw.pmix) || (draw.free && draw.free(R, n))) && typeof Path2D !== 'undefined';
+      const key = ok ? o.lineWeight + '|' + o.weight + '|' + o.weightUnits + '|' + o.minWidth + '|' + (draw.smooth ? 1 : 0) : null;
+      if (ok && R._oc && R._oc.key === key && R._oc.o === o) { ctx.fill(R._oc.p); continue; }
       const pts = outline(o, R, n); if (!pts) continue;
+      if (ok) { const P = new Path2D();
+        if (draw.smooth) { const m = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], s0 = mid(pts[m - 1], pts[0]); P.moveTo(s0[0], s0[1]); for (let i = 0; i < m; i++) { const q = mid(pts[i], pts[(i + 1) % m]); P.quadraticCurveTo(pts[i][0], pts[i][1], q[0], q[1]); } }
+        else { P.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) P.lineTo(pts[i][0], pts[i][1]); }
+        P.closePath(); R._oc = { key, o, p: P }; ctx.fill(P); continue; }
       if (draw.smooth) { const m = pts.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], s0 = mid(pts[m - 1], pts[0]);
         ctx.beginPath(); ctx.moveTo(s0[0], s0[1]); for (let i = 0; i < m; i++) { const q = mid(pts[i], pts[(i + 1) % m]); ctx.quadraticCurveTo(pts[i][0], pts[i][1], q[0], q[1]); } ctx.closePath(); ctx.fill(); continue; }
       ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill();
@@ -2484,9 +2491,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   // v19.21: a root that is growing is drawn at its finished width, its last KEEP_NIB steps easing to a point. A colour carries it as col.keep.
   const KEEP_NIB = 12;
   function ownW(o, R, i, it) { const base = o.weightUnits != null ? o.weightUnits : 1.8 * o.weight * S1.K, n = R.segs.length, t = o.taper ? 1 - o.taper * (i / Math.max(n - 1, 1)) : 1; return base * R.thick * Math.max(t, 0.02) * swell(i, leaves(R, smoothed(R), it)); }
-  function envAt(R, i, step) {
+  function envAt(R, i, step, on) {
     let w = 0; if (!R._env) return 0;
-    for (const e of R._env) { if (step != null && (e.c._show != null ? e.c._show : e.b) > step) continue; const d = i - e.k, u = d / ENV_EASE, f = d <= 0 ? 1 : d >= ENV_EASE ? 0 : 1 - u * u * (3 - 2 * u); if (e.r * f > w) w = e.r * f; }
+    for (const e of R._env) { if (step != null) { const q = on ? on(e.c, step) : null; if (q === false || (q == null && (e.c._show != null ? e.c._show : e.b) > step)) continue; } const d = i - e.k, u = d / ENV_EASE, f = d <= 0 ? 1 : d >= ENV_EASE ? 0 : 1 - u * u * (3 - 2 * u); if (e.r * f > w) w = e.r * f; }
     return w;
   }
   function fitItem(it, o) {
@@ -2498,7 +2505,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       m[0]._env.push({ k: m[1], r: Math.max(ownW(o, R, 0, it), envAt(R, 0)), b: R.birth, c: R });
     }
   }
-  function envOf(R, it, o, i, step) { if (!it._fitted) fitItem(it, o); return envAt(R, i, step); }
+  function envOf(R, it, o, i, step, on) { if (!it._fitted) fitItem(it, o); return envAt(R, i, step, on); }
   // the lab's outline() on the smoothed path, with the swell; the root sits at (it.x, it.y)
   function smokeOutline(o, R, it, nVis, lw = 1) {
     o = it.o || o;
@@ -2532,7 +2539,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   // will have when finished, with that many steps behind its tip easing to a point (v19.21); null runs the taper over what is shown
   function segWidth(scene, it, R, k, i, nf, step, keep) {
     const om = it.o || scene.o, len = R.segs.length, fin = keep != null && step != null && nf < len - 1e-9;
-    let wv = Math.max(widthVis(om, R, i, fin ? len : nf) * swell(i, k), envOf(R, it, scene.o, i, fin ? null : step));
+    let wv = Math.max(widthVis(om, R, i, fin ? len : nf) * swell(i, k), envOf(R, it, scene.o, i, fin ? null : step, scene.envOn));
     if (fin && keep > 0) { const a = Math.min(1, (len - nf) / keep); if (a > 0) { const d = Math.max(0, nf - 1 - i), g = Math.min(1, (d + 0.15 * keep) / keep); wv = Math.max(Math.min(wv, om.minWidth), wv * (1 - a * (1 - g))); } }
     return wv;
   }
@@ -3067,7 +3074,8 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   const morphTimed = (sc, ms) => { if (ms > 12) { const n = allRoots(sc).length; MORPH_SLOW = MORPH_SLOW ? Math.min(MORPH_SLOW, n) : n; } };
   const NOCTX = (() => { const n = () => {}; return { beginPath: n, moveTo: n, lineTo: n, closePath: n, fill: n, stroke: n, quadraticCurveTo: n, bezierCurveTo: n, arc: n, rect: n, save: n, restore: n, setTransform: n }; })();
   let WPATH = null;
-  const withMix = (fn, f, pfn) => { const a = WMIX, b = S2.draw.wmix, c = WPATH, d = S2.draw.pmix; WMIX = S2.draw.wmix = fn || null; WPATH = S2.draw.pmix = pfn || null; try { return f(); } finally { WMIX = a; S2.draw.wmix = b; WPATH = c; S2.draw.pmix = d; } };
+  // free(R, nf): true where the blend leaves that root as it is, so a V2 face may fill the outline it kept (v1.1.3)
+  const withMix = (fn, f, pfn, free) => { const a = WMIX, b = S2.draw.wmix, c = WPATH, d = S2.draw.pmix, e = S2.draw.free; WMIX = S2.draw.wmix = fn || null; WPATH = S2.draw.pmix = pfn || null; S2.draw.free = free || null; try { return f(); } finally { WMIX = a; S2.draw.wmix = b; WPATH = c; S2.draw.pmix = d; S2.draw.free = e; } };
   // the widths these roots are drawn with in a view at a step (prior: the blend they are under now): Map root -> [width by index]
   function morphWidths(view, step, col, roots, prior, zoomed) {
     const out = new Map(), want = new Set(roots); if (!want.size) return out;
@@ -3106,6 +3114,9 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     // the new growth: its roots from the length they have (or from their letters), by its own clock
     const cB = B.clock || ((R, s) => Math.min(R.segs.length, s - R.birth + 1)), rb = [].concat(...groupsB);
     const vB = Object.create(B); vB.clock = (R, s) => { if (hide.has(R)) return 0; const n = n0.get(R), c = cB(R, s); return n && c < n ? n : c; };
+    // (v1.1.3: a branch on the stage lends its parent its width from the first frame, the one carried on and the one drawing
+    // back to it alike; a new branch from its birth step, as in a growth)
+    vB.envOn = c => hide.has(c) || n0.has(c) ? true : null;
     const moved = s => { for (const R of rb) if (!hide.has(R) && cB(R, s) > (n0.get(R) || 1) + 1e-6) return true; return false; };
     let s0 = B.total; if (moved(B.total)) { let lo = 0, hi = B.total; while (hi - lo > 0.25) { const m = (lo + hi) / 2; if (moved(m)) hi = m; else lo = m; } s0 = lo; grows = true; }
     // it ends when its last root is whole, not at the growth's last step
@@ -3117,6 +3128,10 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       const v = Object.create(base);
       if (base.kind === 'smoke') v.items = base.items.map(it => { const j = Object.create(it); j.roots = it.roots.filter(R => M.has(R)); return j; }); else { v.roots = rs; v.insts = []; }
       v.clock = (R, s) => { const m = M.get(R); return m ? Math.max(m.to, Math.min(m.from, cA(R, s))) : 0; };
+      // a branch drawing back lends its parent its width while it is on the stage, one that grows on (in the new growth's
+      // layer) all the way, one not on the stage not at all
+      const kept = new Set(on.filter(e => e[2].base === base).map(e => e[1]));
+      v.envOn = (c, s) => M.has(c) ? v.clock(c, s) > 1 + 1e-6 : kept.has(c);
       const full = s => rs.every(R => cA(R, s) >= M.get(R).from - 1e-6), none = s => rs.every(R => cA(R, s) <= M.get(R).to + 1e-6);
       let hi = T; if (full(0)) hi = 0; else { let a = 0, b = T; for (let k = 0; k < 40 && b - a > 0.05; k++) { const m = (a + b) / 2; if (full(m)) b = m; else a = m; } hi = b; }
       let lo = 0; if (none(hi)) lo = hi; else { let a = 0, b = hi; for (let k = 0; k < 40 && b - a > 0.05; k++) { const m = (a + b) / 2; if (none(m)) a = m; else b = m; } lo = a; }
@@ -3128,33 +3143,59 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       // the V2 faces may draw a root from a few points before its first step (R._pre, set when its path is first made): indices
       // are matched by step, so `off` is how far the other root's indices run ahead of this one's
       const pathOf = (sc, R) => sc.kind === 'smoke' ? smoothed(R) : S2.draw.pathOf(sc.o, R), pre = R => R._pre || 0;
-      const shift = (own, tgt, off) => { const n = Math.min(own.length, tgt.length - off), d = new Float64Array(Math.max(0, n) * 2); let any = false; for (let i = Math.max(0, -off); i < n; i++) { d[i * 2] = tgt[i + off].x - own[i].x; d[i * 2 + 1] = tgt[i + off].y - own[i].y; if (Math.abs(d[i * 2]) + Math.abs(d[i * 2 + 1]) > 0.02) any = true; } return any ? d : null; };
-      const slide = (w, off) => off ? Array.from({ length: Math.max(0, w.length - off) }, (_, i) => w[i + off]) : w;
-      const full = morphWidths(B, null, col, [...to.map(e => e[1]), ...on.filter(e => e[0].segs.length - e[3] < 0.5).map(e => e[0])], null, zoomed);
+      // (v1.1.3: where this root has lead-in points the other has not, they take the shift and the width of its first point, so
+      // they move with the root instead of staying put and leaving a kink and a step where the root leaves its letter)
+      const shift = (own, tgt, off) => { const n = Math.min(own.length, tgt.length - off), i0 = Math.max(0, -off), d = new Float64Array(Math.max(0, n) * 2); let any = false; for (let i = i0; i < n; i++) { d[i * 2] = tgt[i + off].x - own[i].x; d[i * 2 + 1] = tgt[i + off].y - own[i].y; if (Math.abs(d[i * 2]) + Math.abs(d[i * 2 + 1]) > 0.02) any = true; } if (i0 > 0 && i0 < n) for (let i = 0; i < i0; i++) { d[i * 2] = d[i0 * 2]; d[i * 2 + 1] = d[i0 * 2 + 1]; } return any ? d : null; };
+      const slide = (w, off) => off ? Array.from({ length: Math.max(0, w.length - off) }, (_, i) => i + off < 0 ? w[0] : w[i + off]) : w;
+      const full = morphWidths(B, null, col, [...to.map(e => e[1]), ...on.map(e => e[0])], null, zoomed);      // each root of the new growth, whole
       for (const S of states) {
         // a root that grows on: from the widths and the path it has, to its own as it grows
         const mine = on.filter(e => e[2] === S && !(e[0] === e[1] && !prior)), had = morphWidths(S.view, S.step, col, mine.map(e => e[1]), pf, zoomed);
         for (const [Q, P, , n] of mine) { const w0 = had.get(P); if (!w0) continue; const len = Q.segs.length, room = len - n, pQ = pathOf(B, Q), pP = pathOf(S.base, P), off = pre(P) - pre(Q), w = slide(w0, off), d = shift(pQ, pp ? pp(P, pP, n) : pP, off);
-          if (room >= 0.5) mix.set(Q, { w, d, a: nf => 1 - (nf - n) / room });
-          else { const f = full.get(Q); if (d || (f && w.some((x, i) => x != null && f[i] != null && Math.abs(x - f[i]) > 0.02))) mix.set(Q, { w, d, a: () => 1 - ctl.u }); } }
+          const qf = full.get(Q);
+          if (room >= 0.5) mix.set(Q, { w, qf, d, a: nf => 1 - (nf - n) / room, c: nf => (nf - n) / 6 });
+          else if (d || (qf && w.some((x, i) => x != null && qf[i] != null && Math.abs(x - qf[i]) > 0.02))) mix.set(Q, { w, qf, d, a: () => 1 - ctl.u, c: () => 1, uu: true }); }
         // a root that draws back to a shorter self: to that self's widths and path as it goes (r, e: what a blend it was under had left to do)
         const mine2 = to.filter(e => e[2] === S), was = prior ? morphWidths(S.view, S.step, col, mine2.map(e => e[0]), pf, zoomed) : null, own = prior ? morphWidths(S.view, S.step, col, mine2.map(e => e[0]), null, zoomed) : null;
+        const pwhole = morphWidths(S.base, null, col, mine2.map(e => e[0]), null, zoomed);      // each root drawing back, whole
         for (const [P, Q, , from] of mine2) { const w0 = full.get(Q), m = Q.segs.length; if (!w0) continue; const pP = pathOf(S.base, P), pQ = pathOf(B, Q), off = pre(Q) - pre(P), w = slide(w0, off);
           const a0 = was && was.get(P), b0 = own && own.get(P), r = a0 && b0 ? a0.map((x, i) => x != null && b0[i] != null ? x - b0[i] : 0) : null;
-          mix.set(P, { w, n: w.length, d: shift(pP, pQ, off), r, e: pp ? shift(pP, pp(P, pP, from), 0) : null, back: true, a: nf => (from - nf) / (from - m) }); }
+          mix.set(P, { w, pf: pwhole.get(P), n: w.length, d: shift(pP, pQ, off), r, e: pp ? shift(pP, pp(P, pP, from), 0) : null, back: true, a: nf => (from - nf) / (from - m), c: nf => (nf - m) / 6 }); }
       }
     }
     // widths between two growths are kept to half a unit, so SG Smoke's strokes still gather into a few paths
     const half = x => Math.round(x * 2) / 2;
-    const fn = (R, i, nf, w) => { const m = mix.get(R); if (!m) return pf ? pf(R, i, nf, w) : w; const a = Math.min(1, Math.max(0, m.a(nf))), k = ctl.k || 1;
-      if (m.back) { const r = m.r && m.r[i] ? m.r[i] * k * (1 - a) : 0; if (i >= m.n) return r ? half(w + r) : w; const t = m.w[i] == null ? null : m.w[i] * k; return t == null || a <= 0 ? (r ? half(w + r) : w) : a >= 1 ? t : half(w + r + (t - w - r) * a); }
-      const t0 = m.w[i < m.w.length ? i : m.w.length - 1], t = t0 == null ? null : t0 * k; return t == null || a <= 0 ? w : a >= 1 ? t : half(w + (t - w) * a); };
+    // v1.1.3: a root takes the other growth's widths in two ways at once. Taken as they are (abs), the root is exactly what was
+    // on the stage at the click and exactly its new self at the landing. Taken as a ratio to the root's own widths (rel), it
+    // keeps the shape its own drawing gives the tip that is growing or drawing back, which narrows over its last few points.
+    // v1.1.2 used abs alone, so a tip on the move was as thick as the body and stepped to its point in one place, and a fine
+    // root drawing back from a heavy growth kept a thick tail (Miko, 17 Nov). c moves from abs to rel over the first six points
+    // a root grows on, and back to abs over the last six a root draws back, so both ends of the morph stay exact.
+    const fn = (R, i, nf, w) => { const m = mix.get(R); if (!m) return pf ? pf(R, i, nf, w) : w;
+      const a = Math.min(1, Math.max(0, m.a(nf))), k = ctl.k || 1, c = Math.min(1, Math.max(0, m.c(nf))), r = m.r && m.r[i] ? m.r[i] * k * (1 - a) : 0;
+      if (a <= 0) return r ? half(w + r) : w;
+      let t, ref;
+      if (m.back) { const j = Math.min(i, m.n - 1); t = m.w[j]; ref = m.pf && m.pf[j];
+        if (i >= m.n) { const q = m.jq != null ? m.jq : t != null && ref ? 1 + (t / ref - 1) * a : 1; return q === 1 && !r ? w : half(w * q + r); } }      // the part still to go keeps its shape, scaled by what the joint was given
+      else { t = m.w[i < m.w.length ? i : m.w.length - 1]; ref = m.qf && m.qf[i]; }
+      if (t == null) return r ? half(w + r) : w;
+      t *= k; if (ref) ref *= k;
+      const abs = w + (t - w) * a, rel = ref ? w * (1 + (t / ref - 1) * a) : abs, v = abs + (rel - abs) * c;
+      if (m.back && i === m.n - 1) m.jq = w > 0 ? v / w : null;      // (a root's points are drawn in order, so the joint comes before the part still to go)
+      return half(v + r); };
     // the path a root is drawn along: its own points, moved by the blend
     const pfn = (R, s, nf) => { const m = mix.get(R); if (!m) return pp ? pp(R, s, nf) : s; if (!m.d && !m.e) return s; const a = Math.min(1, Math.max(0, m.a(nf)));
-      const out = s.slice(), put = (d, k) => { if (!d || !(k > 0)) return; const n = Math.min(out.length, d.length / 2); for (let i = 0; i < n; i++) { const q = out[i]; out[i] = { x: q.x + d[i * 2] * k, y: q.y + d[i * 2 + 1] * k }; } };
+      // (v1.1.3: past the end of the other root, the last shift holds, so the rest of the root moves with it instead of
+      // staying put and leaving a kink at the joint)
+      const out = s.slice(), put = (d, k) => { if (!d || !(k > 0)) return; const n = d.length / 2; if (!n) return; for (let i = 0; i < out.length; i++) { const j = Math.min(i, n - 1), q = out[i]; out[i] = { x: q.x + d[j * 2] * k, y: q.y + d[j * 2 + 1] * k }; } };
       put(m.d, a); put(m.e, 1 - a); return out; };
     if (window.__morphProbe) window.__plan = { on: on.length, to: to.length, mix: mix.size, back: [...back.values()].reduce((n, M) => n + M.size, 0), gone: [...back.values()].reduce((n, M) => n + [...M.values()].filter(e => e.to <= 1).length, 0), rootsB: rb.length, s0, s1, total: B.total };
-    return { layers, grows, shrinks: back.size > 0, mix: mix.size || prior ? { fn, pfn, ctl } : null };
+    // the roots the blend leaves as they are at this length: none blended, or blended and done (a root grown on to its end, one
+    // not yet drawing back), and none still under the blend before
+    const free = (R, nf) => { const m = mix.get(R); if (!m) return !pf || !!(prior.free && prior.free(R, nf)); if (m.r || m.e || m.uu) return false; return m.a(nf) <= 0; };
+    // (uu: a root that keeps its length and takes its new widths over the whole morph, so a bitmap cannot hold it still)
+    const moving = R => { const m = mix.get(R); return !!(m && m.uu); };
+    return { layers, grows, shrinks: back.size > 0, mix: mix.size || prior ? { fn, pfn, ctl, free, moving } : null };
   }
   // the pace of a morph. By the clock alone a change can open or close on a long stretch where one or two roots move; here
   // half the time follows the clock and half follows the length of root on the move, so those stretches pass twice as fast
@@ -3212,7 +3253,8 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   // is this root's picture the same from step sa to step sb of its layer? (its length, and for SG Smoke the width a branch lends it)
   function morphStill(L, R, sa, sb) {
     const a = L.view.clock(R, sa), b = L.view.clock(R, sb); if (!(b > 1 + 1e-6) || Math.abs(a - b) > 1e-6) return false;
-    if (R._env && R._env.length && b >= R.segs.length - 1e-9) { const lo = Math.min(sa, sb), hi = Math.max(sa, sb); for (const e of R._env) { const t = e.c._show != null ? e.c._show : e.b; if (t > lo - 1e-9 && t <= hi + 1e-9) return false; } }
+    if (R._env && R._env.length && b >= R.segs.length - 1e-9) { const lo = Math.min(sa, sb), hi = Math.max(sa, sb), on = L.view.envOn;
+      for (const e of R._env) { const qa = on ? on(e.c, sa) : null, qb = on ? on(e.c, sb) : null; if (qa != null || qb != null) { if (qa !== qb) return false; continue; } const t = e.c._show != null ? e.c._show : e.b; if (t > lo - 1e-9 && t <= hi + 1e-9) return false; } }
     return true;
   }
   // a frame of a morph. The roots whose picture does not change for the next stretch (0.1 to 0.3 s, less while the camera's
@@ -3225,7 +3267,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     // so they are scaled with it (v1.1.2; v1.1.1 dropped the blend, and the roots took their unblended widths in one frame)
     { const w0 = lwOf(layers[0].view, col); if (P.lw == null) P.lw = w0; if (P.mix) P.mix.ctl.k = w0 / P.lw; }
     const ground = () => { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); if (clear) ctx.clearRect(0, 0, w, h); else { ctx.fillStyle = col.ground; ctx.fillRect(0, 0, w, h); } };
-    const mixed = (v, f) => { if (!P.mix) return f(); P.mix.ctl.u = v; return withMix(P.mix.fn, f, P.mix.pfn); };
+    const mixed = (v, f) => { if (!P.mix) return f(); P.mix.ctl.u = v; return withMix(P.mix.fn, f, P.mix.pfn, P.mix.free); };
     const straight = () => { ground(); ctx.setTransform(...T); ZSMOOTH = S2.draw.smooth = !!cam.zoomed; try { mixed(u, () => { for (const L of layers) drawPart(ctx, L.view, L.stepAt(u), col, null, L.letters); }); } finally { ZSMOOTH = S2.draw.smooth = false; } };
     // Drawn whole, a frame is exactly the still picture's drawing, so that is how a morph is drawn wherever the machine keeps up.
     // Where it does not (three frames running that take over 12 ms to draw, or come over 40 ms apart), the morph goes over to
@@ -3246,7 +3288,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       return ub; };
     const make = ua => { const ub = stretch(ua); let ref = camOf(ua); if (ub >= 1 - 1e-9) ref = camOf(1); else if (ua > 1e-9) for (let j = 1; j <= 4; j++) { const c = camOf(ua + (ub - ua) * j / 4); if (c.s > ref.s) ref = c; }   // at rest (the first and the last stretch) the bitmap is shown at its own size, so the picture is as sharp as the still one
       const todo = []; let n = 0;
-      for (const L of layers) { const sa = L.stepAt(ua), sb = L.stepAt(ub), rs = allRoots(L.view).filter(R => morphStill(L, R, sa, sb)); todo.push([L, rs, sb]); n += rs.length; }
+      for (const L of layers) { const sa = L.stepAt(ua), sb = L.stepAt(ub), rs = allRoots(L.view).filter(R => morphStill(L, R, sa, sb) && !(P.mix && P.mix.moving && P.mix.moving(R))); todo.push([L, rs, sb]); n += rs.length; }
       const cv = (K.spare && K.spare.width === W + 2 * M && K.spare.height === H + 2 * M) ? K.spare : document.createElement('canvas'); K.spare = null; cv.width = W + 2 * M; cv.height = H + 2 * M;
       const c = cv.getContext('2d', { alpha: !!clear }); c.setTransform(1, 0, 0, 1, 0, 0); if (clear) c.clearRect(0, 0, cv.width, cv.height); else { c.fillStyle = col.ground; c.fillRect(0, 0, cv.width, cv.height); }
       return { ua, ub, ref: { s: ref.s, tx: ref.tx, ty: ref.ty }, cv, c, todo, n, at: 0, li: 0, ri: 0, set: new Set(), done: false, t0: u }; };
@@ -3969,21 +4011,31 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     let pr = 0; const settlePan = () => { const f = tool.panSettle(); if (!f) return; cancelAnimationFrame(pr); if (reduce) { f(0); return; } const t0 = performance.now(), g = now => { const u = Math.min(1, (now - t0) / 280); if (f(1 - ease(u)) && u < 1) pr = requestAnimationFrame(g); }; pr = requestAnimationFrame(g); };
     // the wheel zooms while the pointer is over the stage and has moved there, so a page that is scrolling past under a resting
     // pointer keeps scrolling; with Ctrl or Cmd held (and a trackpad pinch, which arrives that way) it always zooms. At 100% the
-    // wheel down gives and then goes to the page (v1.1.2, below), and the stage stays armed while it is still under the pointer. A notch of a mouse wheel is
+    // wheel down gives, and a second motion goes to the page (v1.1.2 and v1.1.3, below), and the stage stays armed while it is still under the pointer. A notch of a mouse wheel is
     // eased over a few frames, drawn on every one.
     let armed = false, lx, ly, lastScroll = -1e9, lastZoomWheel = -1e9, wt = 1, wr = 0, wx = 0, wy = 0;
     // v1.1.2 (Miko, 16 Nov evening: "i can't zoom out if the zoom is already at 100% (default) and only if it is higher than
-    // that"): at 100% the wheel out gives as well, and comes back. If it keeps turning, the page takes the wheel and the stage
-    // eases back while the page moves, after three notches or about 320 px. That is for a push that begins at 100%; one that
-    // began as a zoom out and runs on past 100% stays the stage's however long it is (an overshoot, even a free-spinning wheel
-    // let go, never sends the page away). A rest of 0.6 s, about the time the stage takes to come back, starts a new push; once the page has the wheel it keeps it until the wheel rests 0.7 s, so a slow reader is not caught again. With reduced motion there is no give, so the wheel out at 100% is the page's at once, as in v1.1.
-    let pull = 0, pullN = 0, pullT = -1e9, pullFresh = true, handed = -1e9;
+    // that"): at 100% the wheel out gives as well, and comes back.
+    // v1.1.3 (Miko, 17 Nov: "if i keep scrolling in that one motion i start scrolling down the page, that feels odd"): one
+    // motion is the stage's to its end, however long, whether it began at 100% or ran on from a zoom out. A motion is wheel
+    // events with no gap over 0.3 s (a trackpad's glide after the fingers lift is part of it), or 0.25 s between the notches
+    // of a mouse wheel (a steady notch-by-notch scroll is a series of motions, so it reaches the page). A second motion out that begins
+    // within 1.2 s of the last give goes to the page, as macOS hands a scroll on to the page between gestures, so a pointer
+    // resting on the stage never traps the page. After a longer rest a motion out gives again. Once the page has the wheel it
+    // keeps it until the wheel rests 0.7 s, so a slow reader is not caught again. With reduced motion there is no give, so the
+    // wheel out at 100% is the page's at once, as in v1.1.
+    let gaveAt = -1e9, handed = -1e9;
     window.addEventListener('pointermove', e => { const moved = lx !== undefined && (e.clientX !== lx || e.clientY !== ly); lx = e.clientX; ly = e.clientY; if (e.target !== cv) armed = false; else if (moved && e.pointerType !== 'touch') armed = true; }, true);
     window.addEventListener('scroll', () => { lastScroll = performance.now(); if (armed && document.elementFromPoint(lx, ly) !== cv) armed = false; }, { passive: true });
-    // wL: the wheel's target in log zoom. Past a limit it is pulled back all the time (a time constant of 150 ms), so the stage
-    // holds out while the wheel keeps turning and comes home as the turning dies away, with no timer and no stop to feel.
-    let wl = 0, wL = 0; const wheelStep = now => { const dt = Math.max(8, Math.min(80, now - (wl || now - 16))); wl = now;
-      if (wL < 0) { wL *= Math.exp(-dt / 150); if (wL > -0.003) wL = 0; } else if (wL > LMAX) { wL = LMAX + (wL - LMAX) * Math.exp(-dt / 150); if (wL < LMAX + 0.003) wL = LMAX; }
+    // wL: the wheel's target in log zoom. Past a limit it is pulled back (a time constant of 150 ms), so the stage comes home
+    // as the turning dies away, with no timer and no stop to feel.
+    // v1.1.3: while a motion is still turning the pull waits (wHold: up to 140 ms after each step, 1.6 times the gap between
+    // the last two), and the give goes no deeper than about 85% (to 940% at the top; Ctrl or Cmd, about 82%). Now that one
+    // motion stays with the stage to its end, a mouse wheel spun at the limit pulsed: each notch pushed out and the pull drew
+    // it back between notches, a swing of about 1.5% eleven times a second. It holds still instead and comes home when the
+    // wheel stops. A single notch is pulled back at once, as before.
+    let wl = 0, wL = 0, wHold = 0; const wheelStep = now => { const dt = Math.max(8, Math.min(80, now - (wl || now - 16))); wl = now; const pull = now - lastZoomWheel >= wHold;
+      if (wL < 0) { if (pull) wL *= Math.exp(-dt / 150); if (wL > -0.003) wL = 0; } else if (wL > LMAX) { if (pull) wL = LMAX + (wL - LMAX) * Math.exp(-dt / 150); if (wL < LMAX + 0.003) wL = LMAX; }
       const zt = Math.exp(soft(wL)), z = tool.zoom, r = zt / z, home = wL >= 0 && wL <= LMAX;
       if (home && Math.abs(Math.log(r)) < 0.001) { tool.zoomTo(zt, wx, wy); show(); wr = 0; wl = 0; return; }      // v1.1.2: the last step 0.1% (was 0.4%, a small visible snap at the end of every notch)
       tool.zoomTo(z * Math.pow(r, 1 - Math.exp(-dt / 42)), wx, wy, true); show(); wr = requestAnimationFrame(wheelStep); };
@@ -3994,15 +4046,15 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       const raw = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1), L0 = wr ? wL : Math.log(rest());
       if (!held && raw > 0 && L0 <= 1e-4) {      // out, at 100% or past it
         if (reduce) return;
-        if (now - pullT > 600) { pull = 0; pullN = 0; pullFresh = now - lastZoomWheel > 600; }
-        pullT = now; const a = Math.min(120, raw); pull += a; if (a >= 40) pullN++;
-        if (pullFresh && (pullN >= 3 || pull >= 320)) { handed = now + 700; pull = pullN = 0; if (wL < 0 && !wr) wr = requestAnimationFrame(wheelStep); return; }
-      } else if (raw < 0) { pull = pullN = 0; }
-      e.preventDefault(); cancelAnimationFrame(zr); lastZoomWheel = now;
+        const gap = now - Math.max(gaveAt, lastZoomWheel);      // since this motion's last event (a zoom out that ran on to 100% is the same motion)
+        if (gap > (raw >= 40 ? 250 : 300) && now - gaveAt < 1200) { handed = now + 700; gaveAt = -1e9; if (wL < 0 && !wr) wr = requestAnimationFrame(wheelStep); return; }      // a second motion: the page's
+        gaveAt = now;
+      } else if (raw < 0) { gaveAt = -1e9; }
+      e.preventDefault(); cancelAnimationFrame(zr); { const g = now - lastZoomWheel; wHold = g < 300 ? Math.min(140, 1.6 * g) : 0; } lastZoomWheel = now;
       let d = Math.max(-50, Math.min(50, raw));
       const [x, y] = at(e); wx = x; wy = y; wL = L0 - d * (held ? 0.01 : 0.006);
       if (reduce) { wL = Math.max(0, Math.min(LMAX, wL)); wheelStop(); tool.zoomTo(Math.exp(wL), x, y); show(); return; }
-      wL = Math.max(-1.2, Math.min(LMAX + 1.2, wL));
+      { const k = held ? 1.2 : 0.45; wL = Math.max(Math.min(L0, -k), Math.min(Math.max(L0, LMAX + k), wL)); }      // (a step never pulls a give deeper than it is once it is at the floor, nor shallower)
       if (Math.abs(d) < 12 && wL >= 0 && wL <= LMAX) { wheelStop(); tool.zoomTo(Math.exp(wL), x, y); show(); }      // a trackpad's fine steps are followed as they come
       else { if (Math.abs(d) < 12) { tool.zoomTo(Math.exp(soft(wL)), x, y, true); show(); } if (!wr) wr = requestAnimationFrame(wheelStep); }
     }, { passive: false });
@@ -4281,10 +4333,10 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   function tick(b) { if (!b) return; if (b._was == null) b._was = b.innerHTML; b.innerHTML = CHECK_SVG; clearTimeout(b._tick); b._tick = setTimeout(() => { b.innerHTML = b._was; b._was = null; }, 1400); }   // a picture button says "done" with a tick
 
   // ---------- your own colour (v19.24): the third chip opens a picker for the ink and the ground. It floats over the page, so nothing moves when it opens.
-  // Slate, Oxide, Indigo, Mauve and Default (the picker's own purple) sit under it as plates; choosing one shows its pair here, and changing anything starts from that pair. Your pair is kept on this device.
+  // Slate, Oxide, Indigo, Mauve and Default (the picker's own purple) sit under it as plates; choosing one shows its pair here, and changing anything starts from that pair. Your pair lasts for the visit (v1.1.3).
   // The stage, the PNG frames, the video, the SVG, the embed code and the README all read COLOURS like any other colour.
   const CKEY = 'rhizoma-smoke.custom-colour', HEX = /^#[0-9a-f]{6}$/i, PLATES = ['slate', 'oxide', 'indigo', 'mauve', 'lilac'];
-  try { const j = JSON.parse(localStorage.getItem(CKEY) || 'null'); if (j && HEX.test(j.ink) && HEX.test(j.ground)) COLOURS.custom = { ink: j.ink.toUpperCase(), ground: j.ground.toUpperCase() }; } catch (e) { /* no storage here: the pair lasts for the visit */ }
+  try { localStorage.removeItem(CKEY); } catch (e) { /* no storage here */ }
   const cpEl = $('cpick'), cpChip = $('c-custom'), cpCs = $('c-custom-cs'), cpSv = $('cp-sv'), cpHue = $('cp-hue'), cpHex = $('cp-hex');
   const cpKey = () => (st.colour === 'custom' || PLATES.indexOf(st.colour) >= 0) ? st.colour : 'custom';     // the pair the picker shows
   const cpView = () => COLOURS[cpKey()];
@@ -4317,7 +4369,6 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
     takeCustom()[cpPart] = hex.toUpperCase();
     if (!fromHsv) { const n = hsvOf(hex); if (n.s === 0 || n.v === 0) n.h = cpHsv.h; cpHsv = n; }
     cpPaint(); tool.redraw();
-    try { localStorage.setItem(CKEY, JSON.stringify(COLOURS.custom)); } catch (e) { /* kept for the visit only */ }
   }
   function dragOn(el, fn) {
     el.addEventListener('pointerdown', e => {
@@ -4483,7 +4534,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
       'Import each folder as an image sequence at ' + o.fps + ' frames a second.', '',
       'The same text, typeface, growth, weight and seed grow the same shape in any browser, so these frames can be made again: set them in the tool on the Rhizoma Smoke site (https://sativus-gourd.github.io/rhizoma-smoke/), open Record, pick PNG frames, and choose the same take, frame rate, size and speed.',
       'The same word on a web page: ' + embedCode().split('\n')[1],
-      'SG Rhizoma Engine v1.1.2, Sativus Gourd, 2026.'].filter((l, k, a) => l !== '' || a[k - 1] !== '').join('\n') + '\n';
+      'SG Rhizoma Engine v1.1.3, Sativus Gourd, 2026.'].filter((l, k, a) => l !== '' || a[k - 1] !== '').join('\n') + '\n';
   }
   // PNG frames. A zip is built in memory, so a take is cut into parts of about 125 MB, each saved as soon as it is made: a 4K take of a heavy
   // growth comes in a few, and a 1080p take in one. Part 1 carries the README; the folder names are the same in every part, and the frame numbers
@@ -4847,7 +4898,7 @@ details.more[open] > summary { border-bottom: 1px solid var(--rule); }
   $('home').addEventListener('click', e => { if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return; e.preventDefault(); resetPage(); });
 
   // the build checks listen here (the page's own use of it: none)
-  if (window.__rsLab) window.__rsLab({ paint, playSecs, takePlan, ease, RELEASE_SECS, embedCode, toolCol, REC_EM, REC_PAD, tool, st, recOpts, cached, grow, fit, drawPart, morphPlan, morphState, morphWidths, morphPace, morphCam, growth, seed, toolText, smokeWidth: (sc, it, R, i, nf, step, keep) => segWidth(sc, it, R, leaves(R, smoothed(R), it), i, nf, step, keep), KEEP_NIB, svgOf, lwOf, allRoots, COLOURS, FACE_LW, FONT_SEEDS, LABEL, get fonts() { return FONTS; } });
+  if (window.__rsLab) window.__rsLab({ paint, playSecs, takePlan, ease, RELEASE_SECS, embedCode, toolCol, REC_EM, REC_PAD, tool, st, recOpts, cached, grow, fit, drawPart, morphPlan, morphState, morphWidths, morphPace, morphCam, growth, seed, toolText, smoothed, S2, smokeWidth: (sc, it, R, i, nf, step, keep) => segWidth(sc, it, R, leaves(R, smoothed(R), it), i, nf, step, keep), KEEP_NIB, svgOf, lwOf, allRoots, COLOURS, FACE_LW, FONT_SEEDS, LABEL, get fonts() { return FONTS; } });
   // ---------- boot
   Promise.all(['fonts/im-fell-english.woff', 'fonts/song-myung-korean.woff'].map(u => fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.arrayBuffer(); })))
     .then(bufs => {
